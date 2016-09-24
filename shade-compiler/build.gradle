@@ -1,7 +1,8 @@
 apply plugin: 'java'
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
+def javaVersions = rootProject.ext.javaVersions
+sourceCompatibility = javaVersions.sourceCompatibility
+targetCompatibility = javaVersions.targetCompatibility
 
 dependencies {
 }

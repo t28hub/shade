@@ -1,0 +1,25 @@
+allprojects {
+    repositories {
+        jcenter()
+    }
+}
+
+ext {
+    def majorVersion = 1
+    def minorVersion = 0
+    def patchVersion = 0
+    versionCode = majorVersion * 10000 + minorVersion * 100 + patchVersion
+    versionName = "${majorVersion}.${minorVersion}.${patchVersion}"
+
+    javaVersions = [
+            sourceCompatibility: JavaVersion.VERSION_1_8,
+            targetCompatibility: JavaVersion.VERSION_1_8,
+    ]
+
+    androidVersions = [
+            minSdk    : 16,
+            targetSdk : 24,
+            compileSdk: 24,
+            buildTools: '24.0.2',
+    ]
+}
