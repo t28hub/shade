@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'android-apt'
 
 android {
     def androidVersions = rootProject.ext.androidVersions
@@ -6,8 +7,9 @@ android {
     buildToolsVersion androidVersions.buildTools
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        def javaVersions = rootProject.ext.exampleJavaVersions
+        sourceCompatibility = javaVersions.sourceCompatibility
+        targetCompatibility = javaVersions.targetCompatibility
     }
 
     defaultConfig {
@@ -19,10 +21,6 @@ android {
         versionName rootProject.ext.versionName
 
         testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
-
-        jackOptions {
-            enabled true
-        }
     }
 
     buildTypes {
@@ -34,6 +32,11 @@ android {
 }
 
 dependencies {
+    // Shade
+    apt project(':shade-compiler')
+    compile project(':shade')
+
+    // Support libraries
     compile 'com.android.support:appcompat-v7:24.2.1'
 
     testCompile 'junit:junit:4.12'
