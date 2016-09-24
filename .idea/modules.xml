@@ -5,6 +5,7 @@
       <module fileurl="file://$PROJECT_DIR$/Shade.iml" filepath="$PROJECT_DIR$/Shade.iml" />
       <module fileurl="file://$PROJECT_DIR$/example/example.iml" filepath="$PROJECT_DIR$/example/example.iml" />
       <module fileurl="file://$PROJECT_DIR$/shade/shade.iml" filepath="$PROJECT_DIR$/shade/shade.iml" />
+      <module fileurl="file://$PROJECT_DIR$/shade-compiler/shade-compiler.iml" filepath="$PROJECT_DIR$/shade-compiler/shade-compiler.iml" />
     </modules>
   </component>
 </project>
