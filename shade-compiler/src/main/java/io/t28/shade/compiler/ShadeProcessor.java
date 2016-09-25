@@ -37,11 +37,6 @@ import static java.util.stream.Collectors.toList;
 @AutoService(Processor.class)
 public class ShadeProcessor extends AbstractProcessor {
     private static final String LOCAL_VARIABLE_PREFERENCE = "preferences";
-    private static final String DEFAULT_BOOLEAN = "false";
-    private static final String DEFAULT_FLOAT = "0.0f";
-    private static final String DEFAULT_INT = "0";
-    private static final String DEFAULT_LONG = "0";
-    private static final String DEFAULT_STRING = "";
 
     private Filer filer;
     private Elements elements;
@@ -116,6 +111,10 @@ public class ShadeProcessor extends AbstractProcessor {
                 );
 
         final Collection<PropertyAttribute> properties = preferenceAttribute.findProperties();
+        properties.forEach(property -> {
+            final ConverterAttribute converter = property.converter();
+            System.out.println(converter);
+        });
         properties.forEach(property -> this.add(property, loadMethodBuilder));
         final String arguments = properties.stream()
                 .map(PropertyAttribute::name)
@@ -145,38 +144,42 @@ public class ShadeProcessor extends AbstractProcessor {
     }
 
     private void add(PropertyAttribute property, MethodSpec.Builder methodBuilder) {
-        final TypeName type = property.type();
-        if (type.equals(TypeName.BOOLEAN)) {
-            final String defaultValue = property.defaultValue(DEFAULT_BOOLEAN);
-            methodBuilder.addStatement("final $T $N = $N.getBoolean($S, $L)", boolean.class, property.name(), LOCAL_VARIABLE_PREFERENCE, property.key(), Boolean.valueOf(defaultValue));
-            return;
+        final ConverterAttribute converter = property.converter();
+        final TypeName supportedType;
+        final TypeName convertedType;
+        if (converter.isDefault()) {
+            supportedType = property.type();
+            convertedType = property.type();
+        } else {
+            supportedType = converter.supportedType();
+            convertedType = converter.convertedType();
         }
 
-        if (type.equals(TypeName.FLOAT)) {
-            final String defaultValue = property.defaultValue(DEFAULT_FLOAT);
-            methodBuilder.addStatement("final $T $N = $N.getFloat($S, $L)", float.class, property.name(), LOCAL_VARIABLE_PREFERENCE, property.key(), Float.valueOf(defaultValue));
-            return;
+        final SupportedType supported = SupportedType.find(supportedType)
+                .orElseThrow(() -> new IllegalArgumentException("Specified type(" + supportedType + ") is not supported and should use a converter"));
+        final String defaultValue = property.defaultValue();
+        if (converter.isDefault()) {
+            methodBuilder.addStatement(
+                    "final $T $N = $N.$L($S, $L)",
+                    supportedType,
+                    property.name(),
+                    LOCAL_VARIABLE_PREFERENCE,
+                    supported.loadMethodName(),
+                    property.key(),
+                    supported.parseString(defaultValue)
+            );
+        } else {
+            methodBuilder.addStatement(
+                    "final $T $N = new $T().toConverted($N.$L($S, $L))",
+                    convertedType,
+                    property.name(),
+                    converter.className(),
+                    LOCAL_VARIABLE_PREFERENCE,
+                    supported.loadMethodName(),
+                    property.key(),
+                    supported.parseString(defaultValue)
+            );
         }
-
-        if (type.equals(TypeName.INT)) {
-            final String defaultValue = property.defaultValue(DEFAULT_INT);
-            methodBuilder.addStatement("final $T $N = $N.getInt($S, $L)", int.class, property.name(), LOCAL_VARIABLE_PREFERENCE, property.key(), Integer.valueOf(defaultValue));
-            return;
-        }
-
-        if (type.equals(TypeName.LONG)) {
-            final String defaultValue = property.defaultValue(DEFAULT_LONG);
-            methodBuilder.addStatement("final $T $N = $N.getLong($S, $L)", long.class, property.name(), LOCAL_VARIABLE_PREFERENCE, property.key(), Long.valueOf(defaultValue));
-            return;
-        }
-
-        if (type.equals(ClassName.get(String.class))) {
-            final String defaultValue = property.defaultValue(DEFAULT_STRING);
-            methodBuilder.addStatement("final $T $N = $N.getString($S, $S)", String.class, property.name(), LOCAL_VARIABLE_PREFERENCE, property.key(), defaultValue);
-            return;
-        }
-
-        throw new IllegalArgumentException("Specified type(" + type + ") is not supported");
     }
 
     private TypeSpec generateEntity(PreferenceAttribute preferenceAttribute) {

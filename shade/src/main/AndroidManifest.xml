@@ -1,7 +1,5 @@
-<manifest
-    package="io.t28.shade"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest package="io.t28.shade">
 
-    <application android:allowBackup="true"/>
+    <application/>
 
 </manifest>
