@@ -1,0 +1,31 @@
+machine:
+  java:
+    version: oraclejdk8
+  post:
+    - sudo service mysql stop
+    - sudo service postgresql stop
+  timezone:
+    Asia/Tokyo
+  environment:
+    ANDROID_HOME: /usr/local/android-sdk-linux
+
+checkout:
+  post:
+    - chmod +x ./gradlew
+
+dependencies:
+  pre:
+    - ./gradlew --version
+    - mkdir ${ANDROID_HOME}/licenses
+    - echo ${ANDROID_SDK_LICENSE} >> ${ANDROID_HOME}/licenses/android-sdk-license
+    - echo ${ANDROID_SDK_PREVIEW_LICENSE} >> ${ANDROID_HOME}/licenses/android-sdk-preview-cicense
+
+test:
+  override:
+    - ./gradlew test
+
+deployment:
+  master:
+    branch: master
+    commands:
+      - ./gradlew assembleRelease
