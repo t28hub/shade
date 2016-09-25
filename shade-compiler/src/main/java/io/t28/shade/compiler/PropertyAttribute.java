@@ -1,5 +1,6 @@
 package io.t28.shade.compiler;
 
+import com.google.common.base.Strings;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
 
@@ -8,7 +9,7 @@ import javax.lang.model.element.ExecutableElement;
 
 import io.t28.shade.annotations.Shade;
 
-public class PropertyAttribute {
+class PropertyAttribute {
     private final ExecutableElement element;
     private final Shade.Property annotation;
 
@@ -43,8 +44,20 @@ public class PropertyAttribute {
         return element;
     }
 
+    boolean hasKey() {
+        return Strings.isNullOrEmpty(annotation.value());
+    }
+
     @Nonnull
-    Shade.Property annotation() {
-        return annotation;
+    String key() {
+        return annotation.value();
+    }
+
+    @Nonnull
+    String defaultValue(@Nonnull String defValue) {
+        if (Strings.isNullOrEmpty(annotation.defValue())) {
+            return defValue;
+        }
+        return annotation.defValue();
     }
 }

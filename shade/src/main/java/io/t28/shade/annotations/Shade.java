@@ -17,5 +17,7 @@ public @interface Shade {
     @Retention(RetentionPolicy.CLASS)
     @interface Property {
         String value();
+
+        String defValue() default "";
     }
 }
