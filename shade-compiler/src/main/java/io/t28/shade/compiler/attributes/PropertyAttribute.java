@@ -74,8 +74,7 @@ public class PropertyAttribute {
     }
 
     @Nonnull
-    public Optional<ConverterAttribute> converter() {
-        return Optional.of(converter)
-                .filter(attribute -> !attribute.isDefault());
+    public ConverterAttribute converter() {
+        return converter;
     }
 }

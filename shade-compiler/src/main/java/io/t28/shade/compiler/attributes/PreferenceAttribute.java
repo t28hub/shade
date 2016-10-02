@@ -2,6 +2,8 @@ package io.t28.shade.compiler.attributes;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
 import com.squareup.javapoet.ClassName;
 
 import java.util.Collection;
@@ -20,6 +22,7 @@ import static java.util.stream.Collectors.toList;
 public class PreferenceAttribute {
     private final TypeElement element;
     private final Shade.Preference annotation;
+    private final Collection<PropertyAttribute> properties;
 
     private PreferenceAttribute(TypeElement element, Shade.Preference annotation) {
         if (element == null) {
@@ -30,6 +33,12 @@ public class PreferenceAttribute {
         }
         this.element = element;
         this.annotation = annotation;
+        this.properties = element.getEnclosedElements()
+                .stream()
+                .filter(enclosed -> enclosed.getAnnotation(Shade.Property.class) != null)
+                .map(ExecutableElement.class::cast)
+                .map(PropertyAttribute::create)
+                .collect(toList());
     }
 
     @Nonnull
@@ -57,21 +66,16 @@ public class PreferenceAttribute {
     }
 
     @Nonnull
-    public Optional<String> name() {
+    public String name() {
         final String name = annotation.value();
         if (Strings.isNullOrEmpty(name)) {
-            return Optional.empty();
+            throw new IllegalArgumentException("SharedPreferences name must not be empty");
         }
-        return Optional.of(name);
+        return name;
     }
 
     @Nonnull
-    public Collection<PropertyAttribute> findProperties() {
-        return element.getEnclosedElements()
-                .stream()
-                .filter(element -> element.getAnnotation(Shade.Property.class) != null)
-                .map(ExecutableElement.class::cast)
-                .map(PropertyAttribute::create)
-                .collect(toList());
+    public Collection<PropertyAttribute> properties() {
+        return ImmutableList.copyOf(properties);
     }
 }
