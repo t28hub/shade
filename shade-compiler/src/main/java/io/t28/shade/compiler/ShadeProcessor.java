@@ -15,6 +15,7 @@ import com.squareup.javapoet.TypeSpec;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -31,6 +32,9 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 
 import io.t28.shade.annotations.Shade;
+import io.t28.shade.compiler.attributes.ConverterAttribute;
+import io.t28.shade.compiler.attributes.PreferenceAttribute;
+import io.t28.shade.compiler.attributes.PropertyAttribute;
 import io.t28.shade.compiler.exceptions.ClassGenerationException;
 
 import static java.util.stream.Collectors.toList;
@@ -82,11 +86,7 @@ public class ShadeProcessor extends AbstractProcessor {
     }
 
     private void generateService(TypeElement element) {
-        final PreferenceAttribute preferenceAttribute = PreferenceAttribute.from(element);
-        if (!preferenceAttribute.hasPreferenceName()) {
-            throw new IllegalArgumentException("SharedPreferences name must not be empty");
-        }
-
+        final PreferenceAttribute preference = PreferenceAttribute.create(element);
         final MethodSpec constructorSpec = MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(Context.class, "context")
@@ -98,8 +98,10 @@ public class ShadeProcessor extends AbstractProcessor {
                 .build();
 
         // Preference class implementation
-        final TypeSpec entitySpec = generateEntity(preferenceAttribute);
+        final TypeSpec entitySpec = generateEntity(preference);
 
+        final String preferenceName = preference.name()
+                .orElseThrow(() -> new IllegalArgumentException("SharedPreferences name must not be empty"));
         final MethodSpec.Builder loadMethodBuilder = MethodSpec.methodBuilder("load")
                 .addModifiers(Modifier.PUBLIC)
                 .addStatement(
@@ -107,22 +109,18 @@ public class ShadeProcessor extends AbstractProcessor {
                         SharedPreferences.class,
                         LOCAL_VARIABLE_PREFERENCE,
                         "context",
-                        preferenceAttribute.preferenceName(),
+                        preferenceName,
                         Context.MODE_PRIVATE
                 );
 
-        final Collection<PropertyAttribute> properties = preferenceAttribute.findProperties();
-        properties.forEach(property -> {
-            final ConverterAttribute converter = property.converter();
-            System.out.println(converter);
-        });
+        final Collection<PropertyAttribute> properties = preference.findProperties();
         properties.forEach(property -> this.add(property, loadMethodBuilder));
         final String arguments = properties.stream()
                 .map(PropertyAttribute::name)
                 .collect(Collectors.joining(", "));
         final MethodSpec loadMethod = loadMethodBuilder
                 .addStatement("return new $N($L)", entitySpec, arguments)
-                .returns(preferenceAttribute.entityClass(elements))
+                .returns(preference.entityClass(elements))
                 .build();
 
         final TypeSpec serviceSpec = TypeSpec.classBuilder(element.getSimpleName() + "Service")
@@ -134,7 +132,7 @@ public class ShadeProcessor extends AbstractProcessor {
                 .build();
 
         try {
-            JavaFile.builder(preferenceAttribute.packageName(elements), serviceSpec)
+            JavaFile.builder(preference.packageName(elements), serviceSpec)
                     .skipJavaLangImports(true)
                     .indent("    ")
                     .build()
@@ -145,17 +143,22 @@ public class ShadeProcessor extends AbstractProcessor {
     }
 
     private void add(PropertyAttribute property, MethodSpec.Builder methodBuilder) {
-        final ConverterAttribute converter = property.converter();
+        final Optional<ConverterAttribute> converter = property.converter();
         final TypeName supportedType;
-        if (converter.isDefault()) {
-            supportedType = property.type();
+        if (converter.isPresent()) {
+            supportedType = converter.get().supportedType();
         } else {
-            supportedType = converter.supportedType();
+            supportedType = property.type();
         }
 
         final SupportedType supported = SupportedType.find(supportedType)
                 .orElseThrow(() -> new IllegalArgumentException("Specified type(" + supportedType + ") is not supported and should use a converter"));
-        final CodeBlock loadStatement = supported.buildLoadStatement(property, LOCAL_VARIABLE_PREFERENCE);
+        final CodeBlock loadStatement;
+        if (converter.isPresent()) {
+            loadStatement = supported.buildLoadStatement(property, converter.get(), LOCAL_VARIABLE_PREFERENCE);
+        } else {
+            loadStatement = supported.buildLoadStatement(property, LOCAL_VARIABLE_PREFERENCE);
+        }
         methodBuilder.addCode(loadStatement);
     }
 
@@ -182,16 +185,11 @@ public class ShadeProcessor extends AbstractProcessor {
         });
 
         final Collection<MethodSpec> methods = properties.stream()
-                .map(property -> {
-                    if (property.hasKey()) {
-                        throw new RuntimeException("Key must not be empty");
-                    }
-
-                    return MethodSpec.overriding(property.method())
-                            .addStatement("return this.$N", property.name())
-                            .addModifiers(Modifier.FINAL)
-                            .build();
-                })
+                .map(property -> MethodSpec.overriding(property.method())
+                        .addStatement("return this.$N", property.name())
+                        .addModifiers(Modifier.FINAL)
+                        .build()
+                )
                 .collect(toList());
         methods.add(constructorBuilder.build());
 

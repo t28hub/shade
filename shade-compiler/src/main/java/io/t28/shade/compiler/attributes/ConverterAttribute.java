@@ -1,5 +1,6 @@
-package io.t28.shade.compiler;
+package io.t28.shade.compiler.attributes;
 
+import com.google.common.base.MoreObjects;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
 
@@ -10,11 +11,12 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.MirroredTypeException;
 
 import io.t28.shade.annotations.Shade;
+import io.t28.shade.compiler.SupportedType;
 import io.t28.shade.compiler.utils.TypeNames;
 import io.t28.shade.converters.Converter;
 import io.t28.shade.converters.DefaultConverter;
 
-class ConverterAttribute {
+public class ConverterAttribute {
     private static final int GENERICS_SIZE = 2;
     private static final int INDEX_CONVERTED_TYPE = 0;
     private static final int INDEX_SUPPORTED_TYPE = 1;
@@ -56,22 +58,31 @@ class ConverterAttribute {
         return new ConverterAttribute(className, supportedType, convertedType);
     }
 
-    boolean isDefault() {
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("className", className)
+                .add("supportedType", supportedType)
+                .add("convertedType", convertedType)
+                .toString();
+    }
+
+    public boolean isDefault() {
         return DEFAULT_CLASS.equals(className);
     }
 
     @Nonnull
-    ClassName className() {
+    public ClassName className() {
         return className;
     }
 
     @Nonnull
-    TypeName supportedType() {
+    public TypeName supportedType() {
         return supportedType;
     }
 
     @Nonnull
-    TypeName convertedType() {
+    public TypeName convertedType() {
         return convertedType;
     }
 }

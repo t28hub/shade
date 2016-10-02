@@ -1,5 +1,6 @@
-package io.t28.shade.compiler;
+package io.t28.shade.compiler.attributes;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
@@ -7,12 +8,11 @@ import com.squareup.javapoet.TypeName;
 import java.util.Optional;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.lang.model.element.ExecutableElement;
 
 import io.t28.shade.annotations.Shade;
 
-class PropertyAttribute {
+public class PropertyAttribute {
     private final ExecutableElement element;
     private final Shade.Property annotation;
     private final ConverterAttribute converter;
@@ -30,45 +30,52 @@ class PropertyAttribute {
     }
 
     @Nonnull
-    static PropertyAttribute from(@Nonnull ExecutableElement element) {
+    static PropertyAttribute create(@Nonnull ExecutableElement element) {
         return new PropertyAttribute(element, element.getAnnotation(Shade.Property.class));
     }
 
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("element", element)
+                .add("annotation", annotation)
+                .add("converter", converter)
+                .toString();
+    }
+
     @Nonnull
-    String name() {
+    public String name() {
         return element.getSimpleName().toString();
     }
 
     @Nonnull
-    TypeName type() {
+    public TypeName type() {
         return ClassName.get(element.getReturnType());
     }
 
     @Nonnull
-    ExecutableElement method() {
+    public ExecutableElement method() {
         return element;
     }
 
-    boolean hasKey() {
-        return Strings.isNullOrEmpty(annotation.value());
-    }
-
     @Nonnull
-    String key() {
-        return annotation.value();
-    }
-
-    @Nullable
-    Optional<String> defaultValue() {
-        final String defaultValue = annotation.defValue();
-        if (Strings.isNullOrEmpty(defaultValue)) {
-            return Optional.empty();
+    public String key() {
+        final String key = annotation.value();
+        if (Strings.isNullOrEmpty(key)) {
+            throw new IllegalArgumentException("Specified key is empty within " + name());
         }
-        return Optional.of(defaultValue);
+        return key;
     }
 
     @Nonnull
-    ConverterAttribute converter() {
-        return converter;
+    public Optional<String> defaultValue() {
+        return Optional.of(annotation.defValue())
+                .filter(value -> !value.isEmpty());
+    }
+
+    @Nonnull
+    public Optional<ConverterAttribute> converter() {
+        return Optional.of(converter)
+                .filter(attribute -> !attribute.isDefault());
     }
 }
