@@ -3,6 +3,7 @@ package io.t28.shade.example.model;
 import android.net.Uri;
 
 import java.util.Date;
+import java.util.Set;
 
 import io.t28.shade.annotations.Shade;
 import io.t28.shade.example.converters.DateConverter;
@@ -18,6 +19,9 @@ public interface Example {
 
     @Shade.Property("string_value")
     String string();
+
+    @Shade.Property("string_set_value")
+    Set<String> set();
 
     @Shade.Property(value = "date_value", converter = DateConverter.class)
     Date date();
