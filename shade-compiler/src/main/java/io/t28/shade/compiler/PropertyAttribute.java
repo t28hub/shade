@@ -5,6 +5,7 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.lang.model.element.ExecutableElement;
 
 import io.t28.shade.annotations.Shade;
@@ -53,11 +54,13 @@ class PropertyAttribute {
         return annotation.value();
     }
 
-    @Nonnull
-    String defaultValue(@Nonnull String defValue) {
-        if (Strings.isNullOrEmpty(annotation.defValue())) {
-            return defValue;
-        }
+    @Nullable
+    String defaultValue() {
         return annotation.defValue();
+    }
+
+    @Nonnull
+    ConverterAttribute converter() {
+        return ConverterAttribute.create(annotation);
     }
 }
