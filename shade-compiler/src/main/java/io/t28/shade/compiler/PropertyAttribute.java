@@ -4,6 +4,8 @@ import com.google.common.base.Strings;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
 
+import java.util.Optional;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.lang.model.element.ExecutableElement;
@@ -13,6 +15,7 @@ import io.t28.shade.annotations.Shade;
 class PropertyAttribute {
     private final ExecutableElement element;
     private final Shade.Property annotation;
+    private final ConverterAttribute converter;
 
     private PropertyAttribute(ExecutableElement element, Shade.Property annotation) {
         if (element == null) {
@@ -23,6 +26,7 @@ class PropertyAttribute {
         }
         this.element = element;
         this.annotation = annotation;
+        this.converter = ConverterAttribute.create(annotation);
     }
 
     @Nonnull
@@ -55,12 +59,16 @@ class PropertyAttribute {
     }
 
     @Nullable
-    String defaultValue() {
-        return annotation.defValue();
+    Optional<String> defaultValue() {
+        final String defaultValue = annotation.defValue();
+        if (Strings.isNullOrEmpty(defaultValue)) {
+            return Optional.empty();
+        }
+        return Optional.of(defaultValue);
     }
 
     @Nonnull
     ConverterAttribute converter() {
-        return ConverterAttribute.create(annotation);
+        return converter;
     }
 }

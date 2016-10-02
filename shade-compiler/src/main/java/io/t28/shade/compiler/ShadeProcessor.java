@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import com.google.auto.service.AutoService;
 import com.google.common.collect.ImmutableSet;
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
@@ -146,40 +147,16 @@ public class ShadeProcessor extends AbstractProcessor {
     private void add(PropertyAttribute property, MethodSpec.Builder methodBuilder) {
         final ConverterAttribute converter = property.converter();
         final TypeName supportedType;
-        final TypeName convertedType;
         if (converter.isDefault()) {
             supportedType = property.type();
-            convertedType = property.type();
         } else {
             supportedType = converter.supportedType();
-            convertedType = converter.convertedType();
         }
 
         final SupportedType supported = SupportedType.find(supportedType)
                 .orElseThrow(() -> new IllegalArgumentException("Specified type(" + supportedType + ") is not supported and should use a converter"));
-        final String defaultValue = property.defaultValue();
-        if (converter.isDefault()) {
-            methodBuilder.addStatement(
-                    "final $T $N = $N.$L($S, $L)",
-                    supportedType,
-                    property.name(),
-                    LOCAL_VARIABLE_PREFERENCE,
-                    supported.loadMethodName(),
-                    property.key(),
-                    supported.parseString(defaultValue)
-            );
-        } else {
-            methodBuilder.addStatement(
-                    "final $T $N = new $T().toConverted($N.$L($S, $L))",
-                    convertedType,
-                    property.name(),
-                    converter.className(),
-                    LOCAL_VARIABLE_PREFERENCE,
-                    supported.loadMethodName(),
-                    property.key(),
-                    supported.parseString(defaultValue)
-            );
-        }
+        final CodeBlock loadStatement = supported.buildLoadStatement(property, LOCAL_VARIABLE_PREFERENCE);
+        methodBuilder.addCode(loadStatement);
     }
 
     private TypeSpec generateEntity(PreferenceAttribute preferenceAttribute) {
