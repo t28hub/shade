@@ -1,9 +1,11 @@
-package io.t28.shade.compiler;
+package io.t28.shade.compiler.attributes;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
 import com.squareup.javapoet.ClassName;
 
 import java.util.Collection;
+import java.util.Optional;
 
 import javax.annotation.Nonnull;
 import javax.lang.model.element.ExecutableElement;
@@ -15,7 +17,7 @@ import io.t28.shade.annotations.Shade;
 
 import static java.util.stream.Collectors.toList;
 
-class PreferenceAttribute {
+public class PreferenceAttribute {
     private final TypeElement element;
     private final Shade.Preference annotation;
 
@@ -31,42 +33,45 @@ class PreferenceAttribute {
     }
 
     @Nonnull
-    static PreferenceAttribute from(@Nonnull TypeElement element) {
+    public static PreferenceAttribute create(@Nonnull TypeElement element) {
         return new PreferenceAttribute(element, element.getAnnotation(Shade.Preference.class));
     }
 
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("element", element)
+                .add("annotation", annotation)
+                .toString();
+    }
+
     @Nonnull
-    String packageName(@Nonnull Elements elements) {
+    public String packageName(@Nonnull Elements elements) {
         final PackageElement packageElement = elements.getPackageOf(element);
         return packageElement.getQualifiedName().toString();
     }
 
     @Nonnull
-    ClassName entityClass(@Nonnull Elements elements) {
+    public ClassName entityClass(@Nonnull Elements elements) {
         return ClassName.get(packageName(elements), element.getSimpleName().toString());
     }
 
     @Nonnull
-    Shade.Preference annotation() {
-        return annotation;
+    public Optional<String> name() {
+        final String name = annotation.value();
+        if (Strings.isNullOrEmpty(name)) {
+            return Optional.empty();
+        }
+        return Optional.of(name);
     }
 
     @Nonnull
-    String preferenceName() {
-        return annotation.value();
-    }
-
-    boolean hasPreferenceName() {
-        return !Strings.isNullOrEmpty(annotation.value());
-    }
-
-    @Nonnull
-    Collection<PropertyAttribute> findProperties() {
+    public Collection<PropertyAttribute> findProperties() {
         return element.getEnclosedElements()
                 .stream()
                 .filter(element -> element.getAnnotation(Shade.Property.class) != null)
                 .map(ExecutableElement.class::cast)
-                .map(PropertyAttribute::from)
+                .map(PropertyAttribute::create)
                 .collect(toList());
     }
 }
