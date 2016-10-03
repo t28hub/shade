@@ -48,6 +48,33 @@ public enum SupportedType {
                     )
                     .build();
         }
+
+        @Nonnull
+        @Override
+        CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull String editor) {
+            return CodeBlock.builder()
+                    .addStatement(
+                            "$N.putBoolean($S, this.$L)",
+                            editor,
+                            property.key(),
+                            property.name()
+                    )
+                    .build();
+        }
+
+        @Nonnull
+        @Override
+        CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String editor) {
+            return CodeBlock.builder()
+                    .addStatement(
+                            "$N.putBoolean($S, new $T().toSupported(this.$L))",
+                            editor,
+                            property.key(),
+                            converter.className(),
+                            property.name()
+                    )
+                    .build();
+        }
     },
     FLOAT(TypeName.FLOAT) {
         private static final float DEFAULT_VALUE = 0.0f;
@@ -78,6 +105,33 @@ public enum SupportedType {
                             preference,
                             property.key(),
                             property.defaultValue().map(Float::valueOf).orElse(DEFAULT_VALUE)
+                    )
+                    .build();
+        }
+
+        @Nonnull
+        @Override
+        CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull String editor) {
+            return CodeBlock.builder()
+                    .addStatement(
+                            "$N.putFloat($S, this.$L)",
+                            editor,
+                            property.key(),
+                            property.name()
+                    )
+                    .build();
+        }
+
+        @Nonnull
+        @Override
+        CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String editor) {
+            return CodeBlock.builder()
+                    .addStatement(
+                            "$N.putFloat($S, new $T().toSupported(this.$L))",
+                            editor,
+                            property.key(),
+                            converter.className(),
+                            property.name()
                     )
                     .build();
         }
@@ -114,6 +168,33 @@ public enum SupportedType {
                     )
                     .build();
         }
+
+        @Nonnull
+        @Override
+        CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull String editor) {
+            return CodeBlock.builder()
+                    .addStatement(
+                            "$N.putInt($S, this.$L)",
+                            editor,
+                            property.key(),
+                            property.name()
+                    )
+                    .build();
+        }
+
+        @Nonnull
+        @Override
+        CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String editor) {
+            return CodeBlock.builder()
+                    .addStatement(
+                            "$N.putInt($S, new $T().toSupported(this.$L))",
+                            editor,
+                            property.key(),
+                            converter.className(),
+                            property.name()
+                    )
+                    .build();
+        }
     },
     LONG(TypeName.LONG) {
         private static final long DEFAULT_VALUE = 0L;
@@ -144,6 +225,33 @@ public enum SupportedType {
                             preference,
                             property.key(),
                             property.defaultValue().map(Long::valueOf).orElse(DEFAULT_VALUE)
+                    )
+                    .build();
+        }
+
+        @Nonnull
+        @Override
+        CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull String editor) {
+            return CodeBlock.builder()
+                    .addStatement(
+                            "$N.putLong($S, this.$L)",
+                            editor,
+                            property.key(),
+                            property.name()
+                    )
+                    .build();
+        }
+
+        @Nonnull
+        @Override
+        CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String editor) {
+            return CodeBlock.builder()
+                    .addStatement(
+                            "$N.putLong($S, new $T().toSupported(this.$L))",
+                            editor,
+                            property.key(),
+                            converter.className(),
+                            property.name()
                     )
                     .build();
         }
@@ -178,6 +286,33 @@ public enum SupportedType {
                             preference,
                             property.key(),
                             property.defaultValue().orElse(DEFAULT_VALUE)
+                    )
+                    .build();
+        }
+
+        @Nonnull
+        @Override
+        CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull String editor) {
+            return CodeBlock.builder()
+                    .addStatement(
+                            "$N.putString($S, this.$L)",
+                            editor,
+                            property.key(),
+                            property.name()
+                    )
+                    .build();
+        }
+
+        @Nonnull
+        @Override
+        CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String editor) {
+            return CodeBlock.builder()
+                    .addStatement(
+                            "$N.putString($S, new $T().toSupported(this.$L))",
+                            editor,
+                            property.key(),
+                            converter.className(),
+                            property.name()
                     )
                     .build();
         }
@@ -216,6 +351,33 @@ public enum SupportedType {
                     )
                     .build();
         }
+
+        @Nonnull
+        @Override
+        CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull String editor) {
+            return CodeBlock.builder()
+                    .addStatement(
+                            "$N.putStringSet($S, this.$L)",
+                            editor,
+                            property.key(),
+                            property.name()
+                    )
+                    .build();
+        }
+
+        @Nonnull
+        @Override
+        CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String editor) {
+            return CodeBlock.builder()
+                    .addStatement(
+                            "$N.putStringSet($S, new $T().toSupported(this.$L))",
+                            editor,
+                            property.key(),
+                            converter.className(),
+                            property.name()
+                    )
+                    .build();
+        }
     };
 
     private final TypeName type;
@@ -239,4 +401,10 @@ public enum SupportedType {
 
     @Nonnull
     abstract CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String preference);
+
+    @Nonnull
+    abstract CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull String editor);
+
+    @Nonnull
+    abstract CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String editor);
 }
