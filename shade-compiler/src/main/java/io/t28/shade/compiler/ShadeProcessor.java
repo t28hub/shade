@@ -2,23 +2,18 @@ package io.t28.shade.compiler;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.net.Uri;
 
 import com.google.auto.service.AutoService;
 import com.google.common.collect.ImmutableSet;
-import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
-import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -34,14 +29,14 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 
-import io.t28.shade.Editor;
 import io.t28.shade.annotations.Shade;
 import io.t28.shade.compiler.attributes.ConverterAttribute;
 import io.t28.shade.compiler.attributes.PreferenceAttribute;
 import io.t28.shade.compiler.attributes.PropertyAttribute;
+import io.t28.shade.compiler.definitions.ClassDefinition;
+import io.t28.shade.compiler.definitions.EditorDefinition;
+import io.t28.shade.compiler.definitions.EntityDefinition;
 import io.t28.shade.compiler.exceptions.ClassGenerationException;
-
-import static java.util.stream.Collectors.toList;
 
 @AutoService(Processor.class)
 public class ShadeProcessor extends AbstractProcessor {
@@ -102,8 +97,9 @@ public class ShadeProcessor extends AbstractProcessor {
                 .build();
 
         // Preference class implementation
-        final TypeSpec entitySpec = generateEntity(preference);
-        final TypeSpec editorSpec = generateEditor(preference);
+        final ClassGenerator generator = new ClassGenerator();
+        final TypeSpec entitySpec = generator.generate(new EntityDefinition(elements, preference));
+        final TypeSpec editorSpec = generator.generate(new EditorDefinition(elements, preference));
 
         final String preferenceName = preference.name();
         final MethodSpec.Builder loadMethodBuilder = MethodSpec.methodBuilder("load")
@@ -165,143 +161,5 @@ public class ShadeProcessor extends AbstractProcessor {
             loadStatement = supported.buildLoadStatement(property, converter, LOCAL_VARIABLE_PREFERENCE);
         }
         methodBuilder.addCode(loadStatement);
-    }
-
-    private TypeSpec generateEntity(PreferenceAttribute preference) {
-        final Collection<FieldSpec> fields = preference.properties()
-                .stream()
-                .map(property -> {
-                    final String name = property.name();
-                    final TypeName type = property.type();
-                    return FieldSpec.builder(type, name)
-                            .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
-                            .build();
-                })
-                .collect(toList());
-
-        final MethodSpec.Builder constructorBuilder = MethodSpec.constructorBuilder()
-                .addModifiers(Modifier.PRIVATE);
-        preference.properties()
-                .forEach(property -> {
-            final String name = property.name();
-            final TypeName type = property.type();
-            constructorBuilder
-                    .addParameter(type, name)
-                    .addStatement("this.$N = $N", name, name);
-        });
-
-        final Collection<MethodSpec> methods = preference.properties()
-                .stream()
-                .map(property -> MethodSpec.overriding(property.method())
-                        .addStatement("return this.$N", property.name())
-                        .addModifiers(Modifier.FINAL)
-                        .build()
-                )
-                .collect(toList());
-        methods.add(constructorBuilder.build());
-
-        final ClassName entityClass = preference.entityClass(elements);
-        return TypeSpec.classBuilder(entityClass.simpleName() + "Impl")
-                .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-                .addSuperinterface(entityClass)
-                .addFields(fields)
-                .addMethods(methods)
-                .build();
-    }
-
-    private TypeSpec generateEditor(PreferenceAttribute preference) {
-        final Collection<FieldSpec> fields = preference.properties()
-                .stream()
-                .map(property -> {
-                    final String name = property.name();
-                    final TypeName type = property.type();
-                    return FieldSpec.builder(type, name)
-                            .addModifiers(Modifier.PRIVATE)
-                            .build();
-                })
-                .collect(toList());
-        fields.add(FieldSpec.builder(Context.class, "context")
-                .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
-                .build()
-        );
-
-        final ClassName entityClass = preference.entityClass(elements);
-        final ClassName editorClass = ClassName.get(Editor.class);
-
-        final Collection<MethodSpec> methods = preference.properties()
-                .stream()
-                .map(property -> MethodSpec.methodBuilder(property.name())
-                        .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                        .addParameter(property.type(), property.name())
-                        .addStatement("this.$N = $N", property.name(), property.name())
-                        .addStatement("return this")
-                        .returns(ClassName.bestGuess(entityClass.simpleName() + "Editor"))
-                        .build()
-                )
-                .collect(toList());
-
-        final MethodSpec.Builder constructorBuilder = MethodSpec.constructorBuilder()
-                .addModifiers(Modifier.PRIVATE)
-                .addParameter(Context.class, "context")
-                .addParameter(entityClass, entityClass.simpleName().toLowerCase())
-                .addStatement("this.context = context");
-        preference.properties().forEach(property -> {
-            constructorBuilder.addStatement(
-                    "this.$L = $L.$L()",
-                    property.name(),
-                    entityClass.simpleName().toLowerCase(),
-                    property.name()
-            );
-        });
-        methods.add(constructorBuilder.build());
-
-        final MethodSpec.Builder applyBuilder = MethodSpec.methodBuilder("apply")
-                .addAnnotation(Override.class)
-                .addModifiers(Modifier.PUBLIC)
-                .returns(entityClass)
-                .addStatement(
-                        "final $T preferences = this.context.getSharedPreferences($S, $L)",
-                        SharedPreferences.class,
-                        preference.name(),
-                        Context.MODE_PRIVATE
-                )
-                .addStatement(
-                        "final $T editor = preferences.edit()",
-                        SharedPreferences.Editor.class
-                );
-        preference.properties().forEach(property -> {
-            final ConverterAttribute converter = property.converter();
-            final TypeName supportedType;
-            if (converter.isDefault()) {
-                supportedType = property.type();
-            } else {
-                supportedType = converter.supportedType();
-            }
-
-            final SupportedType supported = SupportedType.find(supportedType)
-                    .orElseThrow(() -> new IllegalArgumentException("Specified type(" + supportedType + ") is not supported and should use a converter"));
-            final CodeBlock savingStatement;
-            if (converter.isDefault()) {
-                savingStatement = supported.buildSaveStatement(property, "editor");
-            } else {
-                savingStatement = supported.buildSaveStatement(property, converter, "editor");
-            }
-            applyBuilder.addCode(savingStatement);
-        });
-        applyBuilder.addStatement("editor.apply()");
-        final String arguments = preference.properties()
-                .stream()
-                .map(property -> "this." + property.name())
-                .collect(Collectors.joining(", "));
-        applyBuilder.addStatement("return new $T($L)", ClassName.bestGuess(entityClass.simpleName() + "Impl"), arguments);
-        methods.add(applyBuilder.build());
-
-        final ParameterizedTypeName superInterface = ParameterizedTypeName.get(editorClass, entityClass);
-        return TypeSpec.classBuilder(entityClass.simpleName() + "Editor")
-                .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-                .addSuperinterface(superInterface)
-                .addFields(fields)
-                .addMethods(methods)
-                .build();
     }
 }
