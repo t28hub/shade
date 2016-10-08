@@ -21,7 +21,7 @@ public enum SupportedType {
 
         @Nonnull
         @Override
-        CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull String preference) {
+        public CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull String preference) {
             return CodeBlock.builder()
                     .addStatement(
                             "final boolean $N = $N.getBoolean($S, $L)",
@@ -35,7 +35,7 @@ public enum SupportedType {
 
         @Nonnull
         @Override
-        CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String preference) {
+        public CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String preference) {
             return CodeBlock.builder()
                     .addStatement(
                             "final $T $N = new $T().toConverted($N.getBoolean($S, $L))",
@@ -51,7 +51,7 @@ public enum SupportedType {
 
         @Nonnull
         @Override
-        CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull String editor) {
+        public CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull String editor) {
             return CodeBlock.builder()
                     .addStatement(
                             "$N.putBoolean($S, this.$L)",
@@ -64,7 +64,7 @@ public enum SupportedType {
 
         @Nonnull
         @Override
-        CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String editor) {
+        public CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String editor) {
             return CodeBlock.builder()
                     .addStatement(
                             "$N.putBoolean($S, new $T().toSupported(this.$L))",
@@ -81,7 +81,7 @@ public enum SupportedType {
 
         @Nonnull
         @Override
-        CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull String preference) {
+        public CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull String preference) {
             return CodeBlock.builder()
                     .addStatement(
                             "final float $N = $N.getFloat($S, $L)",
@@ -95,7 +95,7 @@ public enum SupportedType {
 
         @Nonnull
         @Override
-        CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String preference) {
+        public CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String preference) {
             return CodeBlock.builder()
                     .addStatement(
                             "final $T $N = new $T().toConverted($N.getFloat($S, $L))",
@@ -111,7 +111,7 @@ public enum SupportedType {
 
         @Nonnull
         @Override
-        CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull String editor) {
+        public CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull String editor) {
             return CodeBlock.builder()
                     .addStatement(
                             "$N.putFloat($S, this.$L)",
@@ -124,7 +124,7 @@ public enum SupportedType {
 
         @Nonnull
         @Override
-        CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String editor) {
+        public CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String editor) {
             return CodeBlock.builder()
                     .addStatement(
                             "$N.putFloat($S, new $T().toSupported(this.$L))",
@@ -141,7 +141,7 @@ public enum SupportedType {
 
         @Nonnull
         @Override
-        CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull String preference) {
+        public CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull String preference) {
             return CodeBlock.builder()
                     .addStatement(
                             "final int $N = $N.getInt($S, $L)",
@@ -155,7 +155,7 @@ public enum SupportedType {
 
         @Nonnull
         @Override
-        CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String preference) {
+        public CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String preference) {
             return CodeBlock.builder()
                     .addStatement(
                             "final $T $N = new $T().toConverted($N.getInt($S, $L))",
@@ -171,7 +171,7 @@ public enum SupportedType {
 
         @Nonnull
         @Override
-        CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull String editor) {
+        public CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull String editor) {
             return CodeBlock.builder()
                     .addStatement(
                             "$N.putInt($S, this.$L)",
@@ -184,7 +184,7 @@ public enum SupportedType {
 
         @Nonnull
         @Override
-        CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String editor) {
+        public CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String editor) {
             return CodeBlock.builder()
                     .addStatement(
                             "$N.putInt($S, new $T().toSupported(this.$L))",
@@ -201,7 +201,7 @@ public enum SupportedType {
 
         @Nonnull
         @Override
-        CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull String preference) {
+        public CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull String preference) {
             return CodeBlock.builder()
                     .addStatement(
                             "final long $N = $N.getLong($S, $L)",
@@ -215,7 +215,7 @@ public enum SupportedType {
 
         @Nonnull
         @Override
-        CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String preference) {
+        public CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String preference) {
             return CodeBlock.builder()
                     .addStatement(
                             "final $T $N = new $T().toConverted($N.getLong($S, $L))",
@@ -231,7 +231,7 @@ public enum SupportedType {
 
         @Nonnull
         @Override
-        CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull String editor) {
+        public CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull String editor) {
             return CodeBlock.builder()
                     .addStatement(
                             "$N.putLong($S, this.$L)",
@@ -244,7 +244,7 @@ public enum SupportedType {
 
         @Nonnull
         @Override
-        CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String editor) {
+        public CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String editor) {
             return CodeBlock.builder()
                     .addStatement(
                             "$N.putLong($S, new $T().toSupported(this.$L))",
@@ -261,7 +261,7 @@ public enum SupportedType {
 
         @Nonnull
         @Override
-        CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull String preference) {
+        public CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull String preference) {
             return CodeBlock.builder()
                     .addStatement(
                             "final $T $N = $N.getString($S, $S)",
@@ -276,7 +276,7 @@ public enum SupportedType {
 
         @Nonnull
         @Override
-        CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String preference) {
+        public CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String preference) {
             return CodeBlock.builder()
                     .addStatement(
                             "final $T $N = new $T().toConverted($N.getString($S, $S))",
@@ -292,7 +292,7 @@ public enum SupportedType {
 
         @Nonnull
         @Override
-        CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull String editor) {
+        public CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull String editor) {
             return CodeBlock.builder()
                     .addStatement(
                             "$N.putString($S, this.$L)",
@@ -305,7 +305,7 @@ public enum SupportedType {
 
         @Nonnull
         @Override
-        CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String editor) {
+        public CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String editor) {
             return CodeBlock.builder()
                     .addStatement(
                             "$N.putString($S, new $T().toSupported(this.$L))",
@@ -320,7 +320,7 @@ public enum SupportedType {
     STRING_SET(ParameterizedTypeName.get(Set.class, String.class)) {
         @Nonnull
         @Override
-        CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull String preference) {
+        public CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull String preference) {
             return CodeBlock.builder()
                     .addStatement(
                             "final $T<$T> $N = $N.getStringSet($S, $T.<$T>emptySet())",
@@ -337,7 +337,7 @@ public enum SupportedType {
 
         @Nonnull
         @Override
-        CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String preference) {
+        public CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String preference) {
             return CodeBlock.builder()
                     .addStatement(
                             "final $T $N = new $T().toConverted($N.getStringSet($S, $T.<$T>emptySet()))",
@@ -354,7 +354,7 @@ public enum SupportedType {
 
         @Nonnull
         @Override
-        CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull String editor) {
+        public CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull String editor) {
             return CodeBlock.builder()
                     .addStatement(
                             "$N.putStringSet($S, this.$L)",
@@ -367,7 +367,7 @@ public enum SupportedType {
 
         @Nonnull
         @Override
-        CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String editor) {
+        public CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String editor) {
             return CodeBlock.builder()
                     .addStatement(
                             "$N.putStringSet($S, new $T().toSupported(this.$L))",
@@ -386,7 +386,7 @@ public enum SupportedType {
         this.type = type;
     }
 
-    static Optional<SupportedType> find(@Nonnull TypeName type) {
+    public static Optional<SupportedType> find(@Nonnull TypeName type) {
         return Stream.of(values())
                 .filter(supported -> supported.type.equals(type))
                 .findFirst();
@@ -397,14 +397,14 @@ public enum SupportedType {
     }
 
     @Nonnull
-    abstract CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull String preference);
+    public abstract CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull String preference);
 
     @Nonnull
-    abstract CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String preference);
+    public abstract CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String preference);
 
     @Nonnull
-    abstract CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull String editor);
+    public abstract CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull String editor);
 
     @Nonnull
-    abstract CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String editor);
+    public abstract CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String editor);
 }
