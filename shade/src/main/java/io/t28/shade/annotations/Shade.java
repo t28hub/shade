@@ -16,7 +16,7 @@ public @interface Shade {
         String value();
     }
 
-    @Target(ElementType.METHOD)
+    @Target({ElementType.METHOD, ElementType.FIELD})
     @Retention(RetentionPolicy.CLASS)
     @interface Property {
         String value();
