@@ -10,22 +10,22 @@ import io.t28.shade.example.converters.DateConverter;
 import io.t28.shade.example.converters.UriConverter;
 
 @Shade.Preference("io.t28.shade.example")
-public class Example {
+public class Example2 {
     @Shade.Property("int_value")
-    int intValue;
+    private int intValue;
 
     @Shade.Property(value = "long_value", defValue = "1024")
-    long longValue;
+    private long longValue;
 
     @Shade.Property("string_value")
-    String string;
+    private String string;
 
     @Shade.Property("string_set_value")
-    Set<String> set;
+    private Set<String> set;
 
     @Shade.Property(value = "date_value", converter = DateConverter.class)
-    Date date;
+    private Date date;
 
     @Shade.Property(value = "url_value", converter = UriConverter.class)
-    Uri url;
+    private Uri url;
 }

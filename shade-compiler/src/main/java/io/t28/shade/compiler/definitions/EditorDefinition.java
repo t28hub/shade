@@ -20,9 +20,10 @@ import javax.lang.model.util.Elements;
 import io.t28.shade.Editor;
 import io.t28.shade.compiler.SupportedType;
 import io.t28.shade.compiler.attributes.ConverterAttribute;
+import io.t28.shade.compiler.attributes.FieldPropertyAttribute;
+import io.t28.shade.compiler.attributes.MethodPropertyAttribute;
 import io.t28.shade.compiler.attributes.PreferenceAttribute;
 
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
 public class EditorDefinition implements ClassDefinition {
@@ -59,6 +60,15 @@ public class EditorDefinition implements ClassDefinition {
     public Collection<FieldSpec> fields() {
         final Collection<FieldSpec> fields = preference.properties()
                 .stream()
+                .filter(property -> {
+                    if (property instanceof FieldPropertyAttribute) {
+                        return true;
+                    }
+                    if (property instanceof MethodPropertyAttribute) {
+                        return ((MethodPropertyAttribute) property).isGetter();
+                    }
+                    return false;
+                })
                 .map(property -> {
                     final String name = property.name();
                     final TypeName type = property.type();
@@ -80,6 +90,15 @@ public class EditorDefinition implements ClassDefinition {
         final ClassName entityClass = entityClass();
         final Collection<MethodSpec> methods = preference.properties()
                 .stream()
+                .filter(property -> {
+                    if (property instanceof FieldPropertyAttribute) {
+                        return true;
+                    }
+                    if (property instanceof MethodPropertyAttribute) {
+                        return ((MethodPropertyAttribute) property).isGetter();
+                    }
+                    return false;
+                })
                 .map(property -> MethodSpec.methodBuilder(property.name())
                         .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                         .addParameter(property.type(), property.name())
@@ -96,12 +115,23 @@ public class EditorDefinition implements ClassDefinition {
                 .addParameter(entityClass, entityClass.simpleName().toLowerCase())
                 .addStatement("this.context = context");
         preference.properties().forEach(property -> {
-            constructorBuilder.addStatement(
-                    "this.$L = $L.$L()",
-                    property.name(),
-                    entityClass.simpleName().toLowerCase(),
-                    property.name()
-            );
+            if (property instanceof MethodPropertyAttribute) {
+                if (((MethodPropertyAttribute) property).isGetter()) {
+                    constructorBuilder.addStatement(
+                            "this.$L = $L.$L()",
+                            property.name(),
+                            entityClass.simpleName().toLowerCase(),
+                            property.name()
+                    );
+                }
+            } else {
+                constructorBuilder.addStatement(
+                        "this.$L = $L.$L",
+                        property.name(),
+                        entityClass.simpleName().toLowerCase(),
+                        property.name()
+                );
+            }
         });
         methods.add(constructorBuilder.build());
 
@@ -120,6 +150,10 @@ public class EditorDefinition implements ClassDefinition {
                         SharedPreferences.Editor.class
                 );
         preference.properties().forEach(property -> {
+            if (property instanceof MethodPropertyAttribute && !((MethodPropertyAttribute) property).isGetter()) {
+                return;
+            }
+
             final ConverterAttribute converter = property.converter();
             final TypeName supportedType;
             if (converter.isDefault()) {
@@ -140,11 +174,7 @@ public class EditorDefinition implements ClassDefinition {
         });
         applyBuilder.addStatement("editor.apply()");
 
-        final String arguments = preference.properties()
-                .stream()
-                .map(property -> "this." + property.name())
-                .collect(joining(", "));
-        applyBuilder.addStatement("return new $T($L)", ClassName.bestGuess(entityClass.simpleName() + "Impl"), arguments);
+        applyBuilder.addStatement("return new $T()", entityClass);
         methods.add(applyBuilder.build());
 
         return ImmutableList.copyOf(methods);

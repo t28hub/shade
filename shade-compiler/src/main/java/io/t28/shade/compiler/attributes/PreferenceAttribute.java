@@ -2,17 +2,17 @@ package io.t28.shade.compiler.attributes;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.squareup.javapoet.ClassName;
 
 import java.util.Collection;
-import java.util.Optional;
 
 import javax.annotation.Nonnull;
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 import javax.lang.model.util.Elements;
 
 import io.t28.shade.annotations.Shade;
@@ -35,9 +35,22 @@ public class PreferenceAttribute {
         this.annotation = annotation;
         this.properties = element.getEnclosedElements()
                 .stream()
-                .filter(enclosed -> enclosed.getAnnotation(Shade.Property.class) != null)
-                .map(ExecutableElement.class::cast)
-                .map(PropertyAttribute::create)
+                .filter(enclosed -> {
+                    final Collection<Modifier> modifiers = enclosed.getModifiers();
+                    if (modifiers.contains(Modifier.PRIVATE)) {
+                        return false;
+                    }
+                    return enclosed.getAnnotation(Shade.Property.class) != null;
+                })
+                .map(enclosed -> {
+                    if (enclosed instanceof VariableElement) {
+                        return PropertyAttribute.create(enclosed);
+                    }
+                    if (enclosed instanceof ExecutableElement) {
+                        return PropertyAttribute.create(enclosed);
+                    }
+                    throw new IllegalArgumentException("");
+                })
                 .collect(toList());
     }
 

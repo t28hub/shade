@@ -26,16 +26,16 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Modifier;
+import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 
 import io.t28.shade.annotations.Shade;
 import io.t28.shade.compiler.attributes.ConverterAttribute;
+import io.t28.shade.compiler.attributes.MethodPropertyAttribute;
 import io.t28.shade.compiler.attributes.PreferenceAttribute;
 import io.t28.shade.compiler.attributes.PropertyAttribute;
-import io.t28.shade.compiler.definitions.ClassDefinition;
 import io.t28.shade.compiler.definitions.EditorDefinition;
-import io.t28.shade.compiler.definitions.EntityDefinition;
 import io.t28.shade.compiler.exceptions.ClassGenerationException;
 
 @AutoService(Processor.class)
@@ -71,13 +71,14 @@ public class ShadeProcessor extends AbstractProcessor {
                 .map(TypeElement.class::cast)
                 .forEach(element -> {
                     final ElementKind kind = element.getKind();
-                    if (kind != ElementKind.CLASS && kind != ElementKind.INTERFACE) {
-                        throw new RuntimeException();
+                    if (kind != ElementKind.CLASS) {
+                        throw new RuntimeException("Shade does not support specified type(" + kind + ")");
                     }
 
                     final Set<Modifier> modifiers = element.getModifiers();
-                    if (!modifiers.contains(Modifier.ABSTRACT)) {
-                        throw new RuntimeException("Shade can not extends non abstract class(" + element.getQualifiedName() + ")");
+                    if (modifiers.contains(Modifier.ABSTRACT)) {
+                        final Name name = element.getQualifiedName();
+                        throw new RuntimeException("Shade can not instantiate specified class(" + name + ")");
                     }
                     generateService(element);
                 });
@@ -98,7 +99,6 @@ public class ShadeProcessor extends AbstractProcessor {
 
         // Preference class implementation
         final ClassGenerator generator = new ClassGenerator();
-        final TypeSpec entitySpec = generator.generate(new EntityDefinition(elements, preference));
         final TypeSpec editorSpec = generator.generate(new EditorDefinition(elements, preference));
 
         final String preferenceName = preference.name();
@@ -115,11 +115,8 @@ public class ShadeProcessor extends AbstractProcessor {
 
         final Collection<PropertyAttribute> properties = preference.properties();
         properties.forEach(property -> this.add(property, loadMethodBuilder));
-        final String arguments = properties.stream()
-                .map(PropertyAttribute::name)
-                .collect(Collectors.joining(", "));
         final MethodSpec loadMethod = loadMethodBuilder
-                .addStatement("return new $N($L)", entitySpec, arguments)
+                .addStatement("return new $T()", preference.entityClass(elements))
                 .returns(preference.entityClass(elements))
                 .build();
 
@@ -128,7 +125,6 @@ public class ShadeProcessor extends AbstractProcessor {
                 .addField(fieldSpec)
                 .addMethod(constructorSpec)
                 .addMethod(loadMethod)
-                .addType(entitySpec)
                 .addType(editorSpec)
                 .build();
 
@@ -144,6 +140,10 @@ public class ShadeProcessor extends AbstractProcessor {
     }
 
     private void add(PropertyAttribute property, MethodSpec.Builder methodBuilder) {
+        if (property instanceof MethodPropertyAttribute && !((MethodPropertyAttribute) property).isGetter()) {
+            return;
+        }
+
         final ConverterAttribute converter = property.converter();
         final TypeName supportedType;
         if (converter.isDefault()) {
