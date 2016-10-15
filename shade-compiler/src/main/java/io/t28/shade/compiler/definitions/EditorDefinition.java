@@ -2,12 +2,14 @@ package io.t28.shade.compiler.definitions;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.support.annotation.NonNull;
 
 import com.google.common.collect.ImmutableList;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 
@@ -100,6 +102,7 @@ public class EditorDefinition implements ClassDefinition {
                     return false;
                 })
                 .map(property -> MethodSpec.methodBuilder(property.name())
+                        .addAnnotation(NonNull.class)
                         .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                         .addParameter(property.type(), property.name())
                         .addStatement("this.$N = $N", property.name(), property.name())
@@ -111,8 +114,16 @@ public class EditorDefinition implements ClassDefinition {
 
         final MethodSpec.Builder constructorBuilder = MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PRIVATE)
-                .addParameter(Context.class, "context")
-                .addParameter(entityClass, entityClass.simpleName().toLowerCase())
+                .addParameter(
+                        ParameterSpec.builder(Context.class, "context")
+                                .addAnnotation(NonNull.class)
+                                .build()
+                )
+                .addParameter(
+                        ParameterSpec.builder(entityClass, entityClass.simpleName().toLowerCase())
+                                .addAnnotation(NonNull.class)
+                                .build()
+                )
                 .addStatement("this.context = context");
         preference.properties().forEach(property -> {
             if (property instanceof MethodPropertyAttribute) {
@@ -136,6 +147,7 @@ public class EditorDefinition implements ClassDefinition {
         methods.add(constructorBuilder.build());
 
         final MethodSpec.Builder applyBuilder = MethodSpec.methodBuilder("apply")
+                .addAnnotation(NonNull.class)
                 .addAnnotation(Override.class)
                 .addModifiers(Modifier.PUBLIC)
                 .returns(entityClass)
