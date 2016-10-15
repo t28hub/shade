@@ -170,7 +170,7 @@ public class EditorDefinition implements ClassDefinition {
             } else {
                 savingStatement = supported.buildSaveStatement(property, converter, "editor");
             }
-            applyBuilder.addCode(savingStatement);
+            applyBuilder.addStatement("$L", savingStatement);
         });
         applyBuilder.addStatement("editor.apply()");
 

@@ -15,7 +15,6 @@ import com.squareup.javapoet.TypeSpec;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
@@ -32,15 +31,17 @@ import javax.lang.model.util.Elements;
 
 import io.t28.shade.annotations.Shade;
 import io.t28.shade.compiler.attributes.ConverterAttribute;
+import io.t28.shade.compiler.attributes.FieldPropertyAttribute;
 import io.t28.shade.compiler.attributes.MethodPropertyAttribute;
 import io.t28.shade.compiler.attributes.PreferenceAttribute;
 import io.t28.shade.compiler.attributes.PropertyAttribute;
 import io.t28.shade.compiler.definitions.EditorDefinition;
 import io.t28.shade.compiler.exceptions.ClassGenerationException;
 
+@SuppressWarnings("unused")
 @AutoService(Processor.class)
 public class ShadeProcessor extends AbstractProcessor {
-    private static final String LOCAL_VARIABLE_PREFERENCE = "preferences";
+    private static final String VARIABLE_PREFERENCE = "preferences";
 
     private Filer filer;
     private Elements elements;
@@ -107,17 +108,75 @@ public class ShadeProcessor extends AbstractProcessor {
                 .addStatement(
                         "final $T $N = this.$N.getSharedPreferences($S, $L)",
                         SharedPreferences.class,
-                        LOCAL_VARIABLE_PREFERENCE,
+                        VARIABLE_PREFERENCE,
                         "context",
                         preferenceName,
                         Context.MODE_PRIVATE
                 );
 
         final Collection<PropertyAttribute> properties = preference.properties();
-        properties.forEach(property -> this.add(property, loadMethodBuilder));
+        final TypeName entityClass = preference.entityClass(elements);
+        loadMethodBuilder.addStatement("final $T entity = new $T()", entityClass, entityClass);
+
+        properties.stream()
+                .filter(property -> property instanceof FieldPropertyAttribute)
+                .map(FieldPropertyAttribute.class::cast)
+                .forEach(property -> {
+                    final ConverterAttribute converter = property.converter();
+                    final TypeName supportedType;
+                    if (converter.isDefault()) {
+                        supportedType = property.type();
+                    } else {
+                        supportedType = converter.supportedType();
+                    }
+
+                    final SupportedType supported = SupportedType.find(supportedType)
+                            .orElseThrow(() -> new IllegalArgumentException("Specified type(" + supportedType + ") is not supported and should use a converter"));
+                    final CodeBlock loadStatement;
+                    if (converter.isDefault()) {
+                        loadStatement = supported.buildLoadStatement(property, VARIABLE_PREFERENCE);
+                    } else {
+                        loadStatement = supported.buildLoadStatement(property, converter, VARIABLE_PREFERENCE);
+                    }
+
+                    final CodeBlock.Builder builder = CodeBlock.builder()
+                            .addStatement("entity.$L = $L", property.name(), loadStatement);
+                    loadMethodBuilder.addCode(builder.build());
+                });
+
+        properties.stream()
+                .filter(property -> {
+                    if (property instanceof MethodPropertyAttribute) {
+                        return ((MethodPropertyAttribute) property).isSetter();
+                    }
+                    return false;
+                })
+                .map(MethodPropertyAttribute.class::cast)
+                .forEach(property -> {
+                    final ConverterAttribute converter = property.converter();
+                    final TypeName supportedType;
+                    if (converter.isDefault()) {
+                        supportedType = property.type();
+                    } else {
+                        supportedType = converter.supportedType();
+                    }
+
+                    final SupportedType supported = SupportedType.find(supportedType)
+                            .orElseThrow(() -> new IllegalArgumentException("Specified type(" + supportedType + ") is not supported and should use a converter"));
+                    final CodeBlock loadStatement;
+                    if (converter.isDefault()) {
+                        loadStatement = supported.buildLoadStatement(property, VARIABLE_PREFERENCE);
+                    } else {
+                        loadStatement = supported.buildLoadStatement(property, converter, VARIABLE_PREFERENCE);
+                    }
+                    final CodeBlock.Builder builder = CodeBlock.builder()
+                            .addStatement("entity.$L($L)", property.name(), loadStatement);
+                    loadMethodBuilder.addCode(builder.build());
+                });
+
         final MethodSpec loadMethod = loadMethodBuilder
-                .addStatement("return new $T()", preference.entityClass(elements))
-                .returns(preference.entityClass(elements))
+                .addStatement("return entity")
+                .returns(entityClass)
                 .build();
 
         final TypeSpec serviceSpec = TypeSpec.classBuilder(element.getSimpleName() + "Service")
@@ -137,29 +196,5 @@ public class ShadeProcessor extends AbstractProcessor {
         } catch (IOException e) {
             throw new ClassGenerationException("Unable to process a class(" + element.getSimpleName() + ")", e);
         }
-    }
-
-    private void add(PropertyAttribute property, MethodSpec.Builder methodBuilder) {
-        if (property instanceof MethodPropertyAttribute && !((MethodPropertyAttribute) property).isGetter()) {
-            return;
-        }
-
-        final ConverterAttribute converter = property.converter();
-        final TypeName supportedType;
-        if (converter.isDefault()) {
-            supportedType = property.type();
-        } else {
-            supportedType = converter.supportedType();
-        }
-
-        final SupportedType supported = SupportedType.find(supportedType)
-                .orElseThrow(() -> new IllegalArgumentException("Specified type(" + supportedType + ") is not supported and should use a converter"));
-        final CodeBlock loadStatement;
-        if (converter.isDefault()) {
-            loadStatement = supported.buildLoadStatement(property, LOCAL_VARIABLE_PREFERENCE);
-        } else {
-            loadStatement = supported.buildLoadStatement(property, converter, LOCAL_VARIABLE_PREFERENCE);
-        }
-        methodBuilder.addCode(loadStatement);
     }
 }

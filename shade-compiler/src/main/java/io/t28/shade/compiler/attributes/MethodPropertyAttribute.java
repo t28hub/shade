@@ -5,7 +5,6 @@ import com.google.common.base.Strings;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -57,7 +56,7 @@ public class MethodPropertyAttribute implements PropertyAttribute {
     public String key() {
         final String key = annotation.value();
         if (Strings.isNullOrEmpty(key)) {
-            throw new IllegalArgumentException("Specified key is empty within " + name());
+            throw new IllegalArgumentException("Specified key is empty in " + name());
         }
         return key;
     }
@@ -76,8 +75,18 @@ public class MethodPropertyAttribute implements PropertyAttribute {
     }
 
     public boolean isGetter() {
-        final Collection<? extends VariableElement> arguments = element.getParameters();
+        final TypeName returnType = TypeName.get(element.getReturnType());
+        if (returnType == TypeName.VOID) {
+            return false;
+        }
+
+        final List<? extends VariableElement> arguments = element.getParameters();
         return arguments.isEmpty();
+    }
+
+    public boolean isSetter() {
+        final List<? extends VariableElement> arguments = element.getParameters();
+        return arguments.size() == 1;
     }
 
     @Nonnull
