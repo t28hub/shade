@@ -22,6 +22,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         final Example example = exampleService.load();
+
+        exampleService.edit(example)
+                .intValue(100)
+                .longValue(200)
+                .apply();
         Log.d(MainActivity.class.getSimpleName(), example.toString());
     }
 }
