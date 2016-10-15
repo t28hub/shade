@@ -24,60 +24,62 @@ public class Example3 {
     private Uri url;
 
     @Shade.Property("int_value")
-    public void setIntValue(int intValue) {
+    public void intValue(int intValue) {
         this.intValue = intValue;
     }
 
-    @Shade.Property(value = "long_value", defValue = "1024")
-    public void setLongValue(long longValue) {
+    @Shade.Property("long_value")
+    public void longValue(long longValue) {
         this.longValue = longValue;
     }
 
     @Shade.Property("string_value")
-    public void setString(String string) {
+    public void string(String string) {
         this.string = string;
     }
 
     @Shade.Property("string_set_value")
-    public void setSet(Set<String> set) {
+    public void set(Set<String> set) {
         this.set = set;
     }
 
     @Shade.Property(value = "date_value", converter = DateConverter.class)
-    public void setDate(Date date) {
+    public void date(Date date) {
         this.date = date;
     }
 
     @Shade.Property(value = "url_value", converter = UriConverter.class)
-    public void setUrl(Uri url) {
+    public void url(Uri url) {
         this.url = url;
     }
 
     @Shade.Property("int_value")
-    public int getIntValue() {
+    public int intValue() {
         return intValue;
     }
 
     @Shade.Property(value = "long_value", defValue = "1024")
-    public long getLongValue() {
+    public long longValue() {
         return longValue;
     }
 
     @Shade.Property("string_value")
-    public String getString() {
+    public String string() {
         return string;
     }
 
     @Shade.Property("string_set_value")
-    public Set<String> getSet() {
+    public Set<String> set() {
         return set;
     }
 
-    public Date getDate() {
+    @Shade.Property(value = "date_value", converter = DateConverter.class)
+    public Date date() {
         return date;
     }
 
-    public Uri getUrl() {
+    @Shade.Property(value = "url_value", converter = UriConverter.class)
+    public Uri url() {
         return url;
     }
 }
