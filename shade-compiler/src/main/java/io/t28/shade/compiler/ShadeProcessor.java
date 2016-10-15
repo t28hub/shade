@@ -2,6 +2,7 @@ package io.t28.shade.compiler;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.support.annotation.NonNull;
 
 import com.google.auto.service.AutoService;
 import com.google.common.collect.ImmutableSet;
@@ -9,6 +10,7 @@ import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 
@@ -90,7 +92,11 @@ public class ShadeProcessor extends AbstractProcessor {
         final PreferenceAttribute preference = PreferenceAttribute.create(element);
         final MethodSpec constructorSpec = MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC)
-                .addParameter(Context.class, "context")
+                .addParameter(
+                        ParameterSpec.builder(Context.class, "context")
+                                .addAnnotation(NonNull.class)
+                                .build()
+                )
                 .addStatement("this.$N = $N.getApplicationContext()", "context", "context")
                 .build();
 
@@ -104,6 +110,7 @@ public class ShadeProcessor extends AbstractProcessor {
 
         final String preferenceName = preference.name();
         final MethodSpec.Builder loadMethodBuilder = MethodSpec.methodBuilder("load")
+                .addAnnotation(NonNull.class)
                 .addModifiers(Modifier.PUBLIC)
                 .addStatement(
                         "final $T $N = this.$N.getSharedPreferences($S, $L)",
