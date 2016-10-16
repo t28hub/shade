@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 
 import com.google.auto.service.AutoService;
 import com.google.common.collect.ImmutableSet;
+import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
@@ -37,6 +38,7 @@ import io.t28.shade.compiler.attributes.FieldPropertyAttribute;
 import io.t28.shade.compiler.attributes.MethodPropertyAttribute;
 import io.t28.shade.compiler.attributes.PreferenceAttribute;
 import io.t28.shade.compiler.attributes.PropertyAttribute;
+import io.t28.shade.compiler.definitions.ClassDefinition;
 import io.t28.shade.compiler.definitions.EditorDefinition;
 import io.t28.shade.compiler.exceptions.ClassGenerationException;
 
@@ -106,7 +108,9 @@ public class ShadeProcessor extends AbstractProcessor {
 
         // Preference class implementation
         final ClassGenerator generator = new ClassGenerator();
-        final TypeSpec editorSpec = generator.generate(new EditorDefinition(elements, preference));
+        final ClassDefinition editorDefinition = new EditorDefinition(elements, preference);
+        final TypeName editorName = ClassName.bestGuess(editorDefinition.name());
+        final TypeSpec editorSpec = generator.generate(editorDefinition);
 
         final String preferenceName = preference.name();
         final MethodSpec.Builder loadMethodBuilder = MethodSpec.methodBuilder("load")
@@ -186,11 +190,29 @@ public class ShadeProcessor extends AbstractProcessor {
                 .returns(entityClass)
                 .build();
 
+        final MethodSpec editMethod = MethodSpec.methodBuilder("edit")
+                .addAnnotation(NonNull.class)
+                .addModifiers(Modifier.PUBLIC)
+                .addParameter(
+                        ParameterSpec.builder(entityClass, "entity")
+                                .addAnnotation(NonNull.class)
+                                .build()
+                )
+                .addStatement(
+                        "return new $L(this.$N, $N)",
+                        editorName,
+                        "context",
+                        "entity"
+                )
+                .returns(editorName)
+                .build();
+
         final TypeSpec serviceSpec = TypeSpec.classBuilder(element.getSimpleName() + "Service")
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                 .addField(fieldSpec)
                 .addMethod(constructorSpec)
                 .addMethod(loadMethod)
+                .addMethod(editMethod)
                 .addType(editorSpec)
                 .build();
 
