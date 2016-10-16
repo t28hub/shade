@@ -3,7 +3,9 @@ package io.t28.shade.compiler.definitions;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -101,15 +103,26 @@ public class EditorDefinition implements ClassDefinition {
                     }
                     return false;
                 })
-                .map(property -> MethodSpec.methodBuilder(property.name())
-                        .addAnnotation(NonNull.class)
-                        .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                        .addParameter(property.type(), property.name())
-                        .addStatement("this.$N = $N", property.name(), property.name())
-                        .addStatement("return this")
-                        .returns(ClassName.bestGuess(name()))
-                        .build()
-                )
+                .map(property -> {
+                    final String name = property.name();
+                    final TypeName type = property.type();
+                    final MethodSpec.Builder builder = MethodSpec.methodBuilder(name)
+                            .addAnnotation(NonNull.class)
+                            .addModifiers(Modifier.PUBLIC, Modifier.FINAL);
+
+                    final ParameterSpec parameter;
+                    if (type.isPrimitive()) {
+                        parameter = ParameterSpec.builder(type, name).build();
+                    } else {
+                        parameter = ParameterSpec.builder(type, name).addAnnotation(Nullable.class).build();
+                    }
+                    return builder
+                            .addParameter(parameter)
+                            .addStatement("this.$N = $N", name, name)
+                            .addStatement("return this")
+                            .returns(ClassName.bestGuess(name()))
+                            .build();
+                })
                 .collect(toList());
 
         final MethodSpec.Builder constructorBuilder = MethodSpec.constructorBuilder()
