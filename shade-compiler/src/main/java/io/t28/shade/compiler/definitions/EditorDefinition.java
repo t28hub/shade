@@ -5,7 +5,7 @@ import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.google.common.collect.ImmutableCollection;
+import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableList;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -16,6 +16,8 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.IntStream;
 
 import javax.annotation.Nonnull;
 import javax.lang.model.element.Modifier;
@@ -27,11 +29,17 @@ import io.t28.shade.compiler.attributes.ConverterAttribute;
 import io.t28.shade.compiler.attributes.FieldPropertyAttribute;
 import io.t28.shade.compiler.attributes.MethodPropertyAttribute;
 import io.t28.shade.compiler.attributes.PreferenceAttribute;
+import io.t28.shade.compiler.attributes.PropertyAttribute;
 
 import static java.util.stream.Collectors.toList;
 
 public class EditorDefinition implements ClassDefinition {
-    private static final String CLASS_SUFFIX = "Editor";
+    private static final String SUFFIX_CLASS = "Editor";
+    private static final String SUFFIX_BIT_CONSTANT = "BIT_";
+    private static final String FIELD_CONTEXT = "context";
+    private static final String FIELD_CHANGED_BITS = "changedBits";
+    private static final String FORMAT_BIT = "0x%xL";
+    private static final String INITIAL_CHANGED_BITS = "0x0L";
 
     private final Elements elements;
     private final PreferenceAttribute preference;
@@ -44,7 +52,7 @@ public class EditorDefinition implements ClassDefinition {
     @Nonnull
     @Override
     public String name() {
-        return entityClass().simpleName() + CLASS_SUFFIX;
+        return entityClass().simpleName() + SUFFIX_CLASS;
     }
 
     @Nonnull
@@ -62,7 +70,7 @@ public class EditorDefinition implements ClassDefinition {
     @Nonnull
     @Override
     public Collection<FieldSpec> fields() {
-        final Collection<FieldSpec> fields = preference.properties()
+        final List<PropertyAttribute> filtered = preference.properties()
                 .stream()
                 .filter(property -> {
                     if (property instanceof FieldPropertyAttribute) {
@@ -73,6 +81,27 @@ public class EditorDefinition implements ClassDefinition {
                     }
                     return false;
                 })
+                .collect(toList());
+        final Collection<FieldSpec> constantFields = IntStream.range(0, filtered.size())
+                .mapToObj(index -> {
+                    final PropertyAttribute property = filtered.get(index);
+
+                    final String name = SUFFIX_BIT_CONSTANT + CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, property.name());
+                    final String value = String.format(FORMAT_BIT, (int) Math.pow(2, index));
+                    return FieldSpec.builder(long.class, name)
+                            .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                            .initializer("$L", value)
+                            .build();
+                })
+                .collect(toList());
+        final FieldSpec initialBitsField = FieldSpec.builder(long.class, FIELD_CHANGED_BITS)
+                .addModifiers(Modifier.PRIVATE)
+                .initializer(INITIAL_CHANGED_BITS)
+                .build();
+        final FieldSpec contextField = FieldSpec.builder(Context.class, FIELD_CONTEXT)
+                .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
+                .build();
+        final Collection<FieldSpec> fields = filtered.stream()
                 .map(property -> {
                     final String name = property.name();
                     final TypeName type = property.type();
@@ -81,11 +110,12 @@ public class EditorDefinition implements ClassDefinition {
                             .build();
                 })
                 .collect(toList());
-        fields.add(FieldSpec.builder(Context.class, "context")
-                .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
-                .build()
-        );
-        return ImmutableList.copyOf(fields);
+        return ImmutableList.<FieldSpec>builder()
+                .addAll(constantFields)
+                .add(contextField)
+                .add(initialBitsField)
+                .addAll(fields)
+                .build();
     }
 
     @Nonnull
@@ -116,8 +146,11 @@ public class EditorDefinition implements ClassDefinition {
                     } else {
                         parameter = ParameterSpec.builder(type, name).addAnnotation(Nullable.class).build();
                     }
+
+                    final String constantName = SUFFIX_BIT_CONSTANT + CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, name);
                     return builder
                             .addParameter(parameter)
+                            .addStatement("this.$L |= $L", FIELD_CHANGED_BITS, constantName)
                             .addStatement("this.$N = $N", name, name)
                             .addStatement("return this")
                             .returns(ClassName.bestGuess(name()))
@@ -128,7 +161,7 @@ public class EditorDefinition implements ClassDefinition {
         final MethodSpec.Builder constructorBuilder = MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PRIVATE)
                 .addParameter(
-                        ParameterSpec.builder(Context.class, "context")
+                        ParameterSpec.builder(Context.class, FIELD_CONTEXT)
                                 .addAnnotation(NonNull.class)
                                 .build()
                 )
@@ -137,7 +170,7 @@ public class EditorDefinition implements ClassDefinition {
                                 .addAnnotation(NonNull.class)
                                 .build()
                 )
-                .addStatement("this.context = context");
+                .addStatement("this.$L = $L", FIELD_CONTEXT, FIELD_CONTEXT);
         preference.properties().forEach(property -> {
             if (property instanceof MethodPropertyAttribute) {
                 if (((MethodPropertyAttribute) property).isGetter()) {
@@ -195,7 +228,11 @@ public class EditorDefinition implements ClassDefinition {
             } else {
                 savingStatement = supported.buildSaveStatement(property, converter, "editor");
             }
-            applyBuilder.addStatement("$L", savingStatement);
+
+            final String constantName = SUFFIX_BIT_CONSTANT + CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, property.name());
+            applyBuilder.beginControlFlow("if (($L & $L) != 0)", FIELD_CHANGED_BITS, constantName)
+                    .addStatement("$L", savingStatement)
+                    .endControlFlow();
         });
         applyBuilder.addStatement("editor.apply()");
 
