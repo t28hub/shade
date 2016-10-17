@@ -25,24 +25,23 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.Processor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.SourceVersion;
-import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Modifier;
-import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 
 import io.t28.shade.annotations.Shade;
 import io.t28.shade.compiler.attributes.ConverterAttribute;
-import io.t28.shade.compiler.attributes.FieldPropertyAttribute;
-import io.t28.shade.compiler.attributes.MethodPropertyAttribute;
-import io.t28.shade.compiler.attributes.PreferenceAttribute;
 import io.t28.shade.compiler.attributes.PropertyAttribute;
+import io.t28.shade.compiler.attributes.PreferenceAttribute;
 import io.t28.shade.compiler.definitions.ClassDefinition;
 import io.t28.shade.compiler.definitions.EditorDefinition;
+import io.t28.shade.compiler.definitions.EntityDefinition;
 import io.t28.shade.compiler.exceptions.ClassGenerationException;
 
-@SuppressWarnings("unused")
+import static java.util.stream.Collectors.joining;
+
+@SuppressWarnings({"unused"})
 @AutoService(Processor.class)
 public class ShadeProcessor extends AbstractProcessor {
     private static final String VARIABLE_PREFERENCE = "preferences";
@@ -53,7 +52,7 @@ public class ShadeProcessor extends AbstractProcessor {
     @Override
     public Set<String> getSupportedAnnotationTypes() {
         return ImmutableSet.of(
-                Shade.Preference.class.getCanonicalName()
+                Shade.Preferences.class.getCanonicalName()
         );
     }
 
@@ -71,19 +70,13 @@ public class ShadeProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment environment) {
-        final Set<? extends Element> elements = environment.getElementsAnnotatedWith(Shade.Preference.class);
-        elements.stream()
+        environment.getElementsAnnotatedWith(Shade.Preferences.class)
+                .stream()
                 .map(TypeElement.class::cast)
                 .forEach(element -> {
                     final ElementKind kind = element.getKind();
-                    if (kind != ElementKind.CLASS) {
-                        throw new RuntimeException("Shade does not support specified type(" + kind + ")");
-                    }
-
-                    final Set<Modifier> modifiers = element.getModifiers();
-                    if (modifiers.contains(Modifier.ABSTRACT)) {
-                        final Name name = element.getQualifiedName();
-                        throw new RuntimeException("Shade can not instantiate specified class(" + name + ")");
+                    if (kind != ElementKind.CLASS && kind != ElementKind.INTERFACE) {
+                        throw new RuntimeException("Shade.Preferences is not allowed to add to specified type(" + kind + ")");
                     }
                     generateService(element);
                 });
@@ -109,8 +102,10 @@ public class ShadeProcessor extends AbstractProcessor {
         // Preference class implementation
         final ClassGenerator generator = new ClassGenerator();
         final ClassDefinition editorDefinition = new EditorDefinition(elements, preference);
+        final ClassDefinition entityDefinition = new EntityDefinition(elements, preference);
         final TypeName editorName = ClassName.bestGuess(editorDefinition.name());
         final TypeSpec editorSpec = generator.generate(editorDefinition);
+        final TypeSpec entitySpec = generator.generate(entityDefinition);
 
         final String preferenceName = preference.name();
         final MethodSpec.Builder loadMethodBuilder = MethodSpec.methodBuilder("load")
@@ -126,13 +121,9 @@ public class ShadeProcessor extends AbstractProcessor {
                 );
 
         final Collection<PropertyAttribute> properties = preference.properties();
-        final TypeName entityClass = preference.entityClass(elements);
-        loadMethodBuilder.addStatement("final $T entity = new $T()", entityClass, entityClass);
-
-        properties.stream()
-                .filter(property -> property instanceof FieldPropertyAttribute)
-                .map(FieldPropertyAttribute.class::cast)
-                .forEach(property -> {
+        final ClassName entityClass = preference.entityClass(elements);
+        final String parameters = properties.stream()
+                .map(property -> {
                     final ConverterAttribute converter = property.converter();
                     final TypeName supportedType;
                     if (converter.isDefault()) {
@@ -149,44 +140,10 @@ public class ShadeProcessor extends AbstractProcessor {
                     } else {
                         loadStatement = supported.buildLoadStatement(property, converter, VARIABLE_PREFERENCE);
                     }
-
-                    final CodeBlock.Builder builder = CodeBlock.builder()
-                            .addStatement("entity.$L = $L", property.name(), loadStatement);
-                    loadMethodBuilder.addCode(builder.build());
-                });
-
-        properties.stream()
-                .filter(property -> {
-                    if (property instanceof MethodPropertyAttribute) {
-                        return ((MethodPropertyAttribute) property).isSetter();
-                    }
-                    return false;
+                    return loadStatement.toString();
                 })
-                .map(MethodPropertyAttribute.class::cast)
-                .forEach(property -> {
-                    final ConverterAttribute converter = property.converter();
-                    final TypeName supportedType;
-                    if (converter.isDefault()) {
-                        supportedType = property.type();
-                    } else {
-                        supportedType = converter.supportedType();
-                    }
-
-                    final SupportedType supported = SupportedType.find(supportedType)
-                            .orElseThrow(() -> new IllegalArgumentException("Specified type(" + supportedType + ") is not supported and should use a converter"));
-                    final CodeBlock loadStatement;
-                    if (converter.isDefault()) {
-                        loadStatement = supported.buildLoadStatement(property, VARIABLE_PREFERENCE);
-                    } else {
-                        loadStatement = supported.buildLoadStatement(property, converter, VARIABLE_PREFERENCE);
-                    }
-                    final CodeBlock.Builder builder = CodeBlock.builder()
-                            .addStatement("entity.$L($L)", property.name(), loadStatement);
-                    loadMethodBuilder.addCode(builder.build());
-                });
-
-        final MethodSpec loadMethod = loadMethodBuilder
-                .addStatement("return entity")
+                .collect(joining(", "));
+        loadMethodBuilder.addStatement("return new $T($L)", ClassName.bestGuess(entityClass.simpleName() + "Impl"), parameters)
                 .returns(entityClass)
                 .build();
 
@@ -211,9 +168,10 @@ public class ShadeProcessor extends AbstractProcessor {
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                 .addField(fieldSpec)
                 .addMethod(constructorSpec)
-                .addMethod(loadMethod)
+                .addMethod(loadMethodBuilder.build())
                 .addMethod(editMethod)
                 .addType(editorSpec)
+                .addType(entitySpec)
                 .build();
 
         try {

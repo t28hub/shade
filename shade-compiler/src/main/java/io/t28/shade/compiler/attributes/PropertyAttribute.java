@@ -1,41 +1,91 @@
 package io.t28.shade.compiler.attributes;
 
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Strings;
+import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
 
+import java.util.List;
 import java.util.Optional;
 
 import javax.annotation.Nonnull;
-import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.VariableElement;
 
 import io.t28.shade.annotations.Shade;
 
-public interface PropertyAttribute {
-    @Nonnull
-    String name();
+public class PropertyAttribute {
+    private final ExecutableElement element;
+    private final Shade.Property annotation;
+    private final ConverterAttribute converter;
+
+    PropertyAttribute(@Nonnull ExecutableElement element, @Nonnull Shade.Property annotation) {
+        this.element = element;
+        this.annotation = annotation;
+        this.converter = ConverterAttribute.create(annotation);
+    }
 
     @Nonnull
-    TypeName type();
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("element", element)
+                .add("annotation", annotation)
+                .add("converter", converter)
+                .toString();
+    }
 
     @Nonnull
-    String key();
+    public String name() {
+        return element.getSimpleName().toString();
+    }
 
     @Nonnull
-    Optional<String> defaultValue();
-
-    @Nonnull
-    ConverterAttribute converter();
-
-    @Nonnull
-    static PropertyAttribute create(@Nonnull Element element) {
-        final Shade.Property property = element.getAnnotation(Shade.Property.class);
-        if (element instanceof VariableElement) {
-            return new FieldPropertyAttribute((VariableElement) element, property);
+    public TypeName type() {
+        if (isGetter()) {
+            return ClassName.get(element.getReturnType());
         }
-        if (element instanceof ExecutableElement) {
-            return new MethodPropertyAttribute((ExecutableElement) element, property);
+        final List<? extends VariableElement> arguments = element.getParameters();
+        return ClassName.get(arguments.get(0).asType());
+    }
+
+    @Nonnull
+    public String key() {
+        final String key = annotation.value();
+        if (Strings.isNullOrEmpty(key)) {
+            throw new IllegalArgumentException("Specified key is empty in " + name());
         }
-        throw new IllegalArgumentException("Element must be an instance of VariableElement or ExecutableElement");
+        return key;
+    }
+
+    @Nonnull
+    public Optional<String> defaultValue() {
+        return Optional.of(annotation.defValue())
+                .filter(value -> !value.isEmpty());
+    }
+
+    @Nonnull
+    public ConverterAttribute converter() {
+        return converter;
+    }
+
+    public boolean isGetter() {
+        final TypeName returnType = TypeName.get(element.getReturnType());
+        if (returnType == TypeName.VOID) {
+            return false;
+        }
+
+        final List<? extends VariableElement> arguments = element.getParameters();
+        return arguments.isEmpty();
+    }
+
+    public boolean isSetter() {
+        final List<? extends VariableElement> arguments = element.getParameters();
+        return arguments.size() == 1;
+    }
+
+    @Nonnull
+    public ExecutableElement method() {
+        return element;
     }
 }

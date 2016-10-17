@@ -2,6 +2,7 @@ package io.t28.shade.example.model;
 
 import android.net.Uri;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.Set;
 
@@ -9,77 +10,39 @@ import io.t28.shade.annotations.Shade;
 import io.t28.shade.example.converters.DateConverter;
 import io.t28.shade.example.converters.UriConverter;
 
-@Shade.Preference("io.t28.shade.example")
+@Shade.Preferences("io.t28.shade.example")
 public class Example3 {
-    private int intValue;
-
-    private long longValue;
-
-    private String string;
-
-    private Set<String> set;
-
-    private Date date;
-
-    private Uri url;
-
-    @Shade.Property("int_value")
-    public void intValue(int intValue) {
-        this.intValue = intValue;
-    }
-
-    @Shade.Property("long_value")
-    public void longValue(long longValue) {
-        this.longValue = longValue;
-    }
-
-    @Shade.Property("string_value")
-    public void string(String string) {
-        this.string = string;
-    }
-
-    @Shade.Property("string_set_value")
-    public void set(Set<String> set) {
-        this.set = set;
-    }
-
-    @Shade.Property(value = "date_value", converter = DateConverter.class)
-    public void date(Date date) {
-        this.date = date;
-    }
-
-    @Shade.Property(value = "url_value", converter = UriConverter.class)
-    public void url(Uri url) {
-        this.url = url;
-    }
+    private static final int DEFAULT_INT_VALUE = 100;
+    private static final long DEFAULT_LONG_VALUE = 1024;
+    private static final String DEFAULT_STRING = "";
 
     @Shade.Property("int_value")
     public int intValue() {
-        return intValue;
+        return DEFAULT_INT_VALUE;
     }
 
-    @Shade.Property(value = "long_value", defValue = "1024")
+    @Shade.Property("long_value")
     public long longValue() {
-        return longValue;
+        return DEFAULT_LONG_VALUE;
     }
 
     @Shade.Property("string_value")
     public String string() {
-        return string;
+        return DEFAULT_STRING;
     }
 
     @Shade.Property("string_set_value")
     public Set<String> set() {
-        return set;
+        return Collections.emptySet();
     }
 
     @Shade.Property(value = "date_value", converter = DateConverter.class)
     public Date date() {
-        return date;
+        return new Date();
     }
 
     @Shade.Property(value = "url_value", converter = UriConverter.class)
     public Uri url() {
-        return url;
+        return Uri.EMPTY;
     }
 }

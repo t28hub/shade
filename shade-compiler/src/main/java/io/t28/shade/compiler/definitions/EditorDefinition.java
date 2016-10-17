@@ -16,7 +16,9 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
 import javax.annotation.Nonnull;
@@ -26,11 +28,10 @@ import javax.lang.model.util.Elements;
 import io.t28.shade.Editor;
 import io.t28.shade.compiler.SupportedType;
 import io.t28.shade.compiler.attributes.ConverterAttribute;
-import io.t28.shade.compiler.attributes.FieldPropertyAttribute;
-import io.t28.shade.compiler.attributes.MethodPropertyAttribute;
-import io.t28.shade.compiler.attributes.PreferenceAttribute;
 import io.t28.shade.compiler.attributes.PropertyAttribute;
+import io.t28.shade.compiler.attributes.PreferenceAttribute;
 
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
 public class EditorDefinition implements ClassDefinition {
@@ -63,6 +64,12 @@ public class EditorDefinition implements ClassDefinition {
 
     @Nonnull
     @Override
+    public Optional<TypeName> superClass() {
+        return Optional.empty();
+    }
+
+    @Nonnull
+    @Override
     public Collection<TypeName> interfaces() {
         return ImmutableList.of(editorClass());
     }
@@ -70,21 +77,10 @@ public class EditorDefinition implements ClassDefinition {
     @Nonnull
     @Override
     public Collection<FieldSpec> fields() {
-        final List<PropertyAttribute> filtered = preference.properties()
-                .stream()
-                .filter(property -> {
-                    if (property instanceof FieldPropertyAttribute) {
-                        return true;
-                    }
-                    if (property instanceof MethodPropertyAttribute) {
-                        return ((MethodPropertyAttribute) property).isGetter();
-                    }
-                    return false;
-                })
-                .collect(toList());
-        final Collection<FieldSpec> constantFields = IntStream.range(0, filtered.size())
+        final List<PropertyAttribute> properties = preference.properties();
+        final Collection<FieldSpec> constantFields = IntStream.range(0, properties.size())
                 .mapToObj(index -> {
-                    final PropertyAttribute property = filtered.get(index);
+                    final PropertyAttribute property = properties.get(index);
 
                     final String name = SUFFIX_BIT_CONSTANT + CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, property.name());
                     final String value = String.format(FORMAT_BIT, (int) Math.pow(2, index));
@@ -101,7 +97,7 @@ public class EditorDefinition implements ClassDefinition {
         final FieldSpec contextField = FieldSpec.builder(Context.class, FIELD_CONTEXT)
                 .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
                 .build();
-        final Collection<FieldSpec> fields = filtered.stream()
+        final Collection<FieldSpec> fields = properties.stream()
                 .map(property -> {
                     final String name = property.name();
                     final TypeName type = property.type();
@@ -124,15 +120,6 @@ public class EditorDefinition implements ClassDefinition {
         final ClassName entityClass = entityClass();
         final Collection<MethodSpec> methods = preference.properties()
                 .stream()
-                .filter(property -> {
-                    if (property instanceof FieldPropertyAttribute) {
-                        return true;
-                    }
-                    if (property instanceof MethodPropertyAttribute) {
-                        return ((MethodPropertyAttribute) property).isGetter();
-                    }
-                    return false;
-                })
                 .map(property -> {
                     final String name = property.name();
                     final TypeName type = property.type();
@@ -171,25 +158,15 @@ public class EditorDefinition implements ClassDefinition {
                                 .build()
                 )
                 .addStatement("this.$L = $L", FIELD_CONTEXT, FIELD_CONTEXT);
-        preference.properties().forEach(property -> {
-            if (property instanceof MethodPropertyAttribute) {
-                if (((MethodPropertyAttribute) property).isGetter()) {
+        preference.properties()
+                .forEach(property -> {
                     constructorBuilder.addStatement(
                             "this.$L = $L.$L()",
                             property.name(),
                             entityClass.simpleName().toLowerCase(),
                             property.name()
                     );
-                }
-            } else {
-                constructorBuilder.addStatement(
-                        "this.$L = $L.$L",
-                        property.name(),
-                        entityClass.simpleName().toLowerCase(),
-                        property.name()
-                );
-            }
-        });
+                });
         methods.add(constructorBuilder.build());
 
         final MethodSpec.Builder applyBuilder = MethodSpec.methodBuilder("apply")
@@ -208,10 +185,6 @@ public class EditorDefinition implements ClassDefinition {
                         SharedPreferences.Editor.class
                 );
         preference.properties().forEach(property -> {
-            if (property instanceof MethodPropertyAttribute && !((MethodPropertyAttribute) property).isGetter()) {
-                return;
-            }
-
             final ConverterAttribute converter = property.converter();
             final TypeName supportedType;
             if (converter.isDefault()) {
@@ -236,7 +209,12 @@ public class EditorDefinition implements ClassDefinition {
         });
         applyBuilder.addStatement("editor.apply()");
 
-        applyBuilder.addStatement("return new $T()", entityClass);
+        final String parameters = preference.properties()
+                .stream()
+                .map(property -> CodeBlock.of("this.$L", property.name()).toString())
+                .collect(joining(", "));
+
+        applyBuilder.addStatement("return new $T($L)", ClassName.bestGuess(preference.entityClass(elements).simpleName() + "Impl"), parameters);
         methods.add(applyBuilder.build());
 
         return ImmutableList.copyOf(methods);

@@ -9,23 +9,23 @@ import io.t28.shade.annotations.Shade;
 import io.t28.shade.example.converters.DateConverter;
 import io.t28.shade.example.converters.UriConverter;
 
-@Shade.Preference("io.t28.shade.example")
-public class Example {
+@Shade.Preferences("io.t28.shade.example")
+public interface Example {
     @Shade.Property("int_value")
-    int intValue;
+    int intValue();
 
     @Shade.Property(value = "long_value", defValue = "1024")
-    long longValue;
+    long longValue();
 
     @Shade.Property("string_value")
-    String string;
+    String string();
 
     @Shade.Property("string_set_value")
-    Set<String> set;
+    Set<String> set();
 
     @Shade.Property(value = "date_value", converter = DateConverter.class)
-    Date date;
+    Date date();
 
     @Shade.Property(value = "url_value", converter = UriConverter.class)
-    Uri url;
+    Uri url();
 }

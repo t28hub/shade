@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableList;
 import com.squareup.javapoet.ClassName;
 
 import java.util.Collection;
+import java.util.List;
 
 import javax.annotation.Nonnull;
 import javax.lang.model.element.ExecutableElement;
@@ -21,10 +22,10 @@ import static java.util.stream.Collectors.toList;
 
 public class PreferenceAttribute {
     private final TypeElement element;
-    private final Shade.Preference annotation;
+    private final Shade.Preferences annotation;
     private final Collection<PropertyAttribute> properties;
 
-    private PreferenceAttribute(TypeElement element, Shade.Preference annotation) {
+    private PreferenceAttribute(TypeElement element, Shade.Preferences annotation) {
         if (element == null) {
             throw new IllegalArgumentException("element must not be null");
         }
@@ -43,20 +44,16 @@ public class PreferenceAttribute {
                     return enclosed.getAnnotation(Shade.Property.class) != null;
                 })
                 .map(enclosed -> {
-                    if (enclosed instanceof VariableElement) {
-                        return PropertyAttribute.create(enclosed);
-                    }
-                    if (enclosed instanceof ExecutableElement) {
-                        return PropertyAttribute.create(enclosed);
-                    }
-                    throw new IllegalArgumentException("");
+                    final ExecutableElement executable = (ExecutableElement) enclosed;
+                    final Shade.Property property = enclosed.getAnnotation(Shade.Property.class);
+                    return new PropertyAttribute(executable, property);
                 })
                 .collect(toList());
     }
 
     @Nonnull
     public static PreferenceAttribute create(@Nonnull TypeElement element) {
-        return new PreferenceAttribute(element, element.getAnnotation(Shade.Preference.class));
+        return new PreferenceAttribute(element, element.getAnnotation(Shade.Preferences.class));
     }
 
     @Override
@@ -65,6 +62,11 @@ public class PreferenceAttribute {
                 .add("element", element)
                 .add("annotation", annotation)
                 .toString();
+    }
+
+    @Nonnull
+    public TypeElement element() {
+        return element;
     }
 
     @Nonnull
@@ -82,13 +84,13 @@ public class PreferenceAttribute {
     public String name() {
         final String name = annotation.value();
         if (Strings.isNullOrEmpty(name)) {
-            throw new IllegalArgumentException("SharedPreferences name must not be empty");
+            throw new IllegalArgumentException("Name of SharedPreferences must not be empty");
         }
         return name;
     }
 
     @Nonnull
-    public Collection<PropertyAttribute> properties() {
+    public List<PropertyAttribute> properties() {
         return ImmutableList.copyOf(properties);
     }
 }

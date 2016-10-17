@@ -11,6 +11,7 @@ public class ClassGenerator {
     public TypeSpec generate(@Nonnull ClassDefinition definition) {
         final TypeSpec.Builder builder = TypeSpec.classBuilder(definition.name());
         definition.modifiers().forEach(builder::addModifiers);
+        definition.superClass().ifPresent(builder::superclass);
         definition.interfaces().forEach(builder::addSuperinterface);
         builder.addFields(definition.fields());
         builder.addMethods(definition.methods());
