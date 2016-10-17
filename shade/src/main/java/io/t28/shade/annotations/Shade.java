@@ -1,5 +1,7 @@
 package io.t28.shade.annotations;
 
+import android.content.Context;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -10,13 +12,15 @@ import io.t28.shade.converters.DefaultConverter;
 
 @Retention(RetentionPolicy.CLASS)
 public @interface Shade {
-    @Target(ElementType.TYPE)
+    @Target({ElementType.TYPE})
     @Retention(RetentionPolicy.CLASS)
-    @interface Preference {
+    @interface Preferences {
         String value();
+
+        int mode() default Context.MODE_PRIVATE;
     }
 
-    @Target({ElementType.METHOD, ElementType.FIELD})
+    @Target({ElementType.METHOD})
     @Retention(RetentionPolicy.CLASS)
     @interface Property {
         String value();

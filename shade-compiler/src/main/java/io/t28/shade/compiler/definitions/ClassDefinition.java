@@ -5,6 +5,7 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
 
 import java.util.Collection;
+import java.util.Optional;
 
 import javax.annotation.Nonnull;
 import javax.lang.model.element.Modifier;
@@ -15,6 +16,9 @@ public interface ClassDefinition {
 
     @Nonnull
     Collection<Modifier> modifiers();
+
+    @Nonnull
+    Optional<TypeName> superClass();
 
     @Nonnull
     Collection<TypeName> interfaces();
