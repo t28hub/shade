@@ -16,7 +16,6 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
@@ -28,8 +27,8 @@ import javax.lang.model.util.Elements;
 import io.t28.shade.Editor;
 import io.t28.shade.compiler.SupportedType;
 import io.t28.shade.compiler.attributes.ConverterAttribute;
-import io.t28.shade.compiler.attributes.PropertyAttribute;
 import io.t28.shade.compiler.attributes.PreferenceAttribute;
+import io.t28.shade.compiler.attributes.PropertyAttribute;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
@@ -212,9 +211,8 @@ public class EditorDefinition implements ClassDefinition {
         final String parameters = preference.properties()
                 .stream()
                 .map(property -> CodeBlock.of("this.$L", property.name()).toString())
-                .collect(joining(", "));
-
-        applyBuilder.addStatement("return new $T($L)", ClassName.bestGuess(preference.entityClass(elements).simpleName() + "Impl"), parameters);
+                .collect(joining(", \n"));
+        applyBuilder.addStatement("return new $T(\n$L)", ClassName.bestGuess(entityClass.simpleName() + "Impl"), parameters);
         methods.add(applyBuilder.build());
 
         return ImmutableList.copyOf(methods);
