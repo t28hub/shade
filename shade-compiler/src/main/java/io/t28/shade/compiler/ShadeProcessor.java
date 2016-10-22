@@ -17,7 +17,9 @@ import com.squareup.javapoet.TypeSpec;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.IntStream;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
@@ -32,14 +34,14 @@ import javax.lang.model.util.Elements;
 
 import io.t28.shade.annotations.Shade;
 import io.t28.shade.compiler.attributes.ConverterAttribute;
-import io.t28.shade.compiler.attributes.PropertyAttribute;
 import io.t28.shade.compiler.attributes.PreferenceAttribute;
+import io.t28.shade.compiler.attributes.PropertyAttribute;
 import io.t28.shade.compiler.definitions.ClassDefinition;
 import io.t28.shade.compiler.definitions.EditorDefinition;
 import io.t28.shade.compiler.definitions.EntityDefinition;
 import io.t28.shade.compiler.exceptions.ClassGenerationException;
 
-import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 
 @SuppressWarnings({"unused"})
 @AutoService(Processor.class)
@@ -122,7 +124,7 @@ public class ShadeProcessor extends AbstractProcessor {
 
         final Collection<PropertyAttribute> properties = preference.properties();
         final ClassName entityClass = preference.entityClass(elements);
-        final String parameters = properties.stream()
+        final List<CodeBlock> statements = properties.stream()
                 .map(property -> {
                     final ConverterAttribute converter = property.converter();
                     final TypeName supportedType;
@@ -140,10 +142,20 @@ public class ShadeProcessor extends AbstractProcessor {
                     } else {
                         loadStatement = supported.buildLoadStatement(property, converter, VARIABLE_PREFERENCE);
                     }
-                    return loadStatement.toString();
+                    return loadStatement;
                 })
-                .collect(joining(", "));
-        loadMethodBuilder.addStatement("return new $T($L)", ClassName.bestGuess(entityClass.simpleName() + "Impl"), parameters)
+                .collect(toList());
+        final CodeBlock.Builder codeBuilder = CodeBlock.builder();
+        IntStream.range(0, statements.size())
+                .forEach(index -> {
+                    final CodeBlock statement = statements.get(index);
+                    if (index == statements.size() - 1) {
+                        codeBuilder.add("$L", statement);
+                        return;
+                    }
+                    codeBuilder.add("$L,\n", statement);
+                });
+        loadMethodBuilder.addStatement("return new $T($L)", ClassName.bestGuess(entityClass.simpleName() + "Impl"), codeBuilder.build())
                 .returns(entityClass)
                 .build();
 
