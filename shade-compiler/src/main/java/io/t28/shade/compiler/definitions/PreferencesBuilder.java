@@ -136,7 +136,7 @@ public class PreferencesBuilder extends ClassBuilder {
                         VARIABLE_PREFERENCE,
                         "context",
                         attribute.name(),
-                        Context.MODE_PRIVATE
+                        attribute.mode()
                 );
         final List<CodeBlock> statements = attribute.properties()
                 .stream()

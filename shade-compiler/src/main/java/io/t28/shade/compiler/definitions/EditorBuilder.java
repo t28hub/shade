@@ -44,11 +44,11 @@ public class EditorBuilder extends ClassBuilder {
     private static final String INITIAL_CHANGED_BITS = "0x0L";
 
     private final Elements elements;
-    private final PreferencesAttribute preference;
+    private final PreferencesAttribute attribute;
 
-    public EditorBuilder(@Nonnull Elements elements, @Nonnull PreferencesAttribute preference) {
+    public EditorBuilder(@Nonnull Elements elements, @Nonnull PreferencesAttribute attribute) {
         this.elements = elements;
-        this.preference = preference;
+        this.attribute = attribute;
     }
 
     @Nonnull
@@ -84,7 +84,7 @@ public class EditorBuilder extends ClassBuilder {
     @Nonnull
     @Override
     public Collection<FieldSpec> fields() {
-        final List<PropertyAttribute> properties = preference.properties();
+        final List<PropertyAttribute> properties = attribute.properties();
         final Collection<FieldSpec> constantFields = IntStream.range(0, properties.size())
                 .mapToObj(index -> {
                     final PropertyAttribute property = properties.get(index);
@@ -125,7 +125,7 @@ public class EditorBuilder extends ClassBuilder {
     @Override
     public Collection<MethodSpec> methods() {
         final ClassName entityClass = entityClass();
-        final Collection<MethodSpec> methods = preference.properties()
+        final Collection<MethodSpec> methods = attribute.properties()
                 .stream()
                 .map(property -> {
                     final String name = property.name();
@@ -165,7 +165,7 @@ public class EditorBuilder extends ClassBuilder {
                                 .build()
                 )
                 .addStatement("this.$L = $L", FIELD_CONTEXT, FIELD_CONTEXT);
-        preference.properties()
+        attribute.properties()
                 .forEach(property -> {
                     constructorBuilder.addStatement(
                             "this.$L = $L.$L()",
@@ -184,14 +184,14 @@ public class EditorBuilder extends ClassBuilder {
                 .addStatement(
                         "final $T preferences = this.context.getSharedPreferences($S, $L)",
                         SharedPreferences.class,
-                        preference.name(),
-                        Context.MODE_PRIVATE
+                        attribute.name(),
+                        attribute.mode()
                 )
                 .addStatement(
                         "final $T editor = preferences.edit()",
                         SharedPreferences.Editor.class
                 );
-        preference.properties().forEach(property -> {
+        attribute.properties().forEach(property -> {
             final ConverterAttribute converter = property.converter();
             final TypeName supportedType;
             if (converter.isDefault()) {
@@ -216,7 +216,7 @@ public class EditorBuilder extends ClassBuilder {
         });
         applyBuilder.addStatement("editor.apply()");
 
-        final String parameters = preference.properties()
+        final String parameters = attribute.properties()
                 .stream()
                 .map(property -> CodeBlock.of("this.$L", property.name()).toString())
                 .collect(joining(", \n"));
@@ -233,7 +233,7 @@ public class EditorBuilder extends ClassBuilder {
     }
 
     private ClassName entityClass() {
-        return preference.entityClass(elements);
+        return attribute.entityClass(elements);
     }
 
     private TypeName editorClass() {
