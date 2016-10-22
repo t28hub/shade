@@ -34,11 +34,12 @@ import javax.lang.model.util.Elements;
 
 import io.t28.shade.annotations.Shade;
 import io.t28.shade.compiler.attributes.ConverterAttribute;
-import io.t28.shade.compiler.attributes.PreferenceAttribute;
+import io.t28.shade.compiler.attributes.PreferencesAttribute;
 import io.t28.shade.compiler.attributes.PropertyAttribute;
-import io.t28.shade.compiler.definitions.ClassDefinition;
-import io.t28.shade.compiler.definitions.EditorDefinition;
-import io.t28.shade.compiler.definitions.EntityDefinition;
+import io.t28.shade.compiler.definitions.ClassBuilder;
+import io.t28.shade.compiler.definitions.EditorBuilder;
+import io.t28.shade.compiler.definitions.EntityBuilder;
+import io.t28.shade.compiler.definitions.PreferencesBuilder;
 import io.t28.shade.compiler.exceptions.ClassGenerationException;
 
 import static java.util.stream.Collectors.toList;
@@ -80,120 +81,29 @@ public class ShadeProcessor extends AbstractProcessor {
                     if (kind != ElementKind.CLASS && kind != ElementKind.INTERFACE) {
                         throw new RuntimeException("Shade.Preferences is not allowed to add to specified type(" + kind + ")");
                     }
-                    generateService(element);
+
+                    final PreferencesAttribute attribute = PreferencesAttribute.create(element);
+                    final ClassBuilder preferencesBuilder = PreferencesBuilder.builder()
+                            .elements(elements)
+                            .element(element)
+                            .attribute(attribute)
+                            .entityClassBuilder(new EntityBuilder(elements, attribute))
+                            .editorClassBuilder(new EditorBuilder(elements, attribute))
+                            .build();
+                    write(preferencesBuilder);
                 });
         return false;
     }
 
-    private void generateService(TypeElement element) {
-        final PreferenceAttribute preference = PreferenceAttribute.create(element);
-        final MethodSpec constructorSpec = MethodSpec.constructorBuilder()
-                .addModifiers(Modifier.PUBLIC)
-                .addParameter(
-                        ParameterSpec.builder(Context.class, "context")
-                                .addAnnotation(NonNull.class)
-                                .build()
-                )
-                .addStatement("this.$N = $N.getApplicationContext()", "context", "context")
-                .build();
-
-        final FieldSpec fieldSpec = FieldSpec.builder(Context.class, "context")
-                .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
-                .build();
-
-        // Preference class implementation
-        final ClassGenerator generator = new ClassGenerator();
-        final ClassDefinition editorDefinition = new EditorDefinition(elements, preference);
-        final ClassDefinition entityDefinition = new EntityDefinition(elements, preference);
-        final TypeName editorName = ClassName.bestGuess(editorDefinition.name());
-        final TypeSpec editorSpec = generator.generate(editorDefinition);
-        final TypeSpec entitySpec = generator.generate(entityDefinition);
-
-        final String preferenceName = preference.name();
-        final MethodSpec.Builder loadMethodBuilder = MethodSpec.methodBuilder("load")
-                .addAnnotation(NonNull.class)
-                .addModifiers(Modifier.PUBLIC)
-                .addStatement(
-                        "final $T $N = this.$N.getSharedPreferences($S, $L)",
-                        SharedPreferences.class,
-                        VARIABLE_PREFERENCE,
-                        "context",
-                        preferenceName,
-                        Context.MODE_PRIVATE
-                );
-
-        final Collection<PropertyAttribute> properties = preference.properties();
-        final ClassName entityClass = preference.entityClass(elements);
-        final List<CodeBlock> statements = properties.stream()
-                .map(property -> {
-                    final ConverterAttribute converter = property.converter();
-                    final TypeName supportedType;
-                    if (converter.isDefault()) {
-                        supportedType = property.type();
-                    } else {
-                        supportedType = converter.supportedType();
-                    }
-
-                    final SupportedType supported = SupportedType.find(supportedType)
-                            .orElseThrow(() -> new IllegalArgumentException("Specified type(" + supportedType + ") is not supported and should use a converter"));
-                    final CodeBlock loadStatement;
-                    if (converter.isDefault()) {
-                        loadStatement = supported.buildLoadStatement(property, VARIABLE_PREFERENCE);
-                    } else {
-                        loadStatement = supported.buildLoadStatement(property, converter, VARIABLE_PREFERENCE);
-                    }
-                    return loadStatement;
-                })
-                .collect(toList());
-        final CodeBlock.Builder codeBuilder = CodeBlock.builder();
-        IntStream.range(0, statements.size())
-                .forEach(index -> {
-                    final CodeBlock statement = statements.get(index);
-                    if (index == statements.size() - 1) {
-                        codeBuilder.add("$L", statement);
-                        return;
-                    }
-                    codeBuilder.add("$L,\n", statement);
-                });
-        loadMethodBuilder.addStatement("return new $T($L)", ClassName.bestGuess(entityClass.simpleName() + "Impl"), codeBuilder.build())
-                .returns(entityClass)
-                .build();
-
-        final MethodSpec editMethod = MethodSpec.methodBuilder("edit")
-                .addAnnotation(NonNull.class)
-                .addModifiers(Modifier.PUBLIC)
-                .addParameter(
-                        ParameterSpec.builder(entityClass, "entity")
-                                .addAnnotation(NonNull.class)
-                                .build()
-                )
-                .addStatement(
-                        "return new $L(this.$N, $N)",
-                        editorName,
-                        "context",
-                        "entity"
-                )
-                .returns(editorName)
-                .build();
-
-        final TypeSpec serviceSpec = TypeSpec.classBuilder(element.getSimpleName() + "Service")
-                .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                .addField(fieldSpec)
-                .addMethod(constructorSpec)
-                .addMethod(loadMethodBuilder.build())
-                .addMethod(editMethod)
-                .addType(editorSpec)
-                .addType(entitySpec)
-                .build();
-
+    private void write(ClassBuilder definition) {
         try {
-            JavaFile.builder(preference.packageName(elements), serviceSpec)
-                    .skipJavaLangImports(true)
+            JavaFile.builder(definition.packageName(), definition.build())
                     .indent("    ")
+                    .skipJavaLangImports(true)
                     .build()
                     .writeTo(filer);
         } catch (IOException e) {
-            throw new ClassGenerationException("Unable to process a class(" + element.getSimpleName() + ")", e);
+            throw new ClassGenerationException("Unable to build " + definition.name(), e);
         }
     }
 }
