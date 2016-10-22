@@ -5,25 +5,25 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
 import io.t28.shade.example.model.Example;
-import io.t28.shade.example.model.ExampleService;
+import io.t28.shade.example.model.ExamplePreferences;
 
 public class MainActivity extends AppCompatActivity {
-    private ExampleService exampleService;
+    private ExamplePreferences preferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        exampleService = new ExampleService(getApplicationContext());
+        preferences = new ExamplePreferences(getApplicationContext());
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        final Example example = exampleService.load();
+        final Example example = preferences.load();
 
-        exampleService.edit(example)
+        preferences.edit(example)
                 .intValue(100)
                 .longValue(200)
                 .apply();

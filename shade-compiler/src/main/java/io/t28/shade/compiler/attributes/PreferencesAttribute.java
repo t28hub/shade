@@ -13,19 +13,18 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
 import javax.lang.model.util.Elements;
 
 import io.t28.shade.annotations.Shade;
 
 import static java.util.stream.Collectors.toList;
 
-public class PreferenceAttribute {
+public class PreferencesAttribute {
     private final TypeElement element;
     private final Shade.Preferences annotation;
     private final Collection<PropertyAttribute> properties;
 
-    private PreferenceAttribute(TypeElement element, Shade.Preferences annotation) {
+    private PreferencesAttribute(TypeElement element, Shade.Preferences annotation) {
         if (element == null) {
             throw new IllegalArgumentException("element must not be null");
         }
@@ -52,8 +51,8 @@ public class PreferenceAttribute {
     }
 
     @Nonnull
-    public static PreferenceAttribute create(@Nonnull TypeElement element) {
-        return new PreferenceAttribute(element, element.getAnnotation(Shade.Preferences.class));
+    public static PreferencesAttribute create(@Nonnull TypeElement element) {
+        return new PreferencesAttribute(element, element.getAnnotation(Shade.Preferences.class));
     }
 
     @Override

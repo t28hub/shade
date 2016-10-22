@@ -5,6 +5,7 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
+import com.squareup.javapoet.TypeSpec;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -16,19 +17,25 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 
-import io.t28.shade.compiler.attributes.PreferenceAttribute;
+import io.t28.shade.compiler.attributes.PreferencesAttribute;
 
 import static java.util.stream.Collectors.toList;
 
-public class EntityDefinition implements ClassDefinition {
+public class EntityBuilder extends ClassBuilder {
     private static final String SUFFIX_CLASS = "Impl";
 
     private final Elements elements;
-    private final PreferenceAttribute preference;
+    private final PreferencesAttribute preference;
 
-    public EntityDefinition(@Nonnull Elements elements, @Nonnull PreferenceAttribute preference) {
+    public EntityBuilder(@Nonnull Elements elements, @Nonnull PreferencesAttribute preference) {
         this.elements = elements;
         this.preference = preference;
+    }
+
+    @Nonnull
+    @Override
+    public String packageName() {
+        return "";
     }
 
     @Nonnull
@@ -102,6 +109,12 @@ public class EntityDefinition implements ClassDefinition {
                 .add(constructorBuilder.build())
                 .addAll(methods)
                 .build();
+    }
+
+    @Nonnull
+    @Override
+    public Collection<TypeSpec> innerClasses() {
+        return Collections.emptyList();
     }
 
     private ClassName entityClass() {

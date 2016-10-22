@@ -14,8 +14,10 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
+import com.squareup.javapoet.TypeSpec;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
@@ -27,13 +29,13 @@ import javax.lang.model.util.Elements;
 import io.t28.shade.Editor;
 import io.t28.shade.compiler.SupportedType;
 import io.t28.shade.compiler.attributes.ConverterAttribute;
-import io.t28.shade.compiler.attributes.PreferenceAttribute;
+import io.t28.shade.compiler.attributes.PreferencesAttribute;
 import io.t28.shade.compiler.attributes.PropertyAttribute;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
-public class EditorDefinition implements ClassDefinition {
+public class EditorBuilder extends ClassBuilder {
     private static final String SUFFIX_CLASS = "Editor";
     private static final String SUFFIX_BIT_CONSTANT = "BIT_";
     private static final String FIELD_CONTEXT = "context";
@@ -42,11 +44,17 @@ public class EditorDefinition implements ClassDefinition {
     private static final String INITIAL_CHANGED_BITS = "0x0L";
 
     private final Elements elements;
-    private final PreferenceAttribute preference;
+    private final PreferencesAttribute preference;
 
-    public EditorDefinition(@Nonnull Elements elements, @Nonnull PreferenceAttribute preference) {
+    public EditorBuilder(@Nonnull Elements elements, @Nonnull PreferencesAttribute preference) {
         this.elements = elements;
         this.preference = preference;
+    }
+
+    @Nonnull
+    @Override
+    public String packageName() {
+        return "";
     }
 
     @Nonnull
@@ -216,6 +224,12 @@ public class EditorDefinition implements ClassDefinition {
         methods.add(applyBuilder.build());
 
         return ImmutableList.copyOf(methods);
+    }
+
+    @Nonnull
+    @Override
+    public Collection<TypeSpec> innerClasses() {
+        return Collections.emptyList();
     }
 
     private ClassName entityClass() {
