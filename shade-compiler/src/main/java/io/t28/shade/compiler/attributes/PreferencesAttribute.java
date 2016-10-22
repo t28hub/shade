@@ -2,6 +2,7 @@ package io.t28.shade.compiler.attributes;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.squareup.javapoet.ClassName;
 
@@ -86,6 +87,11 @@ public class PreferencesAttribute {
             throw new IllegalArgumentException("Name of SharedPreferences must not be empty");
         }
         return name;
+    }
+
+    @Shade.Mode
+    public int mode() {
+        return annotation.mode();
     }
 
     @Nonnull
