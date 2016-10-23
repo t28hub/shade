@@ -2,34 +2,52 @@ package io.t28.shade.compiler.definitions;
 
 import com.google.common.collect.ImmutableList;
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
+import javax.lang.model.util.Types;
 
 import io.t28.shade.compiler.attributes.PreferencesAttribute;
+import io.t28.shade.compiler.attributes.PropertyAttribute;
+import io.t28.shade.compiler.utils.TypeNames;
 
 import static java.util.stream.Collectors.toList;
 
 public class EntityBuilder extends ClassBuilder {
     private static final String SUFFIX_CLASS = "Impl";
 
+    private final Types types;
     private final Elements elements;
-    private final PreferencesAttribute preference;
+    private final PreferencesAttribute attribute;
 
-    public EntityBuilder(@Nonnull Elements elements, @Nonnull PreferencesAttribute preference) {
-        this.elements = elements;
-        this.preference = preference;
+    private EntityBuilder(Builder builder) {
+        this.types = builder.types;
+        this.elements = builder.elements;
+        this.attribute = builder.attribute;
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 
     @Nonnull
@@ -53,7 +71,7 @@ public class EntityBuilder extends ClassBuilder {
     @Nonnull
     @Override
     public Optional<TypeName> superClass() {
-        final TypeElement element = preference.element();
+        final TypeElement element = attribute.element();
         if (element.getKind() != ElementKind.CLASS) {
             return Optional.empty();
         }
@@ -63,7 +81,7 @@ public class EntityBuilder extends ClassBuilder {
     @Nonnull
     @Override
     public Collection<TypeName> interfaces() {
-        final TypeElement element = preference.element();
+        final TypeElement element = attribute.element();
         if (element.getKind() != ElementKind.INTERFACE) {
             return Collections.emptyList();
         }
@@ -73,11 +91,11 @@ public class EntityBuilder extends ClassBuilder {
     @Nonnull
     @Override
     public Collection<FieldSpec> fields() {
-        return preference.properties()
+        return attribute.properties()
                 .stream()
                 .map(property -> {
                     final String name = property.name();
-                    final TypeName type = property.type();
+                    final TypeName type = property.typeName();
                     return FieldSpec.builder(type, name)
                             .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
                             .build();
@@ -88,26 +106,9 @@ public class EntityBuilder extends ClassBuilder {
     @Nonnull
     @Override
     public Collection<MethodSpec> methods() {
-        final MethodSpec.Builder constructorBuilder = MethodSpec.constructorBuilder()
-                .addModifiers(Modifier.PRIVATE);
-        preference.properties()
-                .forEach(property -> {
-                    final String name = property.name();
-                    constructorBuilder.addParameter(property.type(), name);
-                    constructorBuilder.addStatement(
-                        "this.$L = $L", name, name
-                    );
-                });
-        final Collection<MethodSpec> methods = preference.properties()
-                .stream()
-                .map(property -> MethodSpec.overriding(property.method())
-                        .addStatement("return this.$N", property.name())
-                        .addModifiers(Modifier.FINAL)
-                        .build())
-                .collect(toList());
         return ImmutableList.<MethodSpec>builder()
-                .add(constructorBuilder.build())
-                .addAll(methods)
+                .add(buildConstructor())
+                .addAll(buildAccessors())
                 .build();
     }
 
@@ -118,6 +119,103 @@ public class EntityBuilder extends ClassBuilder {
     }
 
     private ClassName entityClass() {
-        return preference.entityClass(elements);
+        return attribute.entityClass(elements);
+    }
+
+    private MethodSpec buildConstructor() {
+        final MethodSpec.Builder builder = MethodSpec.constructorBuilder()
+                .addModifiers(Modifier.PRIVATE);
+        attribute.properties()
+                .forEach(property -> {
+                    final TypeMirror typeMirror = property.type();
+                    final TypeName typeName = property.typeName();
+                    final String name = property.name();
+                    builder.addParameter(typeName, name);
+                    builder.addStatement("this.$L = $L", name, createDefensiveStatement(typeMirror, typeName, name));
+                });
+        return builder.build();
+    }
+
+    private Collection<MethodSpec> buildAccessors() {
+        return attribute.properties()
+                .stream()
+                .map(this::buildAccessor)
+                .collect(toList());
+    }
+
+    private MethodSpec buildAccessor(PropertyAttribute property) {
+        final TypeMirror typeMirror = property.type();
+        final TypeName typeName = property.typeName();
+        final String name = property.name();
+        return MethodSpec.overriding(property.method())
+                .addStatement("return $L", createDefensiveStatement(typeMirror, typeName, name))
+                .addModifiers(Modifier.FINAL)
+                .build();
+    }
+
+    private CodeBlock createDefensiveStatement(TypeMirror typeMirror, TypeName typeName, String name) {
+        if (typeName instanceof ParameterizedTypeName) {
+            final TypeName rawType = ((ParameterizedTypeName) typeName).rawType;
+            if (rawType.equals(ClassName.get(Set.class))) {
+                return CodeBlock.of("new $T<>($N)", HashSet.class, name);
+            }
+
+            if (rawType.equals(ClassName.get(List.class))) {
+                return CodeBlock.of("new $T<>($N)", ArrayList.class, name);
+            }
+
+            if (rawType.equals(ClassName.get(Map.class))) {
+                return CodeBlock.of("new $T<>($N)", HashMap.class, name);
+            }
+        }
+
+        final boolean isCloneable = TypeNames.collectHierarchyTypes(typeMirror, types)
+                .stream()
+                .anyMatch(TypeName.get(Cloneable.class)::equals);
+        if (isCloneable) {
+            return CodeBlock.of("($T) $N.clone()", typeName, name);
+        }
+        return CodeBlock.of("$N", name);
+    }
+
+    public static class Builder {
+        private Types types;
+        private Elements elements;
+        private PreferencesAttribute attribute;
+
+        private Builder() {
+        }
+
+        @Nonnull
+        public Builder types(@Nonnull Types types) {
+            this.types = types;
+            return this;
+        }
+
+        @Nonnull
+        public Builder elements(@Nonnull Elements elements) {
+            this.elements = elements;
+            return this;
+        }
+
+        @Nonnull
+        public Builder attribute(@Nonnull PreferencesAttribute attribute) {
+            this.attribute = attribute;
+            return this;
+        }
+
+        @Nonnull
+        public EntityBuilder build() {
+            if (types == null) {
+                throw new IllegalArgumentException("types must not be null");
+            }
+            if (elements == null) {
+                throw new IllegalArgumentException("elements must not be null");
+            }
+            if (attribute == null) {
+                throw new IllegalArgumentException("attribute must not be null");
+            }
+            return new EntityBuilder(this);
+        }
     }
 }

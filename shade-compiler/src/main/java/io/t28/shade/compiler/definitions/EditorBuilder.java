@@ -107,7 +107,7 @@ public class EditorBuilder extends ClassBuilder {
         final Collection<FieldSpec> fields = properties.stream()
                 .map(property -> {
                     final String name = property.name();
-                    final TypeName type = property.type();
+                    final TypeName type = property.typeName();
                     return FieldSpec.builder(type, name)
                             .addModifiers(Modifier.PRIVATE)
                             .build();
@@ -129,16 +129,16 @@ public class EditorBuilder extends ClassBuilder {
                 .stream()
                 .map(property -> {
                     final String name = property.name();
-                    final TypeName type = property.type();
+                    final TypeName typeName = property.typeName();
                     final MethodSpec.Builder builder = MethodSpec.methodBuilder(name)
                             .addAnnotation(NonNull.class)
                             .addModifiers(Modifier.PUBLIC, Modifier.FINAL);
 
                     final ParameterSpec parameter;
-                    if (type.isPrimitive()) {
-                        parameter = ParameterSpec.builder(type, name).build();
+                    if (typeName.isPrimitive()) {
+                        parameter = ParameterSpec.builder(typeName, name).build();
                     } else {
-                        parameter = ParameterSpec.builder(type, name).addAnnotation(Nullable.class).build();
+                        parameter = ParameterSpec.builder(typeName, name).addAnnotation(Nullable.class).build();
                     }
 
                     final String constantName = SUFFIX_BIT_CONSTANT + CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, name);
@@ -195,7 +195,7 @@ public class EditorBuilder extends ClassBuilder {
             final ConverterAttribute converter = property.converter();
             final TypeName supportedType;
             if (converter.isDefault()) {
-                supportedType = property.type();
+                supportedType = property.typeName();
             } else {
                 supportedType = converter.supportedType();
             }

@@ -23,6 +23,7 @@ import javax.annotation.Nonnull;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
+import javax.lang.model.util.Types;
 
 import io.t28.shade.compiler.SupportedType;
 import io.t28.shade.compiler.attributes.ConverterAttribute;
@@ -36,6 +37,7 @@ public class PreferencesBuilder extends ClassBuilder {
     private static final String METHOD_EDIT = "edit";
     private static final String VARIABLE_PREFERENCE = "preferences";
 
+    private final Types types;
     private final Elements elements;
     private final TypeElement element;
     private final PreferencesAttribute attribute;
@@ -43,6 +45,7 @@ public class PreferencesBuilder extends ClassBuilder {
     private final ClassBuilder editorClassBuilder;
 
     private PreferencesBuilder(Builder builder) {
+        this.types = builder.types;
         this.elements = builder.elements;
         this.element = builder.element;
         this.attribute = builder.attribute;
@@ -144,7 +147,7 @@ public class PreferencesBuilder extends ClassBuilder {
                     final ConverterAttribute converter = property.converter();
                     final TypeName supportedType;
                     if (converter.isDefault()) {
-                        supportedType = property.type();
+                        supportedType = property.typeName();
                     } else {
                         supportedType = converter.supportedType();
                     }
@@ -203,6 +206,7 @@ public class PreferencesBuilder extends ClassBuilder {
     }
 
     public static class Builder {
+        private Types types;
         private Elements elements;
         private TypeElement element;
         private PreferencesAttribute attribute;
@@ -210,6 +214,12 @@ public class PreferencesBuilder extends ClassBuilder {
         private ClassBuilder editorClassBuilder;
 
         private Builder() {
+        }
+
+        @Nonnull
+        public Builder types(@Nonnull Types types) {
+            this.types = types;
+            return this;
         }
 
         @Nonnull

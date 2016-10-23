@@ -39,11 +39,11 @@ public class ConverterAttribute {
         try {
             final Class<?> converterClass = annotation.converter();
             className = ClassName.get(converterClass);
-            types = TypeNames.findGenericsTypes(converterClass, Converter.class);
+            types = TypeNames.collectGenericsTypes(converterClass, Converter.class);
         } catch (MirroredTypeException e) {
             final TypeElement element = TypeNames.toTypeElement(e.getTypeMirror());
             className = ClassName.get(element);
-            types = TypeNames.findGenericsTypes(element, Converter.class);
+            types = TypeNames.collectGenericsTypes(element, Converter.class);
         }
 
         if (types.size() != GENERICS_SIZE) {
