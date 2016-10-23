@@ -31,6 +31,7 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
+import javax.lang.model.util.Types;
 
 import io.t28.shade.annotations.Shade;
 import io.t28.shade.compiler.attributes.ConverterAttribute;
@@ -50,6 +51,7 @@ public class ShadeProcessor extends AbstractProcessor {
     private static final String VARIABLE_PREFERENCE = "preferences";
 
     private Filer filer;
+    private Types types;
     private Elements elements;
 
     @Override
@@ -68,6 +70,7 @@ public class ShadeProcessor extends AbstractProcessor {
     public synchronized void init(ProcessingEnvironment environment) {
         super.init(environment);
         filer = environment.getFiler();
+        types = environment.getTypeUtils();
         elements = environment.getElementUtils();
     }
 
@@ -84,10 +87,15 @@ public class ShadeProcessor extends AbstractProcessor {
 
                     final PreferencesAttribute attribute = PreferencesAttribute.create(element);
                     final ClassBuilder preferencesBuilder = PreferencesBuilder.builder()
+                            .types(types)
                             .elements(elements)
                             .element(element)
                             .attribute(attribute)
-                            .entityClassBuilder(new EntityBuilder(elements, attribute))
+                            .entityClassBuilder(EntityBuilder.builder()
+                                    .types(types)
+                                    .elements(elements)
+                                    .attribute(attribute)
+                                    .build())
                             .editorClassBuilder(new EditorBuilder(elements, attribute))
                             .build();
                     write(preferencesBuilder);

@@ -2,15 +2,14 @@ package io.t28.shade.compiler.attributes;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
-import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
 
-import java.util.List;
+import java.lang.reflect.Type;
 import java.util.Optional;
 
 import javax.annotation.Nonnull;
 import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.TypeMirror;
 
 import io.t28.shade.annotations.Shade;
 
@@ -41,12 +40,13 @@ public class PropertyAttribute {
     }
 
     @Nonnull
-    public TypeName type() {
-        if (isGetter()) {
-            return ClassName.get(element.getReturnType());
-        }
-        final List<? extends VariableElement> arguments = element.getParameters();
-        return ClassName.get(arguments.get(0).asType());
+    public TypeMirror type() {
+        return element.getReturnType();
+    }
+
+    @Nonnull
+    public TypeName typeName() {
+        return TypeName.get(type());
     }
 
     @Nonnull
@@ -67,21 +67,6 @@ public class PropertyAttribute {
     @Nonnull
     public ConverterAttribute converter() {
         return converter;
-    }
-
-    public boolean isGetter() {
-        final TypeName returnType = TypeName.get(element.getReturnType());
-        if (returnType == TypeName.VOID) {
-            return false;
-        }
-
-        final List<? extends VariableElement> arguments = element.getParameters();
-        return arguments.isEmpty();
-    }
-
-    public boolean isSetter() {
-        final List<? extends VariableElement> arguments = element.getParameters();
-        return arguments.size() == 1;
     }
 
     @Nonnull
