@@ -84,12 +84,43 @@ public class EditorBuilder extends ClassBuilder {
     @Nonnull
     @Override
     public Collection<FieldSpec> fields() {
+        final FieldSpec contextField = FieldSpec.builder(Context.class, FIELD_CONTEXT)
+                .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
+                .build();
+        final FieldSpec changedBitsField = FieldSpec.builder(long.class, FIELD_CHANGED_BITS)
+                .addModifiers(Modifier.PRIVATE)
+                .initializer(INITIAL_CHANGED_BITS)
+                .build();
+        return ImmutableList.<FieldSpec>builder()
+                .addAll(buildConstants())
+                .add(contextField)
+                .add(changedBitsField)
+                .addAll(buildPropertyFields())
+                .build();
+    }
+
+    @Nonnull
+    @Override
+    public Collection<MethodSpec> methods() {
+        return ImmutableList.<MethodSpec>builder()
+                .add(buildConstructor())
+                .addAll(buildSetters())
+                .add(buildApply())
+                .build();
+    }
+
+    @Nonnull
+    @Override
+    public Collection<TypeSpec> innerClasses() {
+        return Collections.emptyList();
+    }
+
+    private Collection<FieldSpec> buildConstants() {
         final List<PropertyAttribute> properties = attribute.properties();
-        final Collection<FieldSpec> constantFields = IntStream.range(0, properties.size())
+        return IntStream.range(0, properties.size())
                 .mapToObj(index -> {
                     final PropertyAttribute property = properties.get(index);
-
-                    final String name = SUFFIX_BIT_CONSTANT + CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, property.name());
+                    final String name = toBitConstant(property.name());
                     final String value = String.format(FORMAT_BIT, (int) Math.pow(2, index));
                     return FieldSpec.builder(long.class, name)
                             .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
@@ -97,35 +128,42 @@ public class EditorBuilder extends ClassBuilder {
                             .build();
                 })
                 .collect(toList());
-        final FieldSpec initialBitsField = FieldSpec.builder(long.class, FIELD_CHANGED_BITS)
-                .addModifiers(Modifier.PRIVATE)
-                .initializer(INITIAL_CHANGED_BITS)
-                .build();
-        final FieldSpec contextField = FieldSpec.builder(Context.class, FIELD_CONTEXT)
-                .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
-                .build();
-        final Collection<FieldSpec> fields = properties.stream()
-                .map(property -> {
-                    final String name = property.name();
-                    final TypeName type = property.typeName();
-                    return FieldSpec.builder(type, name)
-                            .addModifiers(Modifier.PRIVATE)
-                            .build();
-                })
-                .collect(toList());
-        return ImmutableList.<FieldSpec>builder()
-                .addAll(constantFields)
-                .add(contextField)
-                .add(initialBitsField)
-                .addAll(fields)
-                .build();
     }
 
-    @Nonnull
-    @Override
-    public Collection<MethodSpec> methods() {
-        final ClassName entityClass = entityClass();
-        final Collection<MethodSpec> methods = attribute.properties()
+    private Collection<FieldSpec> buildPropertyFields() {
+        return attribute.properties()
+                .stream()
+                .map(property -> FieldSpec.builder(property.typeName(), property.name())
+                        .addModifiers(Modifier.PRIVATE)
+                        .build())
+                .collect(toList());
+    }
+
+    private MethodSpec buildConstructor() {
+        final TypeName entityClass = entityClass();
+        final MethodSpec.Builder builder = MethodSpec.constructorBuilder()
+                .addModifiers(Modifier.PRIVATE)
+                .addParameter(
+                        ParameterSpec.builder(Context.class, FIELD_CONTEXT)
+                                .addAnnotation(NonNull.class)
+                                .build()
+                )
+                .addParameter(
+                        ParameterSpec.builder(entityClass, "source")
+                                .addAnnotation(NonNull.class)
+                                .build()
+                )
+                .addStatement("this.$L = $L", FIELD_CONTEXT, FIELD_CONTEXT);
+        attribute.properties()
+                .stream()
+                .map(PropertyAttribute::name)
+                .map(name -> CodeBlock.builder().addStatement("this.$L = $N.$L()", name, "source", name).build())
+                .forEach(builder::addCode);
+        return builder.build();
+    }
+
+    private Collection<MethodSpec> buildSetters() {
+        return attribute.properties()
                 .stream()
                 .map(property -> {
                     final String name = property.name();
@@ -141,56 +179,35 @@ public class EditorBuilder extends ClassBuilder {
                         parameter = ParameterSpec.builder(typeName, name).addAnnotation(Nullable.class).build();
                     }
 
-                    final String constantName = SUFFIX_BIT_CONSTANT + CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, name);
-                    return builder
-                            .addParameter(parameter)
+                    final String constantName = toBitConstant(name);
+                    return builder.addParameter(parameter)
                             .addStatement("this.$L |= $L", FIELD_CHANGED_BITS, constantName)
                             .addStatement("this.$N = $N", name, name)
                             .addStatement("return this")
-                            .returns(ClassName.bestGuess(name()))
+                            .returns(actualEditorClass())
                             .build();
                 })
                 .collect(toList());
+    }
 
-        final MethodSpec.Builder constructorBuilder = MethodSpec.constructorBuilder()
-                .addModifiers(Modifier.PRIVATE)
-                .addParameter(
-                        ParameterSpec.builder(Context.class, FIELD_CONTEXT)
-                                .addAnnotation(NonNull.class)
-                                .build()
-                )
-                .addParameter(
-                        ParameterSpec.builder(entityClass, entityClass.simpleName().toLowerCase())
-                                .addAnnotation(NonNull.class)
-                                .build()
-                )
-                .addStatement("this.$L = $L", FIELD_CONTEXT, FIELD_CONTEXT);
-        attribute.properties()
-                .forEach(property -> {
-                    constructorBuilder.addStatement(
-                            "this.$L = $L.$L()",
-                            property.name(),
-                            entityClass.simpleName().toLowerCase(),
-                            property.name()
-                    );
-                });
-        methods.add(constructorBuilder.build());
-
-        final MethodSpec.Builder applyBuilder = MethodSpec.methodBuilder("apply")
+    private MethodSpec buildApply() {
+        final ClassName entityClass = entityClass();
+        final MethodSpec.Builder builder = MethodSpec.methodBuilder("apply")
                 .addAnnotation(NonNull.class)
                 .addAnnotation(Override.class)
                 .addModifiers(Modifier.PUBLIC)
-                .returns(entityClass)
-                .addStatement(
-                        "final $T preferences = this.context.getSharedPreferences($S, $L)",
-                        SharedPreferences.class,
-                        attribute.name(),
-                        attribute.mode()
-                )
-                .addStatement(
-                        "final $T editor = preferences.edit()",
-                        SharedPreferences.Editor.class
-                );
+                .returns(entityClass);
+
+        builder.addStatement(
+                "final $T preferences = this.context.getSharedPreferences($S, $L)",
+                SharedPreferences.class,
+                attribute.name(),
+                attribute.mode());
+
+        builder.addStatement(
+                "final $T editor = preferences.edit()",
+                SharedPreferences.Editor.class);
+
         attribute.properties().forEach(property -> {
             final ConverterAttribute converter = property.converter();
             final TypeName supportedType;
@@ -209,34 +226,38 @@ public class EditorBuilder extends ClassBuilder {
                 savingStatement = supported.buildSaveStatement(property, converter, "editor");
             }
 
-            final String constantName = SUFFIX_BIT_CONSTANT + CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, property.name());
-            applyBuilder.beginControlFlow("if (($L & $L) != 0)", FIELD_CHANGED_BITS, constantName)
+            final String constantName = toBitConstant(property.name());
+            builder.beginControlFlow("if (($L & $L) != 0)", FIELD_CHANGED_BITS, constantName)
                     .addStatement("$L", savingStatement)
                     .endControlFlow();
         });
-        applyBuilder.addStatement("editor.apply()");
+        builder.addStatement("editor.apply()");
 
-        final String parameters = attribute.properties()
+        final String arguments = attribute.properties()
                 .stream()
                 .map(property -> CodeBlock.of("this.$L", property.name()).toString())
                 .collect(joining(", \n"));
-        applyBuilder.addStatement("return new $T(\n$L)", ClassName.bestGuess(entityClass.simpleName() + "Impl"), parameters);
-        methods.add(applyBuilder.build());
-
-        return ImmutableList.copyOf(methods);
+        builder.addStatement("return new $T(\n$L)", entityImplClass(), arguments);
+        return builder.build();
     }
 
-    @Nonnull
-    @Override
-    public Collection<TypeSpec> innerClasses() {
-        return Collections.emptyList();
+    private String toBitConstant(String name) {
+        return SUFFIX_BIT_CONSTANT + CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, name);
     }
 
     private ClassName entityClass() {
         return attribute.entityClass(elements);
     }
 
+    private ClassName entityImplClass() {
+        return ClassName.bestGuess(entityClass().simpleName() + "Impl");
+    }
+
     private TypeName editorClass() {
         return ParameterizedTypeName.get(ClassName.get(Editor.class), entityClass());
+    }
+
+    private TypeName actualEditorClass() {
+        return ClassName.bestGuess(name());
     }
 }
