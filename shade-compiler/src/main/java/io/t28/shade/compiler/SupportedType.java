@@ -1,5 +1,7 @@
 package io.t28.shade.compiler;
 
+import android.support.annotation.NonNull;
+
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.ParameterizedTypeName;
@@ -11,351 +13,121 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
-
-import io.t28.shade.compiler.attributes.ConverterAttribute;
-import io.t28.shade.compiler.attributes.PropertyAttribute;
+import javax.annotation.Nullable;
 
 public enum SupportedType {
     BOOLEAN(TypeName.BOOLEAN) {
-        private static final boolean DEFAULT_VALUE = false;
+        private static final boolean DEFAULT = false;
 
         @Nonnull
         @Override
-        public CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull String preference) {
+        public CodeBlock buildLoadStatement(@Nonnull String variable, @Nonnull String key, @Nullable String defValue) {
             return CodeBlock.builder()
-                    .add(
-                            "$N.getBoolean($S, $L)",
-                            preference,
-                            property.key(),
-                            property.defaultValue().map(Boolean::valueOf).orElse(DEFAULT_VALUE)
-                    )
-                    .indent()
+                    .add("$N.getBoolean($S, $L)", variable, key, Optional.ofNullable(defValue).map(Boolean::valueOf).orElse(DEFAULT))
                     .build();
         }
 
-        @Nonnull
+        @NonNull
         @Override
-        public CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String preference) {
+        public CodeBlock buildSaveStatement(@Nonnull String variable, @Nonnull String key, @Nonnull CodeBlock value) {
             return CodeBlock.builder()
-                    .addStatement(
-                            "new $T().toConverted($N.getBoolean($S, $L))",
-                            converter.className(),
-                            preference,
-                            property.key(),
-                            property.defaultValue().map(Boolean::valueOf).orElse(DEFAULT_VALUE)
-                    )
-                    .build();
-        }
-
-        @Nonnull
-        @Override
-        public CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull String editor) {
-            return CodeBlock.builder()
-                    .add(
-                            "$N.putBoolean($S, this.$L)",
-                            editor,
-                            property.key(),
-                            property.simpleName()
-                    )
-                    .build();
-        }
-
-        @Nonnull
-        @Override
-        public CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String editor) {
-            return CodeBlock.builder()
-                    .add(
-                            "$N.putBoolean($S, new $T().toSupported(this.$L))",
-                            editor,
-                            property.key(),
-                            converter.className(),
-                            property.simpleName()
-                    )
+                    .add("$N.putBoolean($S, $L)", variable, key, value)
                     .build();
         }
     },
     FLOAT(TypeName.FLOAT) {
-        private static final float DEFAULT_VALUE = 0.0f;
+        private static final float DEFAULT = 0.0f;
 
         @Nonnull
         @Override
-        public CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull String preference) {
+        public CodeBlock buildLoadStatement(@Nonnull String variable, @Nonnull String key, @Nullable String defValue) {
             return CodeBlock.builder()
-                    .add(
-                            "$N.getFloat($S, $L)",
-                            preference,
-                            property.key(),
-                            property.defaultValue().map(Float::valueOf).orElse(DEFAULT_VALUE)
-                    )
+                    .add("$N.getFloat($S, $L)", variable, key, Optional.ofNullable(defValue).map(Float::valueOf).orElse(DEFAULT))
                     .build();
         }
 
-        @Nonnull
+        @NonNull
         @Override
-        public CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String preference) {
+        public CodeBlock buildSaveStatement(@Nonnull String variable, @Nonnull String key, @Nonnull CodeBlock value) {
             return CodeBlock.builder()
-                    .add(
-                            "new $T().toConverted($N.getFloat($S, $L))",
-                            converter.className(),
-                            preference,
-                            property.key(),
-                            property.defaultValue().map(Float::valueOf).orElse(DEFAULT_VALUE)
-                    )
-                    .build();
-        }
-
-        @Nonnull
-        @Override
-        public CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull String editor) {
-            return CodeBlock.builder()
-                    .add(
-                            "$N.putFloat($S, this.$L)",
-                            editor,
-                            property.key(),
-                            property.simpleName()
-                    )
-                    .build();
-        }
-
-        @Nonnull
-        @Override
-        public CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String editor) {
-            return CodeBlock.builder()
-                    .add(
-                            "$N.putFloat($S, new $T().toSupported(this.$L))",
-                            editor,
-                            property.key(),
-                            converter.className(),
-                            property.simpleName()
-                    )
+                    .add("$N.putFloat($S, $L)", variable, key, value)
                     .build();
         }
     },
     INT(TypeName.INT) {
-        private static final int DEFAULT_VALUE = 0;
+        private static final int DEFAULT = 0;
 
         @Nonnull
         @Override
-        public CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull String preference) {
+        public CodeBlock buildLoadStatement(@Nonnull String variable, @Nonnull String key, @Nullable String defValue) {
             return CodeBlock.builder()
-                    .add(
-                            "$N.getInt($S, $L)",
-                            preference,
-                            property.key(),
-                            property.defaultValue().map(Integer::valueOf).orElse(DEFAULT_VALUE)
-                    )
+                    .add("$N.getInt($S, $L)", variable, key, Optional.ofNullable(defValue).map(Integer::valueOf).orElse(DEFAULT))
                     .build();
         }
 
-        @Nonnull
+        @NonNull
         @Override
-        public CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String preference) {
+        public CodeBlock buildSaveStatement(@Nonnull String variable, @Nonnull String key, @Nonnull CodeBlock value) {
             return CodeBlock.builder()
-                    .add(
-                            "new $T().toConverted($N.getInt($S, $L))",
-                            converter.className(),
-                            preference,
-                            property.key(),
-                            property.defaultValue().map(Integer::valueOf).orElse(DEFAULT_VALUE)
-                    )
-                    .build();
-        }
-
-        @Nonnull
-        @Override
-        public CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull String editor) {
-            return CodeBlock.builder()
-                    .add(
-                            "$N.putInt($S, this.$L)",
-                            editor,
-                            property.key(),
-                            property.simpleName()
-                    )
-                    .build();
-        }
-
-        @Nonnull
-        @Override
-        public CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String editor) {
-            return CodeBlock.builder()
-                    .add(
-                            "$N.putInt($S, new $T().toSupported(this.$L))",
-                            editor,
-                            property.key(),
-                            converter.className(),
-                            property.simpleName()
-                    )
+                    .add("$N.putInt($S, $L)", variable, key, value)
                     .build();
         }
     },
     LONG(TypeName.LONG) {
-        private static final long DEFAULT_VALUE = 0L;
+        private static final long DEFAULT = 0L;
 
         @Nonnull
         @Override
-        public CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull String preference) {
+        public CodeBlock buildLoadStatement(@Nonnull String variable, @Nonnull String key, @Nullable String defValue) {
             return CodeBlock.builder()
-                    .add(
-                            "$N.getLong($S, $L)",
-                            preference,
-                            property.key(),
-                            property.defaultValue().map(Long::valueOf).orElse(DEFAULT_VALUE)
-                    )
+                    .add("$N.getLong($S, $L)", variable, key, Optional.ofNullable(defValue).map(Long::valueOf).orElse(DEFAULT))
                     .build();
         }
 
-        @Nonnull
+        @NonNull
         @Override
-        public CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String preference) {
+        public CodeBlock buildSaveStatement(@Nonnull String variable, @Nonnull String key, @Nonnull CodeBlock value) {
             return CodeBlock.builder()
-                    .add(
-                            "new $T().toConverted($N.getLong($S, $L))",
-                            converter.className(),
-                            preference,
-                            property.key(),
-                            property.defaultValue().map(Long::valueOf).orElse(DEFAULT_VALUE)
-                    )
-                    .build();
-        }
-
-        @Nonnull
-        @Override
-        public CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull String editor) {
-            return CodeBlock.builder()
-                    .add(
-                            "$N.putLong($S, this.$L)",
-                            editor,
-                            property.key(),
-                            property.simpleName()
-                    )
-                    .build();
-        }
-
-        @Nonnull
-        @Override
-        public CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String editor) {
-            return CodeBlock.builder()
-                    .add(
-                            "$N.putLong($S, new $T().toSupported(this.$L))",
-                            editor,
-                            property.key(),
-                            converter.className(),
-                            property.simpleName()
-                    )
+                    .add("$N.putLong($S, $L)", variable, key, value)
                     .build();
         }
     },
     STRING(ClassName.get(String.class)) {
-        private static final String DEFAULT_VALUE = "";
+        private static final String DEFAULT = "";
 
         @Nonnull
         @Override
-        public CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull String preference) {
+        public CodeBlock buildLoadStatement(@Nonnull String variable, @Nonnull String key, @Nullable String defValue) {
             return CodeBlock.builder()
-                    .add(
-                            "$N.getString($S, $S)",
-                            preference,
-                            property.key(),
-                            property.defaultValue().orElse(DEFAULT_VALUE)
-                    )
+                    .add("$N.getString($S, $S)", variable, key, Optional.ofNullable(defValue).orElse(DEFAULT))
                     .build();
         }
 
-        @Nonnull
+        @NonNull
         @Override
-        public CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String preference) {
+        public CodeBlock buildSaveStatement(@Nonnull String variable, @Nonnull String key, @Nonnull CodeBlock value) {
             return CodeBlock.builder()
-                    .add(
-                            "new $T().toConverted($N.getString($S, $S))",
-                            converter.className(),
-                            preference,
-                            property.key(),
-                            property.defaultValue().orElse(DEFAULT_VALUE)
-                    )
-                    .build();
-        }
-
-        @Nonnull
-        @Override
-        public CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull String editor) {
-            return CodeBlock.builder()
-                    .add(
-                            "$N.putString($S, this.$L)",
-                            editor,
-                            property.key(),
-                            property.simpleName()
-                    )
-                    .build();
-        }
-
-        @Nonnull
-        @Override
-        public CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String editor) {
-            return CodeBlock.builder()
-                    .add(
-                            "$N.putString($S, new $T().toSupported(this.$L))",
-                            editor,
-                            property.key(),
-                            converter.className(),
-                            property.simpleName()
-                    )
+                    .add("$N.putString($S, $L)", variable, key, value)
                     .build();
         }
     },
     STRING_SET(ParameterizedTypeName.get(Set.class, String.class)) {
         @Nonnull
         @Override
-        public CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull String preference) {
+        public CodeBlock buildLoadStatement(@Nonnull String variable, @Nonnull String key, @Nullable String defValue) {
             return CodeBlock.builder()
-                    .add(
-                            "$N.getStringSet($S, $T.<$T>emptySet())",
-                            preference,
-                            property.key(),
-                            Collections.class,
-                            String.class
+                    .add("$N.getStringSet($S, $L)", variable, key, CodeBlock.builder()
+                            .add("$T.<$T>emptySet()", Collections.class, String.class)
+                            .build()
                     )
                     .build();
         }
 
-        @Nonnull
+        @NonNull
         @Override
-        public CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String preference) {
+        public CodeBlock buildSaveStatement(@Nonnull String variable, @Nonnull String key, @Nonnull CodeBlock value) {
             return CodeBlock.builder()
-                    .add(
-                            "new $T().toConverted($N.getStringSet($S, $T.<$T>emptySet()))",
-                            converter.className(),
-                            preference,
-                            property.key(),
-                            Collections.class,
-                            String.class
-                    )
-                    .build();
-        }
-
-        @Nonnull
-        @Override
-        public CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull String editor) {
-            return CodeBlock.builder()
-                    .add(
-                            "$N.putStringSet($S, this.$L)",
-                            editor,
-                            property.key(),
-                            property.simpleName()
-                    )
-                    .build();
-        }
-
-        @Nonnull
-        @Override
-        public CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String editor) {
-            return CodeBlock.builder()
-                    .add(
-                            "$N.putStringSet($S, new $T().toSupported(this.$L))",
-                            editor,
-                            property.key(),
-                            converter.className(),
-                            property.simpleName()
-                    )
+                    .add("$N.putStringSet($S, $L)", variable, key, value)
                     .build();
         }
     };
@@ -377,14 +149,8 @@ public enum SupportedType {
     }
 
     @Nonnull
-    public abstract CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull String preference);
+    public abstract CodeBlock buildLoadStatement(@Nonnull String variable, @Nonnull String key, @Nullable String defValue);
 
-    @Nonnull
-    public abstract CodeBlock buildLoadStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String preference);
-
-    @Nonnull
-    public abstract CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull String editor);
-
-    @Nonnull
-    public abstract CodeBlock buildSaveStatement(@Nonnull PropertyAttribute property, @Nonnull ConverterAttribute converter, @Nonnull String editor);
+    @NonNull
+    public abstract CodeBlock buildSaveStatement(@Nonnull String variable, @Nonnull String key, @Nonnull CodeBlock value);
 }

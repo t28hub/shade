@@ -219,37 +219,7 @@ public class EditorBuilder extends ClassBuilder {
 
             final SupportedType supported = SupportedType.find(supportedType)
                     .orElseThrow(() -> new IllegalArgumentException("Specified type(" + supportedType + ") is not supported and should use a converter"));
-            final CodeBlock savingStatement;
-            if (converter.isDefault()) {
-                final Optional<String> name = property.name();
-                if (name.isPresent()) {
-                    savingStatement = CodeBlock.builder()
-                            .add("this.$L\n", "context")
-                            .add(".getSharedPreferences($S, $L)\n", name.get(), property.mode())
-                            .add(".edit()\n")
-                            .add(supported.buildSaveStatement(property, ""))
-                            .add("\n")
-                            .add(".apply()")
-                            .build();
-                } else {
-                    savingStatement = supported.buildSaveStatement(property, "editor");
-                }
-            } else {
-                final Optional<String> name = property.name();
-                if (name.isPresent()) {
-                    savingStatement = CodeBlock.builder()
-                            .add("this.$L\n", "context")
-                            .add(".getSharedPreferences($S, $L)\n", name.get(), property.mode())
-                            .add(".edit()\n")
-                            .add(supported.buildSaveStatement(property, converter, ""))
-                            .add("\n")
-                            .add(".apply()")
-                            .build();
-                } else {
-                    savingStatement = supported.buildSaveStatement(property, converter, "editor");
-                }
-            }
-
+            final CodeBlock savingStatement = buildSaveStatement(property, supported);
             final String constantName = toBitConstant(property.simpleName());
             builder.beginControlFlow("if (($L & $L) != 0)", FIELD_CHANGED_BITS, constantName)
                     .addStatement("$L", savingStatement)
@@ -263,6 +233,31 @@ public class EditorBuilder extends ClassBuilder {
                 .collect(joining(", \n"));
         builder.addStatement("return new $T(\n$L)", entityImplClass(), arguments);
         return builder.build();
+    }
+
+    private CodeBlock buildSaveStatement(PropertyAttribute property, SupportedType supported) {
+        final ConverterAttribute converter = property.converter();
+        final CodeBlock statement;
+        if (converter.isDefault()) {
+            statement = CodeBlock.builder()
+                    .add("this.$L", property.simpleName())
+                    .build();
+        } else {
+            statement = CodeBlock.builder()
+                    .add("new $T().toSupported(this.$L)", converter.className(), property.simpleName())
+                    .build();
+        }
+
+        return property.name()
+                .map(name -> CodeBlock.builder()
+                        .add("this.$L\n", "context")
+                        .add(".getSharedPreferences($S, $L)\n", name, property.mode())
+                        .add(".edit()\n")
+                        .add(supported.buildSaveStatement("", property.key(), statement))
+                        .add("\n")
+                        .add(".apply()")
+                        .build())
+                .orElse(supported.buildSaveStatement("editor", property.key(), statement));
     }
 
     private String toBitConstant(String name) {

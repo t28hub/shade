@@ -40,6 +40,7 @@ public abstract class Example2 {
     public abstract Date date();
 
     @Shade.Property(
+            name = "io.t28.shade.example.test",
             value = "url_value",
             converter = UriConverter.class
     )
