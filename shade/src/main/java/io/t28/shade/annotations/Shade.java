@@ -30,6 +30,11 @@ public @interface Shade {
         String defValue() default "";
 
         Class<? extends Converter> converter() default DefaultConverter.class;
+
+        String name() default "";
+
+        @Mode
+        int mode() default Context.MODE_PRIVATE;
     }
 
     @IntDef({

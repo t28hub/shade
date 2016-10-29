@@ -94,7 +94,7 @@ public class EntityBuilder extends ClassBuilder {
         return attribute.properties()
                 .stream()
                 .map(property -> {
-                    final String name = property.name();
+                    final String name = property.simpleName();
                     final TypeName type = property.typeName();
                     return FieldSpec.builder(type, name)
                             .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
@@ -129,7 +129,7 @@ public class EntityBuilder extends ClassBuilder {
                 .forEach(property -> {
                     final TypeMirror typeMirror = property.type();
                     final TypeName typeName = property.typeName();
-                    final String name = property.name();
+                    final String name = property.simpleName();
                     builder.addParameter(typeName, name);
                     builder.addStatement("this.$L = $L", name, createDefensiveStatement(typeMirror, typeName, name));
                 });
@@ -146,7 +146,7 @@ public class EntityBuilder extends ClassBuilder {
     private MethodSpec buildAccessor(PropertyAttribute property) {
         final TypeMirror typeMirror = property.type();
         final TypeName typeName = property.typeName();
-        final String name = property.name();
+        final String name = property.simpleName();
         return MethodSpec.overriding(property.method())
                 .addStatement("return $L", createDefensiveStatement(typeMirror, typeName, name))
                 .addModifiers(Modifier.FINAL)

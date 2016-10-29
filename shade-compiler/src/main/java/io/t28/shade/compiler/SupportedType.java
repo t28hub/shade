@@ -55,7 +55,7 @@ public enum SupportedType {
                             "$N.putBoolean($S, this.$L)",
                             editor,
                             property.key(),
-                            property.name()
+                            property.simpleName()
                     )
                     .build();
         }
@@ -69,7 +69,7 @@ public enum SupportedType {
                             editor,
                             property.key(),
                             converter.className(),
-                            property.name()
+                            property.simpleName()
                     )
                     .build();
         }
@@ -112,7 +112,7 @@ public enum SupportedType {
                             "$N.putFloat($S, this.$L)",
                             editor,
                             property.key(),
-                            property.name()
+                            property.simpleName()
                     )
                     .build();
         }
@@ -126,7 +126,7 @@ public enum SupportedType {
                             editor,
                             property.key(),
                             converter.className(),
-                            property.name()
+                            property.simpleName()
                     )
                     .build();
         }
@@ -169,7 +169,7 @@ public enum SupportedType {
                             "$N.putInt($S, this.$L)",
                             editor,
                             property.key(),
-                            property.name()
+                            property.simpleName()
                     )
                     .build();
         }
@@ -183,7 +183,7 @@ public enum SupportedType {
                             editor,
                             property.key(),
                             converter.className(),
-                            property.name()
+                            property.simpleName()
                     )
                     .build();
         }
@@ -226,7 +226,7 @@ public enum SupportedType {
                             "$N.putLong($S, this.$L)",
                             editor,
                             property.key(),
-                            property.name()
+                            property.simpleName()
                     )
                     .build();
         }
@@ -240,7 +240,7 @@ public enum SupportedType {
                             editor,
                             property.key(),
                             converter.className(),
-                            property.name()
+                            property.simpleName()
                     )
                     .build();
         }
@@ -283,7 +283,7 @@ public enum SupportedType {
                             "$N.putString($S, this.$L)",
                             editor,
                             property.key(),
-                            property.name()
+                            property.simpleName()
                     )
                     .build();
         }
@@ -297,7 +297,7 @@ public enum SupportedType {
                             editor,
                             property.key(),
                             converter.className(),
-                            property.name()
+                            property.simpleName()
                     )
                     .build();
         }
@@ -340,7 +340,7 @@ public enum SupportedType {
                             "$N.putStringSet($S, this.$L)",
                             editor,
                             property.key(),
-                            property.name()
+                            property.simpleName()
                     )
                     .build();
         }
@@ -354,7 +354,7 @@ public enum SupportedType {
                             editor,
                             property.key(),
                             converter.className(),
-                            property.name()
+                            property.simpleName()
                     )
                     .build();
         }

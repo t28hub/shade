@@ -156,9 +156,31 @@ public class PreferencesBuilder extends ClassBuilder {
                             .orElseThrow(() -> new IllegalArgumentException("Specified type(" + supportedType + ") is not supported and should use a converter"));
                     final CodeBlock loadStatement;
                     if (converter.isDefault()) {
-                        loadStatement = supported.buildLoadStatement(property, VARIABLE_PREFERENCE);
+                        final Optional<String> name = property.name();
+                        if (name.isPresent()) {
+                            loadStatement = CodeBlock.builder()
+                                    .add("this.$L\n", "context")
+                                    .indent().indent()
+                                    .add(".getSharedPreferences($S, $L)\n", name.get(), property.mode())
+                                    .add(supported.buildLoadStatement(property, ""))
+                                    .unindent().unindent()
+                                    .build();
+                        } else {
+                            loadStatement = supported.buildLoadStatement(property, VARIABLE_PREFERENCE);
+                        }
                     } else {
-                        loadStatement = supported.buildLoadStatement(property, converter, VARIABLE_PREFERENCE);
+                        final Optional<String> name = property.name();
+                        if (name.isPresent()) {
+                            loadStatement = CodeBlock.builder()
+                                    .add("this.$L\n", "context")
+                                    .indent()
+                                    .add(".getSharedPreferences($S, $L)\n", name.get(), property.mode())
+                                    .indent()
+                                    .add(supported.buildLoadStatement(property, converter, ""))
+                                    .build();
+                        } else {
+                            loadStatement = supported.buildLoadStatement(property, converter, VARIABLE_PREFERENCE);
+                        }
                     }
                     return loadStatement;
                 })
