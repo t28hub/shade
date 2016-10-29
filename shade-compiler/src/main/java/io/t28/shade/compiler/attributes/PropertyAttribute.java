@@ -1,10 +1,11 @@
 package io.t28.shade.compiler.attributes;
 
+import android.graphics.Region;
+
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
 import com.squareup.javapoet.TypeName;
 
-import java.lang.reflect.Type;
 import java.util.Optional;
 
 import javax.annotation.Nonnull;
@@ -35,8 +36,13 @@ public class PropertyAttribute {
     }
 
     @Nonnull
-    public String name() {
+    public String simpleName() {
         return element.getSimpleName().toString();
+    }
+
+    @Nonnull
+    public ExecutableElement method() {
+        return element;
     }
 
     @Nonnull
@@ -53,7 +59,7 @@ public class PropertyAttribute {
     public String key() {
         final String key = annotation.value();
         if (Strings.isNullOrEmpty(key)) {
-            throw new IllegalArgumentException("Specified key is empty in " + name());
+            throw new IllegalArgumentException("Specified key is empty in " + simpleName());
         }
         return key;
     }
@@ -70,7 +76,12 @@ public class PropertyAttribute {
     }
 
     @Nonnull
-    public ExecutableElement method() {
-        return element;
+    public Optional<String> name() {
+        return Optional.of(annotation.name()).filter(value -> !value.isEmpty());
+    }
+
+    @Shade.Mode
+    public int mode() {
+        return annotation.mode();
     }
 }

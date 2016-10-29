@@ -120,7 +120,7 @@ public class EditorBuilder extends ClassBuilder {
         return IntStream.range(0, properties.size())
                 .mapToObj(index -> {
                     final PropertyAttribute property = properties.get(index);
-                    final String name = toBitConstant(property.name());
+                    final String name = toBitConstant(property.simpleName());
                     final String value = String.format(FORMAT_BIT, (int) Math.pow(2, index));
                     return FieldSpec.builder(long.class, name)
                             .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
@@ -133,7 +133,7 @@ public class EditorBuilder extends ClassBuilder {
     private Collection<FieldSpec> buildPropertyFields() {
         return attribute.properties()
                 .stream()
-                .map(property -> FieldSpec.builder(property.typeName(), property.name())
+                .map(property -> FieldSpec.builder(property.typeName(), property.simpleName())
                         .addModifiers(Modifier.PRIVATE)
                         .build())
                 .collect(toList());
@@ -156,7 +156,7 @@ public class EditorBuilder extends ClassBuilder {
                 .addStatement("this.$L = $L", FIELD_CONTEXT, FIELD_CONTEXT);
         attribute.properties()
                 .stream()
-                .map(PropertyAttribute::name)
+                .map(PropertyAttribute::simpleName)
                 .map(name -> CodeBlock.builder().addStatement("this.$L = $N.$L()", name, "source", name).build())
                 .forEach(builder::addCode);
         return builder.build();
@@ -166,7 +166,7 @@ public class EditorBuilder extends ClassBuilder {
         return attribute.properties()
                 .stream()
                 .map(property -> {
-                    final String name = property.name();
+                    final String name = property.simpleName();
                     final TypeName typeName = property.typeName();
                     final MethodSpec.Builder builder = MethodSpec.methodBuilder(name)
                             .addAnnotation(NonNull.class)
@@ -221,12 +221,36 @@ public class EditorBuilder extends ClassBuilder {
                     .orElseThrow(() -> new IllegalArgumentException("Specified type(" + supportedType + ") is not supported and should use a converter"));
             final CodeBlock savingStatement;
             if (converter.isDefault()) {
-                savingStatement = supported.buildSaveStatement(property, "editor");
+                final Optional<String> name = property.name();
+                if (name.isPresent()) {
+                    savingStatement = CodeBlock.builder()
+                            .add("this.$L\n", "context")
+                            .add(".getSharedPreferences($S, $L)\n", name.get(), property.mode())
+                            .add(".edit()\n")
+                            .add(supported.buildSaveStatement(property, ""))
+                            .add("\n")
+                            .add(".apply()")
+                            .build();
+                } else {
+                    savingStatement = supported.buildSaveStatement(property, "editor");
+                }
             } else {
-                savingStatement = supported.buildSaveStatement(property, converter, "editor");
+                final Optional<String> name = property.name();
+                if (name.isPresent()) {
+                    savingStatement = CodeBlock.builder()
+                            .add("this.$L\n", "context")
+                            .add(".getSharedPreferences($S, $L)\n", name.get(), property.mode())
+                            .add(".edit()\n")
+                            .add(supported.buildSaveStatement(property, converter, ""))
+                            .add("\n")
+                            .add(".apply()")
+                            .build();
+                } else {
+                    savingStatement = supported.buildSaveStatement(property, converter, "editor");
+                }
             }
 
-            final String constantName = toBitConstant(property.name());
+            final String constantName = toBitConstant(property.simpleName());
             builder.beginControlFlow("if (($L & $L) != 0)", FIELD_CHANGED_BITS, constantName)
                     .addStatement("$L", savingStatement)
                     .endControlFlow();
@@ -235,7 +259,7 @@ public class EditorBuilder extends ClassBuilder {
 
         final String arguments = attribute.properties()
                 .stream()
-                .map(property -> CodeBlock.of("this.$L", property.name()).toString())
+                .map(property -> CodeBlock.of("this.$L", property.simpleName()).toString())
                 .collect(joining(", \n"));
         builder.addStatement("return new $T(\n$L)", entityImplClass(), arguments);
         return builder.build();
