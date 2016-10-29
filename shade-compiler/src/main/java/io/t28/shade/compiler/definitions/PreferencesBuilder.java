@@ -28,6 +28,7 @@ import javax.lang.model.util.Types;
 import io.t28.shade.compiler.SupportedType;
 import io.t28.shade.compiler.attributes.ConverterAttribute;
 import io.t28.shade.compiler.attributes.PreferencesAttribute;
+import io.t28.shade.compiler.attributes.PropertyAttribute;
 
 import static java.util.stream.Collectors.toList;
 
@@ -154,35 +155,7 @@ public class PreferencesBuilder extends ClassBuilder {
 
                     final SupportedType supported = SupportedType.find(supportedType)
                             .orElseThrow(() -> new IllegalArgumentException("Specified type(" + supportedType + ") is not supported and should use a converter"));
-                    final CodeBlock loadStatement;
-                    if (converter.isDefault()) {
-                        final Optional<String> name = property.name();
-                        if (name.isPresent()) {
-                            loadStatement = CodeBlock.builder()
-                                    .add("this.$L\n", "context")
-                                    .indent().indent()
-                                    .add(".getSharedPreferences($S, $L)\n", name.get(), property.mode())
-                                    .add(supported.buildLoadStatement(property, ""))
-                                    .unindent().unindent()
-                                    .build();
-                        } else {
-                            loadStatement = supported.buildLoadStatement(property, VARIABLE_PREFERENCE);
-                        }
-                    } else {
-                        final Optional<String> name = property.name();
-                        if (name.isPresent()) {
-                            loadStatement = CodeBlock.builder()
-                                    .add("this.$L\n", "context")
-                                    .indent()
-                                    .add(".getSharedPreferences($S, $L)\n", name.get(), property.mode())
-                                    .indent()
-                                    .add(supported.buildLoadStatement(property, converter, ""))
-                                    .build();
-                        } else {
-                            loadStatement = supported.buildLoadStatement(property, converter, VARIABLE_PREFERENCE);
-                        }
-                    }
-                    return loadStatement;
+                    return buildLoadStatement(property, supported);
                 })
                 .collect(toList());
         final CodeBlock.Builder codeBuilder = CodeBlock.builder();
@@ -197,6 +170,30 @@ public class PreferencesBuilder extends ClassBuilder {
                 });
         return loadMethodBuilder.addStatement("return new $T($L)", entityImplClass, codeBuilder.build())
                 .returns(entityClass)
+                .build();
+    }
+
+    private CodeBlock buildLoadStatement(PropertyAttribute property, SupportedType supported) {
+        final CodeBlock statement = property.name()
+                .map(name -> CodeBlock.builder()
+                        .add("this.$L\n", "context")
+                        .indent().indent()
+                        .add(".getSharedPreferences($S, $L)\n", name, property.mode())
+                        .add(supported.buildLoadStatement("", property.key(), property.defaultValue().orElse(null)))
+                        .unindent().unindent()
+                        .build())
+                .orElse(supported.buildLoadStatement(VARIABLE_PREFERENCE, property.key(), property.defaultValue().orElse(null)));
+
+        final ConverterAttribute converter = property.converter();
+        if (converter.isDefault()) {
+            return statement;
+        }
+        return CodeBlock.builder()
+                .add("new $T().toConverted(\n", converter.className())
+                .indent()
+                .add("$L", statement)
+                .unindent()
+                .add("\n)")
                 .build();
     }
 
