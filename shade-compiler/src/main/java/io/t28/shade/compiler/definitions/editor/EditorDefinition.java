@@ -1,4 +1,4 @@
-package io.t28.shade.compiler.definitions;
+package io.t28.shade.compiler.definitions.editor;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -31,22 +31,25 @@ import io.t28.shade.compiler.SupportedType;
 import io.t28.shade.compiler.attributes.ConverterAttribute;
 import io.t28.shade.compiler.attributes.PreferencesAttribute;
 import io.t28.shade.compiler.attributes.PropertyAttribute;
+import io.t28.shade.compiler.definitions.ClassDefinition;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
-public class EditorBuilder extends ClassBuilder {
+public class EditorDefinition extends ClassDefinition {
     private static final String SUFFIX_CLASS = "Editor";
     private static final String SUFFIX_BIT_CONSTANT = "BIT_";
+    private static final String CONSTANT_UNCHANGED = "UNCHANGED";
     private static final String FIELD_CONTEXT = "context";
     private static final String FIELD_CHANGED_BITS = "changedBits";
     private static final String FORMAT_BIT = "0x%xL";
+    private static final String INITIAL_UNCHANGED = "0x0L";
     private static final String INITIAL_CHANGED_BITS = "0x0L";
 
     private final Elements elements;
     private final PreferencesAttribute attribute;
 
-    public EditorBuilder(@Nonnull Elements elements, @Nonnull PreferencesAttribute attribute) {
+    public EditorDefinition(@Nonnull Elements elements, @Nonnull PreferencesAttribute attribute) {
         this.elements = elements;
         this.attribute = attribute;
     }
@@ -84,6 +87,10 @@ public class EditorBuilder extends ClassBuilder {
     @Nonnull
     @Override
     public Collection<FieldSpec> fields() {
+        final FieldSpec noChangeConstant = FieldSpec.builder(long.class, CONSTANT_UNCHANGED)
+                .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                .initializer(INITIAL_UNCHANGED)
+                .build();
         final FieldSpec contextField = FieldSpec.builder(Context.class, FIELD_CONTEXT)
                 .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
                 .build();
@@ -92,7 +99,8 @@ public class EditorBuilder extends ClassBuilder {
                 .initializer(INITIAL_CHANGED_BITS)
                 .build();
         return ImmutableList.<FieldSpec>builder()
-                .addAll(buildConstants())
+                .add(noChangeConstant)
+                .addAll(buildBitConstants())
                 .add(contextField)
                 .add(changedBitsField)
                 .addAll(buildPropertyFields())
@@ -115,7 +123,7 @@ public class EditorBuilder extends ClassBuilder {
         return Collections.emptyList();
     }
 
-    private Collection<FieldSpec> buildConstants() {
+    private Collection<FieldSpec> buildBitConstants() {
         final List<PropertyAttribute> properties = attribute.properties();
         return IntStream.range(0, properties.size())
                 .mapToObj(index -> {
@@ -221,7 +229,7 @@ public class EditorBuilder extends ClassBuilder {
                     .orElseThrow(() -> new IllegalArgumentException("Specified type(" + supportedType + ") is not supported and should use a converter"));
             final CodeBlock savingStatement = buildSaveStatement(property, supported);
             final String constantName = toBitConstant(property.simpleName());
-            builder.beginControlFlow("if (($L & $L) != 0)", FIELD_CHANGED_BITS, constantName)
+            builder.beginControlFlow("if (($L & $L) != $L)", FIELD_CHANGED_BITS, constantName, CONSTANT_UNCHANGED)
                     .addStatement("$L", savingStatement)
                     .endControlFlow();
         });

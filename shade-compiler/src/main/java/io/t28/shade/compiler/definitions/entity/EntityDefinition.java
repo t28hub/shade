@@ -1,4 +1,4 @@
-package io.t28.shade.compiler.definitions;
+package io.t28.shade.compiler.definitions.entity;
 
 import com.google.common.collect.ImmutableList;
 import com.squareup.javapoet.ClassName;
@@ -29,18 +29,19 @@ import javax.lang.model.util.Types;
 
 import io.t28.shade.compiler.attributes.PreferencesAttribute;
 import io.t28.shade.compiler.attributes.PropertyAttribute;
+import io.t28.shade.compiler.definitions.ClassDefinition;
 import io.t28.shade.compiler.utils.TypeNames;
 
 import static java.util.stream.Collectors.toList;
 
-public class EntityBuilder extends ClassBuilder {
+public class EntityDefinition extends ClassDefinition {
     private static final String SUFFIX_CLASS = "Impl";
 
     private final Types types;
     private final Elements elements;
     private final PreferencesAttribute attribute;
 
-    private EntityBuilder(Builder builder) {
+    private EntityDefinition(Builder builder) {
         this.types = builder.types;
         this.elements = builder.elements;
         this.attribute = builder.attribute;
@@ -205,7 +206,7 @@ public class EntityBuilder extends ClassBuilder {
         }
 
         @Nonnull
-        public EntityBuilder build() {
+        public EntityDefinition build() {
             if (types == null) {
                 throw new IllegalArgumentException("types must not be null");
             }
@@ -215,7 +216,7 @@ public class EntityBuilder extends ClassBuilder {
             if (attribute == null) {
                 throw new IllegalArgumentException("attribute must not be null");
             }
-            return new EntityBuilder(this);
+            return new EntityDefinition(this);
         }
     }
 }

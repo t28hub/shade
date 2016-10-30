@@ -1,10 +1,9 @@
-package io.t28.shade.compiler.definitions;
+package io.t28.shade.compiler.definitions.preferences;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
 
 import com.google.common.collect.ImmutableList;
-import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
@@ -21,27 +20,23 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 
 import io.t28.shade.compiler.attributes.PreferencesAttribute;
-import io.t28.shade.compiler.definitions.preferences.EditMethodDefinition;
-import io.t28.shade.compiler.definitions.preferences.LoadMethodDefinition;
+import io.t28.shade.compiler.definitions.ClassDefinition;
 
-public class PreferencesBuilder extends ClassBuilder {
+public class PreferencesDefinition extends ClassDefinition {
     private static final String SUFFIX_CLASS = "Preferences";
-    private static final String METHOD_LOAD = "load";
-    private static final String METHOD_EDIT = "edit";
-    private static final String VARIABLE_PREFERENCE = "preferences";
 
     private final Elements elements;
     private final TypeElement element;
     private final PreferencesAttribute attribute;
-    private final ClassBuilder entityClassBuilder;
-    private final ClassBuilder editorClassBuilder;
+    private final ClassDefinition entityClassDefinition;
+    private final ClassDefinition editorClassDefinition;
 
-    private PreferencesBuilder(Builder builder) {
+    private PreferencesDefinition(Builder builder) {
         this.elements = builder.elements;
         this.element = builder.element;
         this.attribute = builder.attribute;
-        this.entityClassBuilder = builder.entityClassBuilder;
-        this.editorClassBuilder = builder.editorClassBuilder;
+        this.entityClassDefinition = builder.entityClassDefinition;
+        this.editorClassDefinition = builder.editorClassDefinition;
     }
 
     public static Builder builder() {
@@ -101,8 +96,8 @@ public class PreferencesBuilder extends ClassBuilder {
     @Override
     public Collection<TypeSpec> innerClasses() {
         return ImmutableList.<TypeSpec>builder()
-                .add(entityClassBuilder.build())
-                .add(editorClassBuilder.build())
+                .add(entityClassDefinition.toTypeSpec())
+                .add(editorClassDefinition.toTypeSpec())
                 .build();
     }
 
@@ -118,39 +113,12 @@ public class PreferencesBuilder extends ClassBuilder {
                 .build();
     }
 
-    private MethodSpec buildEditMethod() {
-        final ClassName editorClass = getEditorClass();
-        return MethodSpec.methodBuilder(METHOD_EDIT)
-                .addAnnotation(NonNull.class)
-                .addModifiers(Modifier.PUBLIC)
-                .addParameter(
-                        ParameterSpec.builder(getEntityClass(), "entity")
-                                .addAnnotation(NonNull.class)
-                                .build()
-                )
-                .addStatement("return new $L(this.$N, $N)", editorClass, "context", "entity")
-                .returns(editorClass)
-                .build();
-    }
-
-    private ClassName getEntityClass() {
-        return attribute.entityClass(elements);
-    }
-
-    private ClassName getEntityImplClass() {
-        return ClassName.bestGuess(entityClassBuilder.name());
-    }
-
-    private ClassName getEditorClass() {
-        return ClassName.bestGuess(editorClassBuilder.name());
-    }
-
     public static class Builder {
         private Elements elements;
         private TypeElement element;
         private PreferencesAttribute attribute;
-        private ClassBuilder entityClassBuilder;
-        private ClassBuilder editorClassBuilder;
+        private ClassDefinition entityClassDefinition;
+        private ClassDefinition editorClassDefinition;
 
         private Builder() {
         }
@@ -174,19 +142,19 @@ public class PreferencesBuilder extends ClassBuilder {
         }
 
         @Nonnull
-        public Builder entityClassBuilder(@Nonnull ClassBuilder builder) {
-            this.entityClassBuilder = builder;
+        public Builder entityClassBuilder(@Nonnull ClassDefinition builder) {
+            this.entityClassDefinition = builder;
             return this;
         }
 
         @Nonnull
-        public Builder editorClassBuilder(@Nonnull ClassBuilder builder) {
-            this.editorClassBuilder = builder;
+        public Builder editorClassBuilder(@Nonnull ClassDefinition builder) {
+            this.editorClassDefinition = builder;
             return this;
         }
 
         @Nonnull
-        public PreferencesBuilder build() {
+        public PreferencesDefinition build() {
             if (elements == null) {
                 throw new IllegalArgumentException("elements must not be null");
             }
@@ -196,13 +164,13 @@ public class PreferencesBuilder extends ClassBuilder {
             if (attribute == null) {
                 throw new IllegalArgumentException("attribute must not be null");
             }
-            if (entityClassBuilder == null) {
+            if (entityClassDefinition == null) {
                 throw new IllegalArgumentException("entityClassBuilder must not be null");
             }
-            if (editorClassBuilder == null) {
+            if (editorClassDefinition == null) {
                 throw new IllegalArgumentException("editorClassBuilder must not be null");
             }
-            return new PreferencesBuilder(this);
+            return new PreferencesDefinition(this);
         }
     }
 }
