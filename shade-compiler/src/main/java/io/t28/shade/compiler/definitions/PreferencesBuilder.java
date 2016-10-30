@@ -1,12 +1,10 @@
 package io.t28.shade.compiler.definitions;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 
 import com.google.common.collect.ImmutableList;
 import com.squareup.javapoet.ClassName;
-import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
@@ -15,21 +13,16 @@ import com.squareup.javapoet.TypeSpec;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.IntStream;
 
 import javax.annotation.Nonnull;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 
-import io.t28.shade.compiler.SupportedType;
-import io.t28.shade.compiler.attributes.ConverterAttribute;
 import io.t28.shade.compiler.attributes.PreferencesAttribute;
-import io.t28.shade.compiler.attributes.PropertyAttribute;
-
-import static java.util.stream.Collectors.toList;
+import io.t28.shade.compiler.definitions.preferences.EditMethodDefinition;
+import io.t28.shade.compiler.definitions.preferences.LoadMethodDefinition;
 
 public class PreferencesBuilder extends ClassBuilder {
     private static final String SUFFIX_CLASS = "Preferences";
@@ -99,8 +92,8 @@ public class PreferencesBuilder extends ClassBuilder {
     public Collection<MethodSpec> methods() {
         return ImmutableList.<MethodSpec>builder()
                 .add(buildConstructor())
-                .add(buildLoadMethod())
-                .add(buildEditMethod())
+                .add(new LoadMethodDefinition(elements, attribute).toMethodSpec())
+                .add(new EditMethodDefinition(elements, attribute).toMethodSpec())
                 .build();
     }
 
@@ -122,75 +115,6 @@ public class PreferencesBuilder extends ClassBuilder {
                                 .build()
                 )
                 .addStatement("this.$N = $N.getApplicationContext()", "context", "context")
-                .build();
-    }
-
-    private MethodSpec buildLoadMethod() {
-        final ClassName entityClass = getEntityClass();
-        final ClassName entityImplClass = getEntityImplClass();
-        final MethodSpec.Builder loadMethodBuilder = MethodSpec.methodBuilder(METHOD_LOAD)
-                .addAnnotation(NonNull.class)
-                .addModifiers(Modifier.PUBLIC)
-                .addStatement(
-                        "final $T $N = this.$N.getSharedPreferences($S, $L)",
-                        SharedPreferences.class,
-                        VARIABLE_PREFERENCE,
-                        "context",
-                        attribute.name(),
-                        attribute.mode()
-                );
-        final List<CodeBlock> statements = attribute.properties()
-                .stream()
-                .map(property -> {
-                    final ConverterAttribute converter = property.converter();
-                    final TypeName supportedType;
-                    if (converter.isDefault()) {
-                        supportedType = property.typeName();
-                    } else {
-                        supportedType = converter.supportedType();
-                    }
-
-                    final SupportedType supported = SupportedType.find(supportedType)
-                            .orElseThrow(() -> new IllegalArgumentException("Specified type(" + supportedType + ") is not supported and should use a converter"));
-                    return buildLoadStatement(property, supported);
-                })
-                .collect(toList());
-        final CodeBlock.Builder codeBuilder = CodeBlock.builder();
-        IntStream.range(0, statements.size())
-                .forEach(index -> {
-                    final CodeBlock statement = statements.get(index);
-                    if (index == statements.size() - 1) {
-                        codeBuilder.add("$L", statement);
-                        return;
-                    }
-                    codeBuilder.add("$L,\n", statement);
-                });
-        return loadMethodBuilder.addStatement("return new $T($L)", entityImplClass, codeBuilder.build())
-                .returns(entityClass)
-                .build();
-    }
-
-    private CodeBlock buildLoadStatement(PropertyAttribute property, SupportedType supported) {
-        final CodeBlock statement = property.name()
-                .map(name -> CodeBlock.builder()
-                        .add("this.$L\n", "context")
-                        .indent().indent()
-                        .add(".getSharedPreferences($S, $L)\n", name, property.mode())
-                        .add(supported.buildLoadStatement("", property.key(), property.defaultValue().orElse(null)))
-                        .unindent().unindent()
-                        .build())
-                .orElse(supported.buildLoadStatement(VARIABLE_PREFERENCE, property.key(), property.defaultValue().orElse(null)));
-
-        final ConverterAttribute converter = property.converter();
-        if (converter.isDefault()) {
-            return statement;
-        }
-        return CodeBlock.builder()
-                .add("new $T().toConverted(\n", converter.className())
-                .indent()
-                .add("$L", statement)
-                .unindent()
-                .add("\n)")
                 .build();
     }
 
