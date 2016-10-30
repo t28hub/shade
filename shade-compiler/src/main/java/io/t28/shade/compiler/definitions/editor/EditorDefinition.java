@@ -3,7 +3,6 @@ package io.t28.shade.compiler.definitions.editor;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableList;
@@ -11,7 +10,6 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
-import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
@@ -32,6 +30,7 @@ import io.t28.shade.compiler.attributes.ConverterAttribute;
 import io.t28.shade.compiler.attributes.PreferencesAttribute;
 import io.t28.shade.compiler.attributes.PropertyAttribute;
 import io.t28.shade.compiler.definitions.ClassDefinition;
+import io.t28.shade.compiler.definitions.MethodDefinition;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
@@ -110,11 +109,14 @@ public class EditorDefinition extends ClassDefinition {
     @Nonnull
     @Override
     public Collection<MethodSpec> methods() {
-        return ImmutableList.<MethodSpec>builder()
-                .add(buildConstructor())
-                .addAll(buildSetters())
-                .add(buildApply())
-                .build();
+        final ImmutableList.Builder<MethodSpec> builder = ImmutableList.builder();
+        builder.add(new ConstructorDefinition(elements, attribute).toMethodSpec());
+        attribute.properties().forEach(property -> {
+            final MethodDefinition definition = new SetterMethodDefinition(property, actualEditorClass());
+            builder.add(definition.toMethodSpec());
+        });
+        builder.add(buildApply());
+        return builder.build();
     }
 
     @Nonnull
@@ -144,57 +146,6 @@ public class EditorDefinition extends ClassDefinition {
                 .map(property -> FieldSpec.builder(property.typeName(), property.simpleName())
                         .addModifiers(Modifier.PRIVATE)
                         .build())
-                .collect(toList());
-    }
-
-    private MethodSpec buildConstructor() {
-        final TypeName entityClass = entityClass();
-        final MethodSpec.Builder builder = MethodSpec.constructorBuilder()
-                .addModifiers(Modifier.PRIVATE)
-                .addParameter(
-                        ParameterSpec.builder(Context.class, FIELD_CONTEXT)
-                                .addAnnotation(NonNull.class)
-                                .build()
-                )
-                .addParameter(
-                        ParameterSpec.builder(entityClass, "source")
-                                .addAnnotation(NonNull.class)
-                                .build()
-                )
-                .addStatement("this.$L = $L", FIELD_CONTEXT, FIELD_CONTEXT);
-        attribute.properties()
-                .stream()
-                .map(PropertyAttribute::simpleName)
-                .map(name -> CodeBlock.builder().addStatement("this.$L = $N.$L()", name, "source", name).build())
-                .forEach(builder::addCode);
-        return builder.build();
-    }
-
-    private Collection<MethodSpec> buildSetters() {
-        return attribute.properties()
-                .stream()
-                .map(property -> {
-                    final String name = property.simpleName();
-                    final TypeName typeName = property.typeName();
-                    final MethodSpec.Builder builder = MethodSpec.methodBuilder(name)
-                            .addAnnotation(NonNull.class)
-                            .addModifiers(Modifier.PUBLIC, Modifier.FINAL);
-
-                    final ParameterSpec parameter;
-                    if (typeName.isPrimitive()) {
-                        parameter = ParameterSpec.builder(typeName, name).build();
-                    } else {
-                        parameter = ParameterSpec.builder(typeName, name).addAnnotation(Nullable.class).build();
-                    }
-
-                    final String constantName = toBitConstant(name);
-                    return builder.addParameter(parameter)
-                            .addStatement("this.$L |= $L", FIELD_CHANGED_BITS, constantName)
-                            .addStatement("this.$N = $N", name, name)
-                            .addStatement("return this")
-                            .returns(actualEditorClass())
-                            .build();
-                })
                 .collect(toList());
     }
 
@@ -284,7 +235,7 @@ public class EditorDefinition extends ClassDefinition {
         return ParameterizedTypeName.get(ClassName.get(Editor.class), entityClass());
     }
 
-    private TypeName actualEditorClass() {
+    private ClassName actualEditorClass() {
         return ClassName.bestGuess(name());
     }
 }

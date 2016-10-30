@@ -7,13 +7,24 @@ import com.squareup.javapoet.TypeName;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;
+import java.util.Optional;
 
 import javax.annotation.Nonnull;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 
 public abstract class MethodDefinition {
+    private final Type type;
+
+    protected MethodDefinition(@Nonnull Type type) {
+        this.type = type;
+    }
+
     @Nonnull
-    public abstract String name();
+    public abstract Optional<String> name();
+
+    @Nonnull
+    public abstract Optional<ExecutableElement> method();
 
     @Nonnull
     public abstract Collection<Class<? extends Annotation>> annotations();
@@ -32,14 +43,49 @@ public abstract class MethodDefinition {
 
     @Nonnull
     public MethodSpec toMethodSpec() {
-        final MethodSpec.Builder builder = MethodSpec.methodBuilder(name());
-        annotations().forEach(builder::addAnnotation);
-        builder.addModifiers(modifiers());
-        builder.returns(returnType());
-        parameters().forEach(builder::addParameter);
-        statements().forEach(statement -> {
-            builder.addStatement("$L", statement);
-        });
-        return builder.build();
+        return type.toMethodSpec(this);
+    }
+
+    protected enum Type {
+        CONSTRUCTOR {
+            @Nonnull
+            @Override
+            MethodSpec toMethodSpec(@Nonnull MethodDefinition definition) {
+                final MethodSpec.Builder builder = MethodSpec.constructorBuilder();
+                builder.addModifiers(definition.modifiers());
+                builder.addParameters(definition.parameters());
+                definition.statements().forEach(statement -> builder.addStatement("$L", statement));
+                return builder.build();
+            }
+        },
+        OVERRIDING {
+            @Nonnull
+            @Override
+            MethodSpec toMethodSpec(@Nonnull MethodDefinition definition) {
+                final ExecutableElement method = definition.method().orElseThrow(() -> new IllegalStateException("method must not be empty"));
+                final MethodSpec.Builder builder = MethodSpec.overriding(method);
+                definition.annotations().forEach(builder::addAnnotation);
+                builder.addModifiers(definition.modifiers());
+                definition.statements().forEach(statement -> builder.addStatement("$L", statement));
+                return builder.build();
+            }
+        },
+        NORMAL {
+            @Nonnull
+            @Override
+            MethodSpec toMethodSpec(@Nonnull MethodDefinition definition) {
+                final String name = definition.name().orElseThrow(() -> new IllegalStateException("name must not be empty"));
+                final MethodSpec.Builder builder = MethodSpec.methodBuilder(name);
+                definition.annotations().forEach(builder::addAnnotation);
+                builder.addModifiers(definition.modifiers());
+                builder.returns(definition.returnType());
+                definition.parameters().forEach(builder::addParameter);
+                definition.statements().forEach(statement -> builder.addStatement("$L", statement));
+                return builder.build();
+            }
+        };
+
+        @Nonnull
+        abstract MethodSpec toMethodSpec(@Nonnull MethodDefinition definition);
     }
 }

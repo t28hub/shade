@@ -86,7 +86,7 @@ public class PreferencesDefinition extends ClassDefinition {
     @Override
     public Collection<MethodSpec> methods() {
         return ImmutableList.<MethodSpec>builder()
-                .add(buildConstructor())
+                .add(new ConstructorDefinition().toMethodSpec())
                 .add(new LoadMethodDefinition(elements, attribute).toMethodSpec())
                 .add(new EditMethodDefinition(elements, attribute).toMethodSpec())
                 .build();
@@ -98,18 +98,6 @@ public class PreferencesDefinition extends ClassDefinition {
         return ImmutableList.<TypeSpec>builder()
                 .add(entityClassDefinition.toTypeSpec())
                 .add(editorClassDefinition.toTypeSpec())
-                .build();
-    }
-
-    private MethodSpec buildConstructor() {
-        return MethodSpec.constructorBuilder()
-                .addModifiers(Modifier.PUBLIC)
-                .addParameter(
-                        ParameterSpec.builder(Context.class, "context")
-                                .addAnnotation(NonNull.class)
-                                .build()
-                )
-                .addStatement("this.$N = $N.getApplicationContext()", "context", "context")
                 .build();
     }
 

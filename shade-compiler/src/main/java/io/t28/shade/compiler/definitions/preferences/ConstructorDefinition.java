@@ -1,9 +1,9 @@
 package io.t28.shade.compiler.definitions.preferences;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
 
 import com.google.common.collect.ImmutableList;
-import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeName;
@@ -15,27 +15,20 @@ import java.util.Optional;
 import javax.annotation.Nonnull;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
-import javax.lang.model.util.Elements;
 
-import io.t28.shade.compiler.attributes.PreferencesAttribute;
 import io.t28.shade.compiler.definitions.MethodDefinition;
 
-public class EditMethodDefinition extends MethodDefinition {
-    private static final String NAME = "edit";
+public class ConstructorDefinition extends MethodDefinition {
+    private static final String VARIABLE_CONTEXT = "context";
 
-    private final Elements elements;
-    private final PreferencesAttribute attribute;
-
-    public EditMethodDefinition(@Nonnull Elements elements, @Nonnull PreferencesAttribute attribute) {
-        super(Type.NORMAL);
-        this.elements = elements;
-        this.attribute = attribute;
+    protected ConstructorDefinition() {
+        super(Type.CONSTRUCTOR);
     }
 
     @Nonnull
     @Override
     public Optional<String> name() {
-        return Optional.of(NAME);
+        return Optional.empty();
     }
 
     @Nonnull
@@ -47,7 +40,7 @@ public class EditMethodDefinition extends MethodDefinition {
     @Nonnull
     @Override
     public Collection<Class<? extends Annotation>> annotations() {
-        return ImmutableList.of(NonNull.class);
+        return ImmutableList.of();
     }
 
     @Nonnull
@@ -59,13 +52,13 @@ public class EditMethodDefinition extends MethodDefinition {
     @Nonnull
     @Override
     public TypeName returnType() {
-        return editorClass();
+        return TypeName.VOID;
     }
 
     @Nonnull
     @Override
     public Collection<ParameterSpec> parameters() {
-        return ImmutableList.of(ParameterSpec.builder(entityClass(), "entity")
+        return ImmutableList.of(ParameterSpec.builder(Context.class, VARIABLE_CONTEXT)
                 .addModifiers(Modifier.FINAL)
                 .addAnnotation(NonNull.class)
                 .build());
@@ -75,15 +68,7 @@ public class EditMethodDefinition extends MethodDefinition {
     @Override
     public Collection<CodeBlock> statements() {
         return ImmutableList.of(CodeBlock.builder()
-                .add("return new $L(this.$N, $N)", editorClass(), "context", "entity")
+                .add("this.$N = $N.getApplicationContext()", VARIABLE_CONTEXT, VARIABLE_CONTEXT)
                 .build());
-    }
-
-    private ClassName entityClass() {
-        return attribute.entityClass(elements);
-    }
-
-    private ClassName editorClass() {
-        return ClassName.bestGuess(entityClass().simpleName() + "Editor");
     }
 }
