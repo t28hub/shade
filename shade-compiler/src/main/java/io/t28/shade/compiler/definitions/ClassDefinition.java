@@ -11,7 +11,7 @@ import java.util.Optional;
 import javax.annotation.Nonnull;
 import javax.lang.model.element.Modifier;
 
-public abstract class ClassBuilder {
+public abstract class ClassDefinition {
     @Nonnull
     public abstract String packageName();
 
@@ -37,7 +37,7 @@ public abstract class ClassBuilder {
     public abstract Collection<TypeSpec> innerClasses();
 
     @Nonnull
-    public TypeSpec build() {
+    public TypeSpec toTypeSpec() {
         final TypeSpec.Builder builder = TypeSpec.classBuilder(name());
         modifiers().forEach(builder::addModifiers);
         superClass().ifPresent(builder::superclass);

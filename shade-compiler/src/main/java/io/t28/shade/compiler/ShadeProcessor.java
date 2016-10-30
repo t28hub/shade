@@ -22,10 +22,10 @@ import javax.tools.Diagnostic;
 
 import io.t28.shade.annotations.Shade;
 import io.t28.shade.compiler.attributes.PreferencesAttribute;
-import io.t28.shade.compiler.definitions.ClassBuilder;
-import io.t28.shade.compiler.definitions.EditorBuilder;
-import io.t28.shade.compiler.definitions.EntityBuilder;
-import io.t28.shade.compiler.definitions.PreferencesBuilder;
+import io.t28.shade.compiler.definitions.ClassDefinition;
+import io.t28.shade.compiler.definitions.editor.EditorDefinition;
+import io.t28.shade.compiler.definitions.entity.EntityDefinition;
+import io.t28.shade.compiler.definitions.preferences.PreferencesDefinition;
 
 @SuppressWarnings({"unused"})
 @AutoService(Processor.class)
@@ -73,25 +73,25 @@ public class ShadeProcessor extends AbstractProcessor {
                 })
                 .forEach(element -> {
                     final PreferencesAttribute attribute = PreferencesAttribute.create(element);
-                    final ClassBuilder preferencesBuilder = PreferencesBuilder.builder()
+                    final ClassDefinition preferencesBuilder = PreferencesDefinition.builder()
                             .elements(elements)
                             .element(element)
                             .attribute(attribute)
-                            .entityClassBuilder(EntityBuilder.builder()
+                            .entityClassBuilder(EntityDefinition.builder()
                                     .types(types)
                                     .elements(elements)
                                     .attribute(attribute)
                                     .build())
-                            .editorClassBuilder(new EditorBuilder(elements, attribute))
+                            .editorClassBuilder(new EditorDefinition(elements, attribute))
                             .build();
                     write(preferencesBuilder);
                 });
         return true;
     }
 
-    private void write(ClassBuilder definition) {
+    private void write(ClassDefinition definition) {
         try {
-            JavaFile.builder(definition.packageName(), definition.build())
+            JavaFile.builder(definition.packageName(), definition.toTypeSpec())
                     .indent(INDENT)
                     .skipJavaLangImports(true)
                     .build()
