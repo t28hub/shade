@@ -21,6 +21,7 @@ import javax.lang.model.util.Elements;
 
 import io.t28.shade.compiler.attributes.PreferencesAttribute;
 import io.t28.shade.compiler.definitions.ClassDefinition;
+import io.t28.shade.compiler.definitions.MethodDefinition;
 
 public class PreferencesDefinition extends ClassDefinition {
     private static final String SUFFIX_CLASS = "Preferences";
@@ -84,11 +85,11 @@ public class PreferencesDefinition extends ClassDefinition {
 
     @Nonnull
     @Override
-    public Collection<MethodSpec> methods() {
-        return ImmutableList.<MethodSpec>builder()
-                .add(new ConstructorDefinition().toMethodSpec())
-                .add(new LoadMethodDefinition(elements, attribute).toMethodSpec())
-                .add(new EditMethodDefinition(elements, attribute).toMethodSpec())
+    public Collection<MethodDefinition> methods() {
+        return ImmutableList.<MethodDefinition>builder()
+                .add(new ConstructorDefinition())
+                .add(new LoadMethodDefinition(elements, attribute))
+                .add(new EditMethodDefinition(elements, attribute))
                 .build();
     }
 

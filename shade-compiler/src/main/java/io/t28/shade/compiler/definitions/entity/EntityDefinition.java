@@ -3,7 +3,6 @@ package io.t28.shade.compiler.definitions.entity;
 import com.google.common.collect.ImmutableList;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
-import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 
@@ -20,6 +19,7 @@ import javax.lang.model.util.Types;
 
 import io.t28.shade.compiler.attributes.PreferencesAttribute;
 import io.t28.shade.compiler.definitions.ClassDefinition;
+import io.t28.shade.compiler.definitions.MethodDefinition;
 
 import static java.util.stream.Collectors.toList;
 
@@ -95,9 +95,9 @@ public class EntityDefinition extends ClassDefinition {
 
     @Nonnull
     @Override
-    public Collection<MethodSpec> methods() {
-        return ImmutableList.<MethodSpec>builder()
-                .add(new ConstructorDefinition(types, attribute).toMethodSpec())
+    public Collection<MethodDefinition> methods() {
+        return ImmutableList.<MethodDefinition>builder()
+                .add(new ConstructorDefinition(types, attribute))
                 .addAll(buildAccessors())
                 .build();
     }
@@ -112,10 +112,10 @@ public class EntityDefinition extends ClassDefinition {
         return attribute.entityClass(elements);
     }
 
-    private Collection<MethodSpec> buildAccessors() {
+    private Collection<MethodDefinition> buildAccessors() {
         return attribute.properties()
                 .stream()
-                .map(property -> new GetterMethodDefinition(types, property.method(), property.simpleName()).toMethodSpec())
+                .map(property -> new GetterMethodDefinition(types, property.method(), property.simpleName()))
                 .collect(toList());
     }
 

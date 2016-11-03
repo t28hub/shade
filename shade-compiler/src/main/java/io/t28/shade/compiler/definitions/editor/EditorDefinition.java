@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import javax.annotation.Nonnull;
@@ -102,14 +103,15 @@ public class EditorDefinition extends ClassDefinition {
 
     @Nonnull
     @Override
-    public Collection<MethodSpec> methods() {
-        final ImmutableList.Builder<MethodSpec> builder = ImmutableList.builder();
-        builder.add(new ConstructorDefinition(elements, attribute).toMethodSpec());
-        attribute.properties().forEach(property -> {
-            final MethodDefinition definition = new SetterMethodDefinition(property, actualEditorClass());
-            builder.add(definition.toMethodSpec());
-        });
-        builder.add(new ApplyMethodDefinition(elements, attribute).toMethodSpec());
+    public Collection<MethodDefinition> methods() {
+        final ImmutableList.Builder<MethodDefinition> builder = ImmutableList.builder();
+        builder.add(new ConstructorDefinition(elements, attribute));
+        final List<MethodDefinition> setterDefinitions = attribute.properties()
+                .stream()
+                .map(property -> new SetterMethodDefinition(property, actualEditorClass()))
+                .collect(toList());
+        builder.addAll(setterDefinitions);
+        builder.add(new ApplyMethodDefinition(elements, attribute));
         return builder.build();
     }
 
