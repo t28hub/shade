@@ -31,7 +31,7 @@ public abstract class ClassDefinition {
     public abstract Collection<FieldSpec> fields();
 
     @Nonnull
-    public abstract Collection<MethodSpec> methods();
+    public abstract Collection<MethodDefinition> methods();
 
     @Nonnull
     public abstract Collection<TypeSpec> innerClasses();
@@ -42,7 +42,8 @@ public abstract class ClassDefinition {
         modifiers().forEach(builder::addModifiers);
         superClass().ifPresent(builder::superclass);
         interfaces().forEach(builder::addSuperinterface);
-        builder.addFields(fields()).addMethods(methods());
+        builder.addFields(fields());
+        methods().stream().map(MethodDefinition::toMethodSpec).forEach(builder::addMethod);
         innerClasses().forEach(builder::addType);
         return builder.build();
     }
