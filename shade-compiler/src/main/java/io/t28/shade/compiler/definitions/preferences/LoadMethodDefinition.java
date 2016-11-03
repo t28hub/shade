@@ -11,8 +11,10 @@ import com.squareup.javapoet.TypeName;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;
+import java.util.Optional;
 
 import javax.annotation.Nonnull;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.util.Elements;
 
@@ -33,14 +35,21 @@ public class LoadMethodDefinition extends MethodDefinition {
     private final PreferencesAttribute attribute;
 
     public LoadMethodDefinition(@Nonnull Elements elements, @Nonnull PreferencesAttribute attribute) {
+        super(Type.NORMAL);
         this.elements = elements;
         this.attribute = attribute;
     }
 
     @Nonnull
     @Override
-    public String name() {
-        return NAME;
+    public Optional<String> name() {
+        return Optional.of(NAME);
+    }
+
+    @Nonnull
+    @Override
+    public Optional<ExecutableElement> method() {
+        return Optional.empty();
     }
 
     @Nonnull

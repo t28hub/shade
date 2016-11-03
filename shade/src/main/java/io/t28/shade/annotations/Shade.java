@@ -37,12 +37,13 @@ public @interface Shade {
         int mode() default Context.MODE_PRIVATE;
     }
 
+    @SuppressWarnings("deprecation")
     @IntDef({
             Context.MODE_PRIVATE,
             Context.MODE_WORLD_READABLE,
             Context.MODE_WORLD_WRITEABLE
     })
-    @Retention(RetentionPolicy.CLASS)
+    @Retention(RetentionPolicy.SOURCE)
     @interface Mode {
     }
 }
