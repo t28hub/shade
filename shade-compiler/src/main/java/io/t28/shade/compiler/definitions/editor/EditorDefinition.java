@@ -1,13 +1,10 @@
 package io.t28.shade.compiler.definitions.editor;
 
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.support.annotation.NonNull;
 
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableList;
 import com.squareup.javapoet.ClassName;
-import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
@@ -25,14 +22,11 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.util.Elements;
 
 import io.t28.shade.Editor;
-import io.t28.shade.compiler.SupportedType;
-import io.t28.shade.compiler.attributes.ConverterAttribute;
 import io.t28.shade.compiler.attributes.PreferencesAttribute;
 import io.t28.shade.compiler.attributes.PropertyAttribute;
 import io.t28.shade.compiler.definitions.ClassDefinition;
 import io.t28.shade.compiler.definitions.MethodDefinition;
 
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
 public class EditorDefinition extends ClassDefinition {
@@ -115,7 +109,7 @@ public class EditorDefinition extends ClassDefinition {
             final MethodDefinition definition = new SetterMethodDefinition(property, actualEditorClass());
             builder.add(definition.toMethodSpec());
         });
-        builder.add(buildApply());
+        builder.add(new ApplyMethodDefinition(elements, attribute).toMethodSpec());
         return builder.build();
     }
 
@@ -149,86 +143,12 @@ public class EditorDefinition extends ClassDefinition {
                 .collect(toList());
     }
 
-    private MethodSpec buildApply() {
-        final ClassName entityClass = entityClass();
-        final MethodSpec.Builder builder = MethodSpec.methodBuilder("apply")
-                .addAnnotation(NonNull.class)
-                .addAnnotation(Override.class)
-                .addModifiers(Modifier.PUBLIC)
-                .returns(entityClass);
-
-        builder.addStatement(
-                "final $T preferences = this.context.getSharedPreferences($S, $L)",
-                SharedPreferences.class,
-                attribute.name(),
-                attribute.mode());
-
-        builder.addStatement(
-                "final $T editor = preferences.edit()",
-                SharedPreferences.Editor.class);
-
-        attribute.properties().forEach(property -> {
-            final ConverterAttribute converter = property.converter();
-            final TypeName supportedType;
-            if (converter.isDefault()) {
-                supportedType = property.typeName();
-            } else {
-                supportedType = converter.supportedType();
-            }
-
-            final SupportedType supported = SupportedType.find(supportedType)
-                    .orElseThrow(() -> new IllegalArgumentException("Specified type(" + supportedType + ") is not supported and should use a converter"));
-            final CodeBlock savingStatement = buildSaveStatement(property, supported);
-            final String constantName = toBitConstant(property.simpleName());
-            builder.beginControlFlow("if (($L & $L) != $L)", FIELD_CHANGED_BITS, constantName, CONSTANT_UNCHANGED)
-                    .addStatement("$L", savingStatement)
-                    .endControlFlow();
-        });
-        builder.addStatement("editor.apply()");
-
-        final String arguments = attribute.properties()
-                .stream()
-                .map(property -> CodeBlock.of("this.$L", property.simpleName()).toString())
-                .collect(joining(", \n"));
-        builder.addStatement("return new $T(\n$L)", entityImplClass(), arguments);
-        return builder.build();
-    }
-
-    private CodeBlock buildSaveStatement(PropertyAttribute property, SupportedType supported) {
-        final ConverterAttribute converter = property.converter();
-        final CodeBlock statement;
-        if (converter.isDefault()) {
-            statement = CodeBlock.builder()
-                    .add("this.$L", property.simpleName())
-                    .build();
-        } else {
-            statement = CodeBlock.builder()
-                    .add("new $T().toSupported(this.$L)", converter.className(), property.simpleName())
-                    .build();
-        }
-
-        return property.name()
-                .map(name -> CodeBlock.builder()
-                        .add("this.$L\n", "context")
-                        .add(".getSharedPreferences($S, $L)\n", name, property.mode())
-                        .add(".edit()\n")
-                        .add(supported.buildSaveStatement("", property.key(), statement))
-                        .add("\n")
-                        .add(".apply()")
-                        .build())
-                .orElse(supported.buildSaveStatement("editor", property.key(), statement));
-    }
-
     private String toBitConstant(String name) {
         return SUFFIX_BIT_CONSTANT + CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, name);
     }
 
     private ClassName entityClass() {
         return attribute.entityClass(elements);
-    }
-
-    private ClassName entityImplClass() {
-        return ClassName.bestGuess(entityClass().simpleName() + "Impl");
     }
 
     private TypeName editorClass() {
