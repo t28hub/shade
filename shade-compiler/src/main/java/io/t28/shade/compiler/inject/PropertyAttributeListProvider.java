@@ -15,11 +15,11 @@ import io.t28.shade.compiler.attributes.PropertyAttribute;
 
 import static java.util.stream.Collectors.toList;
 
-public class PropertyAttributesProvider implements Provider<List<PropertyAttribute>>{
+public class PropertyAttributeListProvider implements Provider<List<PropertyAttribute>>{
     private final TypeElement element;
 
     @Inject
-    public PropertyAttributesProvider(@Nonnull TypeElement element) {
+    public PropertyAttributeListProvider(@Nonnull TypeElement element) {
         this.element = element;
     }
 

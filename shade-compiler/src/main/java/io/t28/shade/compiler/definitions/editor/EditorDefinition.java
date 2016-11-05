@@ -6,6 +6,7 @@ import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableList;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
+import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 
@@ -13,6 +14,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import javax.annotation.Nonnull;
@@ -104,7 +106,7 @@ public class EditorDefinition extends ClassDefinition {
 
     @Nonnull
     @Override
-    public Collection<MethodDefinition> methods() {
+    public Collection<MethodSpec> methods() {
         final ImmutableList.Builder<MethodDefinition> builder = ImmutableList.builder();
         builder.add(new ConstructorDefinition(attribute, entityClass));
         final List<MethodDefinition> setterDefinitions = attribute.properties()
@@ -113,7 +115,7 @@ public class EditorDefinition extends ClassDefinition {
                 .collect(toList());
         builder.addAll(setterDefinitions);
         builder.add(new ApplyMethodDefinition(attribute, entityClass, entityImplClass));
-        return builder.build();
+        return builder.build().stream().map(MethodDefinition::toMethodSpec).collect(toList());
     }
 
     @Nonnull

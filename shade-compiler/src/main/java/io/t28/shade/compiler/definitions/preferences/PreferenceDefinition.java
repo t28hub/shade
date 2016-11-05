@@ -5,6 +5,7 @@ import android.content.Context;
 import com.google.common.collect.ImmutableList;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
+import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
 
 import java.util.Collection;
@@ -84,11 +85,11 @@ public class PreferenceDefinition extends ClassDefinition {
 
     @Nonnull
     @Override
-    public Collection<MethodDefinition> methods() {
-        return ImmutableList.<MethodDefinition>builder()
-                .add(new ConstructorDefinition())
-                .add(new LoadMethodDefinition(preference, entityClass, entityImplClass))
-                .add(new EditMethodDefinition(entityClass, editorImplClass))
+    public Collection<MethodSpec> methods() {
+        return ImmutableList.<MethodSpec>builder()
+                .add(new ConstructorDefinition().toMethodSpec())
+                .add(new LoadMethodDefinition(preference, entityClass, entityImplClass).toMethodSpec())
+                .add(new EditMethodDefinition(entityClass, editorImplClass).toMethodSpec())
                 .build();
     }
 

@@ -22,9 +22,11 @@ import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 
 import io.t28.shade.annotations.Shade;
+import io.t28.shade.compiler.definitions.ClassDefinition;
 import io.t28.shade.compiler.definitions.preferences.PreferenceDefinition;
 import io.t28.shade.compiler.inject.PreferenceModule;
 import io.t28.shade.compiler.inject.ShadeModule;
+import io.t28.shade.compiler.inject.entity.EntityModule;
 
 import static org.jooq.lambda.tuple.Tuple.tuple;
 
@@ -70,9 +72,9 @@ public class ShadeProcessor extends AbstractProcessor {
                     return true;
                 })
                 .map(element -> {
-                    final Injector childInjector = injector.createChildInjector(new PreferenceModule(element));
+                    final Injector childInjector = injector.createChildInjector(new PreferenceModule(element), new EntityModule());
                     final String packageName = childInjector.getInstance(Key.get(String.class, Names.named("PackageName")));
-                    final PreferenceDefinition definition = childInjector.getInstance(PreferenceDefinition.class);
+                    final ClassDefinition definition = childInjector.getInstance(Key.get(ClassDefinition.class, Names.named("Preference")));
                     return tuple(packageName, definition.toTypeSpec());
                 })
                 .forEach(tuple2 -> {
