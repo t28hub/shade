@@ -10,7 +10,7 @@ import io.t28.shade.annotations.Shade;
 import io.t28.shade.example.converters.DateConverter;
 import io.t28.shade.example.converters.UriConverter;
 
-@Shade.Preferences("io.t28.shade.example")
+@Shade.Preference("io.t28.shade.example")
 public class Example3 {
     private static final int DEFAULT_INT_VALUE = 100;
     private static final long DEFAULT_LONG_VALUE = 1024;

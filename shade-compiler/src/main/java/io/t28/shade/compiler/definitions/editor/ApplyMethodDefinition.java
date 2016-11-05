@@ -15,13 +15,13 @@ import java.util.Collection;
 import java.util.Optional;
 
 import javax.annotation.Nonnull;
+import javax.inject.Named;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
-import javax.lang.model.util.Elements;
 
 import io.t28.shade.compiler.SupportedType;
 import io.t28.shade.compiler.attributes.ConverterAttribute;
-import io.t28.shade.compiler.attributes.PreferencesAttribute;
+import io.t28.shade.compiler.attributes.PreferenceAttribute;
 import io.t28.shade.compiler.attributes.PropertyAttribute;
 import io.t28.shade.compiler.definitions.MethodDefinition;
 
@@ -30,13 +30,17 @@ import static java.util.stream.Collectors.joining;
 public class ApplyMethodDefinition extends MethodDefinition {
     private static final String NAME = "apply";
 
-    private final Elements elements;
-    private final PreferencesAttribute attribute;
+    private final PreferenceAttribute attribute;
+    private final ClassName entityClass;
+    private final ClassName entityImplClass;
 
-    public ApplyMethodDefinition(@Nonnull Elements elements, @Nonnull PreferencesAttribute attribute) {
+    public ApplyMethodDefinition(@Nonnull PreferenceAttribute attribute,
+                                 @Nonnull @Named("Entity") ClassName entityClass,
+                                 @Nonnull @Named("EntityImpl") ClassName entityImplClass) {
         super(Type.NORMAL);
-        this.elements = elements;
         this.attribute = attribute;
+        this.entityClass = entityClass;
+        this.entityImplClass = entityImplClass;
     }
 
     @Nonnull
@@ -66,7 +70,7 @@ public class ApplyMethodDefinition extends MethodDefinition {
     @Nonnull
     @Override
     public TypeName returnType() {
-        return entityClass();
+        return entityClass;
     }
 
     @Nonnull
@@ -91,14 +95,6 @@ public class ApplyMethodDefinition extends MethodDefinition {
         builder.add(buildApplyStatement());
         builder.add(buildReturnStatement());
         return builder.build();
-    }
-
-    private ClassName entityClass() {
-        return attribute.entityClass(elements);
-    }
-
-    private ClassName entityImplClass() {
-        return ClassName.bestGuess(entityClass().simpleName() + "Impl");
     }
 
     private String toBitConstant(String name) {
@@ -157,6 +153,6 @@ public class ApplyMethodDefinition extends MethodDefinition {
                 .stream()
                 .map(property -> CodeBlock.of("this.$L", property.simpleName()).toString())
                 .collect(joining(", "));
-        return CodeBlock.of("return new $T($L)", entityImplClass(), arguments);
+        return CodeBlock.of("return new $T($L)", entityImplClass, arguments);
     }
 }

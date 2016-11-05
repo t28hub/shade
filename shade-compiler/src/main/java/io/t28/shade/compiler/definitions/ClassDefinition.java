@@ -13,9 +13,6 @@ import javax.lang.model.element.Modifier;
 
 public abstract class ClassDefinition {
     @Nonnull
-    public abstract String packageName();
-
-    @Nonnull
     public abstract String name();
 
     @Nonnull
@@ -34,7 +31,7 @@ public abstract class ClassDefinition {
     public abstract Collection<MethodDefinition> methods();
 
     @Nonnull
-    public abstract Collection<TypeSpec> innerClasses();
+    public abstract Collection<ClassDefinition> innerClasses();
 
     @Nonnull
     public TypeSpec toTypeSpec() {
@@ -44,7 +41,7 @@ public abstract class ClassDefinition {
         interfaces().forEach(builder::addSuperinterface);
         builder.addFields(fields());
         methods().stream().map(MethodDefinition::toMethodSpec).forEach(builder::addMethod);
-        innerClasses().forEach(builder::addType);
+        innerClasses().stream().map(ClassDefinition::toTypeSpec).forEach(builder::addType);
         return builder.build();
     }
 }

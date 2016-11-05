@@ -13,23 +13,23 @@ import java.util.Collection;
 import java.util.Optional;
 
 import javax.annotation.Nonnull;
+import javax.inject.Named;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
-import javax.lang.model.util.Elements;
 
-import io.t28.shade.compiler.attributes.PreferencesAttribute;
 import io.t28.shade.compiler.definitions.MethodDefinition;
 
 public class EditMethodDefinition extends MethodDefinition {
     private static final String NAME = "edit";
 
-    private final Elements elements;
-    private final PreferencesAttribute attribute;
+    private final ClassName entityClass;
+    private final ClassName editorImplClass;
 
-    public EditMethodDefinition(@Nonnull Elements elements, @Nonnull PreferencesAttribute attribute) {
+    public EditMethodDefinition(@Nonnull @Named("Entity") ClassName entityClass,
+                                @Nonnull @Named("EditorImpl") ClassName editorImplClass) {
         super(Type.NORMAL);
-        this.elements = elements;
-        this.attribute = attribute;
+        this.entityClass = entityClass;
+        this.editorImplClass = editorImplClass;
     }
 
     @Nonnull
@@ -59,13 +59,13 @@ public class EditMethodDefinition extends MethodDefinition {
     @Nonnull
     @Override
     public TypeName returnType() {
-        return editorClass();
+        return editorImplClass;
     }
 
     @Nonnull
     @Override
     public Collection<ParameterSpec> parameters() {
-        return ImmutableList.of(ParameterSpec.builder(entityClass(), "entity")
+        return ImmutableList.of(ParameterSpec.builder(entityClass, "entity")
                 .addModifiers(Modifier.FINAL)
                 .addAnnotation(NonNull.class)
                 .build());
@@ -75,15 +75,7 @@ public class EditMethodDefinition extends MethodDefinition {
     @Override
     public Collection<CodeBlock> statements() {
         return ImmutableList.of(CodeBlock.builder()
-                .add("return new $L(this.$N, $N)", editorClass(), "context", "entity")
+                .add("return new $L(this.$N, $N)", editorImplClass, "context", "entity")
                 .build());
-    }
-
-    private ClassName entityClass() {
-        return attribute.entityClass(elements);
-    }
-
-    private ClassName editorClass() {
-        return ClassName.bestGuess(entityClass().simpleName() + "Editor");
     }
 }

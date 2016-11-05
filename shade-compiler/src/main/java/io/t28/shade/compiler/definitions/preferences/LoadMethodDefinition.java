@@ -14,13 +14,13 @@ import java.util.Collection;
 import java.util.Optional;
 
 import javax.annotation.Nonnull;
+import javax.inject.Named;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
-import javax.lang.model.util.Elements;
 
 import io.t28.shade.compiler.SupportedType;
 import io.t28.shade.compiler.attributes.ConverterAttribute;
-import io.t28.shade.compiler.attributes.PreferencesAttribute;
+import io.t28.shade.compiler.attributes.PreferenceAttribute;
 import io.t28.shade.compiler.attributes.PropertyAttribute;
 import io.t28.shade.compiler.definitions.MethodDefinition;
 
@@ -31,13 +31,17 @@ public class LoadMethodDefinition extends MethodDefinition {
     private static final String NAME = "load";
     private static final String LOCAL_VARIABLE_PREFERENCES = "preferences";
 
-    private final Elements elements;
-    private final PreferencesAttribute attribute;
+    private final PreferenceAttribute preference;
+    private final ClassName entityClass;
+    private final ClassName entityImplClass;
 
-    public LoadMethodDefinition(@Nonnull Elements elements, @Nonnull PreferencesAttribute attribute) {
+    public LoadMethodDefinition(@Nonnull PreferenceAttribute preference,
+                                @Nonnull @Named("Entity") ClassName entityClass,
+                                @Nonnull @Named("EntityImpl") ClassName entityImplClass) {
         super(Type.NORMAL);
-        this.elements = elements;
-        this.attribute = attribute;
+        this.preference = preference;
+        this.entityClass = entityClass;
+        this.entityImplClass = entityImplClass;
     }
 
     @Nonnull
@@ -67,7 +71,7 @@ public class LoadMethodDefinition extends MethodDefinition {
     @Nonnull
     @Override
     public TypeName returnType() {
-        return attribute.entityClass(elements);
+        return entityClass;
     }
 
     @Nonnull
@@ -85,8 +89,8 @@ public class LoadMethodDefinition extends MethodDefinition {
                         "final $T $N = this.context.getSharedPreferences($S, $L)",
                         SharedPreferences.class,
                         LOCAL_VARIABLE_PREFERENCES,
-                        attribute.name(),
-                        attribute.mode()
+                        preference.name(),
+                        preference.mode()
                 )
                 .build());
         builder.addAll(buildLoadStatements());
@@ -95,7 +99,7 @@ public class LoadMethodDefinition extends MethodDefinition {
     }
 
     private Collection<CodeBlock> buildLoadStatements() {
-        return attribute.properties()
+        return preference.properties()
                 .stream()
                 .map(property -> {
                     final ConverterAttribute converter = property.converter();
@@ -138,12 +142,12 @@ public class LoadMethodDefinition extends MethodDefinition {
     }
 
     private CodeBlock buildReturnStatement() {
-        final String arguments = attribute.properties()
+        final String arguments = preference.properties()
                 .stream()
                 .map(PropertyAttribute::simpleName)
                 .collect(joining(", "));
         return CodeBlock.builder()
-                .add("return new $T($L)", ClassName.bestGuess(attribute.entityClass(elements).simpleName() + "Impl"), arguments)
+                .add("return new $T($L)", entityImplClass, arguments)
                 .build();
     }
 }

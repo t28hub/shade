@@ -11,45 +11,40 @@ import java.util.Collections;
 import java.util.Optional;
 
 import javax.annotation.Nonnull;
+import javax.inject.Inject;
+import javax.inject.Named;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
-import io.t28.shade.compiler.attributes.PreferencesAttribute;
+import io.t28.shade.compiler.attributes.PreferenceAttribute;
 import io.t28.shade.compiler.definitions.ClassDefinition;
 import io.t28.shade.compiler.definitions.MethodDefinition;
 
 import static java.util.stream.Collectors.toList;
 
 public class EntityDefinition extends ClassDefinition {
-    private static final String SUFFIX_CLASS = "Impl";
-
     private final Types types;
-    private final Elements elements;
-    private final PreferencesAttribute attribute;
+    private final PreferenceAttribute preference;
+    private final ClassName entityClass;
+    private final ClassName entityImplClass;
 
-    private EntityDefinition(Builder builder) {
-        this.types = builder.types;
-        this.elements = builder.elements;
-        this.attribute = builder.attribute;
-    }
-
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    @Nonnull
-    @Override
-    public String packageName() {
-        return "";
+    @Inject
+    public EntityDefinition(@Nonnull Types types,
+                            @Nonnull PreferenceAttribute preference,
+                            @Nonnull @Named("Entity") ClassName entityClass,
+                            @Nonnull @Named("EntityImpl") ClassName entityImplClass) {
+        this.types = types;
+        this.entityClass = entityClass;
+        this.entityImplClass = entityImplClass;
+        this.preference = preference;
     }
 
     @Nonnull
     @Override
     public String name() {
-        return entityClass().simpleName() + SUFFIX_CLASS;
+        return entityImplClass.simpleName();
     }
 
     @Nonnull
@@ -61,27 +56,27 @@ public class EntityDefinition extends ClassDefinition {
     @Nonnull
     @Override
     public Optional<TypeName> superClass() {
-        final TypeElement element = attribute.element();
+        final TypeElement element = preference.element();
         if (element.getKind() != ElementKind.CLASS) {
             return Optional.empty();
         }
-        return Optional.of(entityClass());
+        return Optional.of(entityClass);
     }
 
     @Nonnull
     @Override
     public Collection<TypeName> interfaces() {
-        final TypeElement element = attribute.element();
+        final TypeElement element = preference.element();
         if (element.getKind() != ElementKind.INTERFACE) {
             return Collections.emptyList();
         }
-        return Collections.singletonList(entityClass());
+        return Collections.singletonList(entityClass);
     }
 
     @Nonnull
     @Override
     public Collection<FieldSpec> fields() {
-        return attribute.properties()
+        return preference.properties()
                 .stream()
                 .map(property -> {
                     final String name = property.simpleName();
@@ -97,66 +92,21 @@ public class EntityDefinition extends ClassDefinition {
     @Override
     public Collection<MethodDefinition> methods() {
         return ImmutableList.<MethodDefinition>builder()
-                .add(new ConstructorDefinition(types, attribute))
+                .add(new ConstructorDefinition(types, preference))
                 .addAll(buildAccessors())
                 .build();
     }
 
     @Nonnull
     @Override
-    public Collection<TypeSpec> innerClasses() {
-        return Collections.emptyList();
-    }
-
-    private ClassName entityClass() {
-        return attribute.entityClass(elements);
+    public Collection<ClassDefinition> innerClasses() {
+        return ImmutableList.of();
     }
 
     private Collection<MethodDefinition> buildAccessors() {
-        return attribute.properties()
+        return preference.properties()
                 .stream()
                 .map(property -> new GetterMethodDefinition(types, property.method(), property.simpleName()))
                 .collect(toList());
-    }
-
-    public static class Builder {
-        private Types types;
-        private Elements elements;
-        private PreferencesAttribute attribute;
-
-        private Builder() {
-        }
-
-        @Nonnull
-        public Builder types(@Nonnull Types types) {
-            this.types = types;
-            return this;
-        }
-
-        @Nonnull
-        public Builder elements(@Nonnull Elements elements) {
-            this.elements = elements;
-            return this;
-        }
-
-        @Nonnull
-        public Builder attribute(@Nonnull PreferencesAttribute attribute) {
-            this.attribute = attribute;
-            return this;
-        }
-
-        @Nonnull
-        public EntityDefinition build() {
-            if (types == null) {
-                throw new IllegalArgumentException("types must not be null");
-            }
-            if (elements == null) {
-                throw new IllegalArgumentException("elements must not be null");
-            }
-            if (attribute == null) {
-                throw new IllegalArgumentException("attribute must not be null");
-            }
-            return new EntityDefinition(this);
-        }
     }
 }

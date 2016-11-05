@@ -15,7 +15,7 @@ import io.t28.shade.converters.DefaultConverter;
 public @interface Shade {
     @Target({ElementType.TYPE})
     @Retention(RetentionPolicy.CLASS)
-    @interface Preferences {
+    @interface Preference {
         String value();
 
         @Mode

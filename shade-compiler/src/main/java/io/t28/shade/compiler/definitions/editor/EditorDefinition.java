@@ -6,8 +6,6 @@ import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableList;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
-import com.squareup.javapoet.MethodSpec;
-import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 
@@ -15,15 +13,14 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import javax.annotation.Nonnull;
+import javax.inject.Inject;
+import javax.inject.Named;
 import javax.lang.model.element.Modifier;
-import javax.lang.model.util.Elements;
 
-import io.t28.shade.Editor;
-import io.t28.shade.compiler.attributes.PreferencesAttribute;
+import io.t28.shade.compiler.attributes.PreferenceAttribute;
 import io.t28.shade.compiler.attributes.PropertyAttribute;
 import io.t28.shade.compiler.definitions.ClassDefinition;
 import io.t28.shade.compiler.definitions.MethodDefinition;
@@ -31,7 +28,6 @@ import io.t28.shade.compiler.definitions.MethodDefinition;
 import static java.util.stream.Collectors.toList;
 
 public class EditorDefinition extends ClassDefinition {
-    private static final String SUFFIX_CLASS = "Editor";
     private static final String SUFFIX_BIT_CONSTANT = "BIT_";
     private static final String CONSTANT_UNCHANGED = "UNCHANGED";
     private static final String FIELD_CONTEXT = "context";
@@ -40,24 +36,29 @@ public class EditorDefinition extends ClassDefinition {
     private static final String INITIAL_UNCHANGED = "0x0L";
     private static final String INITIAL_CHANGED_BITS = "0x0L";
 
-    private final Elements elements;
-    private final PreferencesAttribute attribute;
+    private final PreferenceAttribute attribute;
+    private final ClassName entityClass;
+    private final ClassName entityImplClass;
+    private final TypeName editorClass;
+    private final ClassName editorImplClass;
 
-    public EditorDefinition(@Nonnull Elements elements, @Nonnull PreferencesAttribute attribute) {
-        this.elements = elements;
+    @Inject
+    public EditorDefinition(@Nonnull PreferenceAttribute attribute,
+                            @Nonnull @Named("Entity") ClassName entityClass,
+                            @Nonnull @Named("EntityImpl") ClassName entityImplClass,
+                            @Nonnull @Named("Editor") TypeName editorClass,
+                            @Nonnull @Named("EditorImpl") ClassName editorImplClass) {
         this.attribute = attribute;
-    }
-
-    @Nonnull
-    @Override
-    public String packageName() {
-        return "";
+        this.entityClass = entityClass;
+        this.entityImplClass = entityImplClass;
+        this.editorClass = editorClass;
+        this.editorImplClass = editorImplClass;
     }
 
     @Nonnull
     @Override
     public String name() {
-        return entityClass().simpleName() + SUFFIX_CLASS;
+        return editorImplClass.simpleName();
     }
 
     @Nonnull
@@ -75,7 +76,7 @@ public class EditorDefinition extends ClassDefinition {
     @Nonnull
     @Override
     public Collection<TypeName> interfaces() {
-        return ImmutableList.of(editorClass());
+        return ImmutableList.of(editorClass);
     }
 
     @Nonnull
@@ -105,20 +106,20 @@ public class EditorDefinition extends ClassDefinition {
     @Override
     public Collection<MethodDefinition> methods() {
         final ImmutableList.Builder<MethodDefinition> builder = ImmutableList.builder();
-        builder.add(new ConstructorDefinition(elements, attribute));
+        builder.add(new ConstructorDefinition(attribute, entityClass));
         final List<MethodDefinition> setterDefinitions = attribute.properties()
                 .stream()
-                .map(property -> new SetterMethodDefinition(property, actualEditorClass()))
+                .map(property -> new SetterMethodDefinition(property, editorImplClass))
                 .collect(toList());
         builder.addAll(setterDefinitions);
-        builder.add(new ApplyMethodDefinition(elements, attribute));
+        builder.add(new ApplyMethodDefinition(attribute, entityClass, entityImplClass));
         return builder.build();
     }
 
     @Nonnull
     @Override
-    public Collection<TypeSpec> innerClasses() {
-        return Collections.emptyList();
+    public Collection<ClassDefinition> innerClasses() {
+        return ImmutableList.of();
     }
 
     private Collection<FieldSpec> buildBitConstants() {
@@ -147,17 +148,5 @@ public class EditorDefinition extends ClassDefinition {
 
     private String toBitConstant(String name) {
         return SUFFIX_BIT_CONSTANT + CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, name);
-    }
-
-    private ClassName entityClass() {
-        return attribute.entityClass(elements);
-    }
-
-    private TypeName editorClass() {
-        return ParameterizedTypeName.get(ClassName.get(Editor.class), entityClass());
-    }
-
-    private ClassName actualEditorClass() {
-        return ClassName.bestGuess(name());
     }
 }

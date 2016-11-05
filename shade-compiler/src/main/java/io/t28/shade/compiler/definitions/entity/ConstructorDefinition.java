@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 import javax.lang.model.element.ExecutableElement;
@@ -24,7 +23,7 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 
-import io.t28.shade.compiler.attributes.PreferencesAttribute;
+import io.t28.shade.compiler.attributes.PreferenceAttribute;
 import io.t28.shade.compiler.definitions.MethodDefinition;
 import io.t28.shade.compiler.utils.TypeNames;
 
@@ -32,9 +31,9 @@ import static java.util.stream.Collectors.toList;
 
 public class ConstructorDefinition extends MethodDefinition {
     private final Types types;
-    private final PreferencesAttribute attribute;
+    private final PreferenceAttribute attribute;
 
-    public ConstructorDefinition(@Nonnull Types types, @Nonnull PreferencesAttribute attribute) {
+    public ConstructorDefinition(@Nonnull Types types, @Nonnull PreferenceAttribute attribute) {
         super(Type.CONSTRUCTOR);
         this.types = types;
         this.attribute = attribute;
