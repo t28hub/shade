@@ -14,11 +14,11 @@ import java.util.Collection;
 import java.util.Optional;
 
 import javax.annotation.Nonnull;
+import javax.inject.Named;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
-import javax.lang.model.util.Elements;
 
-import io.t28.shade.compiler.attributes.PreferencesAttribute;
+import io.t28.shade.compiler.attributes.PreferenceAttribute;
 import io.t28.shade.compiler.definitions.MethodDefinition;
 
 import static java.util.stream.Collectors.toList;
@@ -27,13 +27,14 @@ public class ConstructorDefinition extends MethodDefinition {
     private static final String VARIABLE_CONTEXT = "context";
     private static final String VARIABLE_SOURCE = "source";
 
-    private final Elements elements;
-    private final PreferencesAttribute attribute;
+    private final PreferenceAttribute preference;
+    private final ClassName entityClass;
 
-    public ConstructorDefinition(@Nonnull Elements elements, @Nonnull PreferencesAttribute attribute) {
+    public ConstructorDefinition(@Nonnull PreferenceAttribute preference,
+                                 @Nonnull @Named("EntityClass") ClassName entityClass) {
         super(Type.CONSTRUCTOR);
-        this.elements = elements;
-        this.attribute = attribute;
+        this.preference = preference;
+        this.entityClass = entityClass;
     }
 
     @Nonnull
@@ -74,7 +75,7 @@ public class ConstructorDefinition extends MethodDefinition {
                         .addModifiers(Modifier.FINAL)
                         .addAnnotation(NonNull.class)
                         .build(),
-                ParameterSpec.builder(entityClass(), VARIABLE_SOURCE)
+                ParameterSpec.builder(entityClass, VARIABLE_SOURCE)
                         .addModifiers(Modifier.FINAL)
                         .addAnnotation(NonNull.class)
                         .build()
@@ -87,7 +88,7 @@ public class ConstructorDefinition extends MethodDefinition {
         final CodeBlock contextStatement = CodeBlock.builder()
                 .add("this.$L = $L", VARIABLE_CONTEXT, VARIABLE_CONTEXT)
                 .build();
-        final Collection<CodeBlock> propertyStatements = attribute.properties()
+        final Collection<CodeBlock> propertyStatements = preference.properties()
                 .stream()
                 .map(property -> {
                     final String name = property.simpleName();
@@ -100,9 +101,5 @@ public class ConstructorDefinition extends MethodDefinition {
                 .add(contextStatement)
                 .addAll(propertyStatements)
                 .build();
-    }
-
-    private ClassName entityClass() {
-        return attribute.entityClass(elements);
     }
 }

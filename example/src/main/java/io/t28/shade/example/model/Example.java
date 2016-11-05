@@ -9,7 +9,7 @@ import io.t28.shade.annotations.Shade;
 import io.t28.shade.example.converters.DateConverter;
 import io.t28.shade.example.converters.UriConverter;
 
-@Shade.Preferences("io.t28.shade.example")
+@Shade.Preference("io.t28.shade.example")
 public interface Example {
     @Shade.Property("int_value")
     int intValue();

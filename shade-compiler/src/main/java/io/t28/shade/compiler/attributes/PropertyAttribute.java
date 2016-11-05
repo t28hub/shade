@@ -1,7 +1,5 @@
 package io.t28.shade.compiler.attributes;
 
-import android.graphics.Region;
-
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
 import com.squareup.javapoet.TypeName;
@@ -19,7 +17,7 @@ public class PropertyAttribute {
     private final Shade.Property annotation;
     private final ConverterAttribute converter;
 
-    PropertyAttribute(@Nonnull ExecutableElement element, @Nonnull Shade.Property annotation) {
+    public PropertyAttribute(@Nonnull ExecutableElement element, @Nonnull Shade.Property annotation) {
         this.element = element;
         this.annotation = annotation;
         this.converter = ConverterAttribute.create(annotation);
@@ -66,8 +64,7 @@ public class PropertyAttribute {
 
     @Nonnull
     public Optional<String> defaultValue() {
-        return Optional.of(annotation.defValue())
-                .filter(value -> !value.isEmpty());
+        return Optional.of(annotation.defValue()).filter(value -> !value.isEmpty());
     }
 
     @Nonnull

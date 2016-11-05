@@ -10,7 +10,7 @@ import io.t28.shade.annotations.Shade;
 import io.t28.shade.example.converters.DateConverter;
 import io.t28.shade.example.converters.UriConverter;
 
-@Shade.Preferences(
+@Shade.Preference(
         value = "io.t28.shade.example",
         mode = Context.MODE_PRIVATE
 )
