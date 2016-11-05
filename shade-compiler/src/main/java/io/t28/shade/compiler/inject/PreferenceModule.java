@@ -22,12 +22,10 @@ import io.t28.shade.annotations.Shade;
 import io.t28.shade.compiler.attributes.PropertyAttribute;
 import io.t28.shade.compiler.definitions.ClassDefinition;
 import io.t28.shade.compiler.definitions.editor.EditorDefinition;
-import io.t28.shade.compiler.definitions.entity.EntityDefinition;
 import io.t28.shade.compiler.definitions.preferences.PreferenceDefinition;
 
 @SuppressWarnings("unused")
 public class PreferenceModule implements Module {
-    private static final String ENTITY_IMPL_SUFFIX = "Impl";
     private static final String EDITOR_IMPL_SUFFIX = "Editor";
 
     private final TypeElement element;
@@ -39,14 +37,11 @@ public class PreferenceModule implements Module {
     @Override
     public void configure(Binder binder) {
         binder.bind(new TypeLiteral<List<PropertyAttribute>>(){})
-                .toProvider(PropertyAttributesProvider.class);
+                .toProvider(PropertyAttributeListProvider.class);
 
         binder.bind(ClassDefinition.class)
-                .annotatedWith(Names.named("Preferences"))
+                .annotatedWith(Names.named("Preference"))
                 .to(PreferenceDefinition.class);
-        binder.bind(ClassDefinition.class)
-                .annotatedWith(Names.named("Entity"))
-                .to(EntityDefinition.class);
         binder.bind(ClassDefinition.class)
                 .annotatedWith(Names.named("Editor"))
                 .to(EditorDefinition.class);
@@ -70,20 +65,6 @@ public class PreferenceModule implements Module {
     public String providePackageName(@Nonnull Elements elements) {
         final PackageElement packageElement = elements.getPackageOf(element);
         return packageElement.getQualifiedName().toString();
-    }
-
-    @Nonnull
-    @Provides
-    @Named("Entity")
-    public ClassName provideEntityClass(@Nonnull @Named("PackageName") String packageName) {
-        return ClassName.get(packageName, element.getSimpleName().toString());
-    }
-
-    @Nonnull
-    @Provides
-    @Named("EntityImpl")
-    public ClassName provideEntityImplClass() {
-        return ClassName.bestGuess(element.getSimpleName().toString() + ENTITY_IMPL_SUFFIX);
     }
 
     @Nonnull
