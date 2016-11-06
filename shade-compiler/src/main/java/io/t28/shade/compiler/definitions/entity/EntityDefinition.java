@@ -17,11 +17,9 @@ import javax.inject.Named;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.util.Types;
 
 import io.t28.shade.compiler.attributes.PreferenceAttribute;
 import io.t28.shade.compiler.definitions.ClassDefinition;
-import io.t28.shade.compiler.definitions.MethodDefinition;
 
 public class EntityDefinition extends ClassDefinition {
     private final PreferenceAttribute preference;

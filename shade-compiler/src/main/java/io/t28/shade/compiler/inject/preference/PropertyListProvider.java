@@ -1,4 +1,4 @@
-package io.t28.shade.compiler.inject;
+package io.t28.shade.compiler.inject.preference;
 
 import java.util.List;
 import java.util.Set;
@@ -15,11 +15,11 @@ import io.t28.shade.compiler.attributes.PropertyAttribute;
 
 import static java.util.stream.Collectors.toList;
 
-public class PropertyAttributeListProvider implements Provider<List<PropertyAttribute>>{
+public class PropertyListProvider implements Provider<List<PropertyAttribute>>{
     private final TypeElement element;
 
     @Inject
-    public PropertyAttributeListProvider(@Nonnull TypeElement element) {
+    public PropertyListProvider(@Nonnull TypeElement element) {
         this.element = element;
     }
 

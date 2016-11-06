@@ -15,11 +15,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.lang.model.element.Modifier;
 
-import io.t28.shade.compiler.attributes.PreferenceAttribute;
 import io.t28.shade.compiler.definitions.ClassDefinition;
-import io.t28.shade.compiler.definitions.MethodDefinition;
-
-import static java.util.stream.Collectors.toList;
 
 public class EditorDefinition extends ClassDefinition {
     private final TypeName editorClass;

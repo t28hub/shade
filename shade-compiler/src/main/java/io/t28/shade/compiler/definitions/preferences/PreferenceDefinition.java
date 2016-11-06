@@ -1,15 +1,13 @@
 package io.t28.shade.compiler.definitions.preferences;
 
-import android.content.Context;
-
 import com.google.common.collect.ImmutableList;
-import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import javax.annotation.Nonnull;
@@ -18,34 +16,26 @@ import javax.inject.Named;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 
-import io.t28.shade.compiler.attributes.PreferenceAttribute;
 import io.t28.shade.compiler.definitions.ClassDefinition;
-import io.t28.shade.compiler.definitions.MethodDefinition;
 
 public class PreferenceDefinition extends ClassDefinition {
     private static final String SUFFIX_CLASS = "Preferences";
 
     private final TypeElement element;
-    private final PreferenceAttribute preference;
-    private final ClassName entityClass;
-    private final ClassName entityImplClass;
-    private final ClassName editorImplClass;
+    private final List<FieldSpec> fields;
+    private final List<MethodSpec> methods;
     private final ClassDefinition entityDefinition;
     private final ClassDefinition editorDefinition;
 
     @Inject
     public PreferenceDefinition(@Nonnull TypeElement element,
-                                @Nonnull PreferenceAttribute preference,
-                                @Nonnull @Named("Entity") ClassName entityClass,
-                                @Nonnull @Named("EntityImpl") ClassName entityImplClass,
-                                @Nonnull @Named("EditorImpl") ClassName editorImplClass,
+                                @Nonnull @Named("Preference") List<FieldSpec> fields,
+                                @Nonnull @Named("Preference") List<MethodSpec> methods,
                                 @Nonnull @Named("Entity") ClassDefinition entityDefinition,
                                 @Nonnull @Named("Editor") ClassDefinition editorDefinition) {
         this.element = element;
-        this.preference = preference;
-        this.entityClass = entityClass;
-        this.entityImplClass = entityImplClass;
-        this.editorImplClass = editorImplClass;
+        this.fields = fields;
+        this.methods = methods;
         this.entityDefinition = entityDefinition;
         this.editorDefinition = editorDefinition;
     }
@@ -77,20 +67,13 @@ public class PreferenceDefinition extends ClassDefinition {
     @Nonnull
     @Override
     public Collection<FieldSpec> fields() {
-        final FieldSpec contextField = FieldSpec.builder(Context.class, "context")
-                        .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
-                        .build();
-        return ImmutableList.of(contextField);
+        return fields;
     }
 
     @Nonnull
     @Override
     public Collection<MethodSpec> methods() {
-        return ImmutableList.<MethodSpec>builder()
-                .add(new ConstructorDefinition().toMethodSpec())
-                .add(new LoadMethodDefinition(preference, entityClass, entityImplClass).toMethodSpec())
-                .add(new EditMethodDefinition(entityClass, editorImplClass).toMethodSpec())
-                .build();
+        return methods;
     }
 
     @Nonnull

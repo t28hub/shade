@@ -1,15 +1,18 @@
-package io.t28.shade.compiler.inject;
+package io.t28.shade.compiler.inject.preference;
 
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Provides;
 import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
+import com.squareup.javapoet.FieldSpec;
+import com.squareup.javapoet.MethodSpec;
 
 import java.util.List;
 
 import javax.annotation.Nonnull;
 import javax.inject.Named;
+import javax.inject.Singleton;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
@@ -30,7 +33,17 @@ public class PreferenceModule implements Module {
     @Override
     public void configure(Binder binder) {
         binder.bind(new TypeLiteral<List<PropertyAttribute>>() {})
-                .toProvider(PropertyAttributeListProvider.class);
+                .toProvider(PropertyListProvider.class);
+
+        binder.bind(new TypeLiteral<List<FieldSpec>>(){})
+                .annotatedWith(Names.named("Preference"))
+                .toProvider(FieldListProvider.class)
+                .in(Singleton.class);
+
+        binder.bind(new TypeLiteral<List<MethodSpec>>(){})
+                .annotatedWith(Names.named("Preference"))
+                .toProvider(MethodListProvider.class)
+                .in(Singleton.class);
 
         binder.bind(ClassDefinition.class)
                 .annotatedWith(Names.named("Preference"))
