@@ -5,8 +5,7 @@ import com.google.inject.Module;
 import com.google.inject.Provides;
 import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
-import com.squareup.javapoet.FieldSpec;
-import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ClassName;
 
 import java.util.List;
 
@@ -19,11 +18,15 @@ import javax.lang.model.util.Elements;
 
 import io.t28.shade.annotations.Shade;
 import io.t28.shade.compiler.attributes.PropertyAttribute;
-import io.t28.shade.compiler.definitions.ClassDefinition;
-import io.t28.shade.compiler.definitions.preferences.PreferenceDefinition;
+import io.t28.shade.compiler.factories.FieldFactory;
+import io.t28.shade.compiler.factories.MethodFactory;
+import io.t28.shade.compiler.factories.TypeFactory;
+import io.t28.shade.compiler.factories.prefernce.PreferenceClassFactory;
 
 @SuppressWarnings("unused")
 public class PreferenceModule implements Module {
+    private static final String SUFFIX = "Preferences";
+
     private final TypeElement element;
 
     public PreferenceModule(@Nonnull TypeElement element) {
@@ -33,21 +36,28 @@ public class PreferenceModule implements Module {
     @Override
     public void configure(Binder binder) {
         binder.bind(new TypeLiteral<List<PropertyAttribute>>() {})
-                .toProvider(PropertyListProvider.class);
+                .toProvider(PropertyListProvider.class)
+                .in(Singleton.class);
 
-        binder.bind(new TypeLiteral<List<FieldSpec>>(){})
+        binder.bind(new TypeLiteral<List<FieldFactory>>(){})
                 .annotatedWith(Names.named("Preference"))
                 .toProvider(FieldListProvider.class)
                 .in(Singleton.class);
 
-        binder.bind(new TypeLiteral<List<MethodSpec>>(){})
+        binder.bind(new TypeLiteral<List<MethodFactory>>(){})
                 .annotatedWith(Names.named("Preference"))
                 .toProvider(MethodListProvider.class)
                 .in(Singleton.class);
 
-        binder.bind(ClassDefinition.class)
+        binder.bind(new TypeLiteral<List<TypeFactory>>(){})
                 .annotatedWith(Names.named("Preference"))
-                .to(PreferenceDefinition.class);
+                .toProvider(InnerClassListProvider.class)
+                .in(Singleton.class);
+
+        binder.bind(TypeFactory.class)
+                .annotatedWith(Names.named("Preference"))
+                .to(PreferenceClassFactory.class)
+        .in(Singleton.class);
     }
 
     @Nonnull
@@ -68,5 +78,12 @@ public class PreferenceModule implements Module {
     public String providePackageName(@Nonnull Elements elements) {
         final PackageElement packageElement = elements.getPackageOf(element);
         return packageElement.getQualifiedName().toString();
+    }
+
+    @Nonnull
+    @Provides
+    @Named("Preference")
+    public ClassName provideClassName(@Nonnull @Named("PackageName") String packageName) {
+        return ClassName.get(packageName, element.getSimpleName() + SUFFIX);
     }
 }
