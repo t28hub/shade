@@ -1,21 +1,18 @@
 package io.t28.shade.compiler.inject.entity;
 
 import com.google.common.collect.ImmutableList;
-import com.squareup.javapoet.FieldSpec;
-import com.squareup.javapoet.TypeName;
 
 import java.util.List;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import javax.inject.Provider;
-import javax.lang.model.element.Modifier;
 
 import io.t28.shade.compiler.attributes.PreferenceAttribute;
+import io.t28.shade.compiler.factories.FieldFactory;
+import io.t28.shade.compiler.factories.entity.PropertyFieldFactory;
 
-import static java.util.stream.Collectors.toList;
-
-public class FieldListProvider implements Provider<List<FieldSpec>> {
+public class FieldListProvider implements Provider<List<FieldFactory>> {
     private final PreferenceAttribute preference;
 
     @Inject
@@ -24,17 +21,12 @@ public class FieldListProvider implements Provider<List<FieldSpec>> {
     }
 
     @Override
-    public List<FieldSpec> get() {
-        final List<FieldSpec> fields = preference.properties()
+    public List<FieldFactory> get() {
+        final ImmutableList.Builder<FieldFactory> builder = ImmutableList.builder();
+        preference.properties()
                 .stream()
-                .map(property -> {
-                    final String name = property.simpleName();
-                    final TypeName type = property.typeName();
-                    return FieldSpec.builder(type, name)
-                            .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
-                            .build();
-                })
-                .collect(toList());
-        return ImmutableList.copyOf(fields);
+                .map(PropertyFieldFactory::new)
+                .forEach(builder::add);
+        return builder.build();
     }
 }

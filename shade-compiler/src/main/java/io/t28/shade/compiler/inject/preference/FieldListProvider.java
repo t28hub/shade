@@ -1,22 +1,26 @@
 package io.t28.shade.compiler.inject.preference;
 
-import android.content.Context;
-import android.support.annotation.NonNull;
-
 import com.google.common.collect.ImmutableList;
-import com.squareup.javapoet.FieldSpec;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
+import javax.inject.Inject;
 import javax.inject.Provider;
-import javax.lang.model.element.Modifier;
 
-public class FieldListProvider implements Provider<List<FieldSpec>> {
+import io.t28.shade.compiler.factories.FieldFactory;
+import io.t28.shade.compiler.factories.prefernce.ContextFieldFactory;
+
+public class FieldListProvider implements Provider<List<FieldFactory>> {
+    private final ContextFieldFactory contextFieldFactory;
+
+    @Inject
+    public FieldListProvider(@Nonnull ContextFieldFactory contextFieldFactory) {
+        this.contextFieldFactory = contextFieldFactory;
+    }
+
     @Override
-    public List<FieldSpec> get() {
-        return ImmutableList.of(FieldSpec.builder(Context.class, "context")
-                .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
-                .addAnnotation(NonNull.class)
-                .build());
+    public List<FieldFactory> get() {
+        return ImmutableList.of(contextFieldFactory);
     }
 }

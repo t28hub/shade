@@ -1,47 +1,48 @@
-package io.t28.shade.compiler.definitions;
+package io.t28.shade.compiler.factories;
 
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 import javax.annotation.Nonnull;
 import javax.lang.model.element.Modifier;
 
-public abstract class ClassDefinition {
+public abstract class TypeFactory implements Factory<TypeSpec> {
     @Nonnull
-    public abstract String name();
+    protected abstract String name();
 
     @Nonnull
-    public abstract Collection<Modifier> modifiers();
+    protected abstract List<Modifier> modifiers();
 
     @Nonnull
-    public abstract Optional<TypeName> superClass();
+    protected abstract Optional<TypeName> superClass();
 
     @Nonnull
-    public abstract Collection<TypeName> interfaces();
+    protected abstract List<TypeName> interfaces();
 
     @Nonnull
-    public abstract Collection<FieldSpec> fields();
+    protected abstract List<FieldSpec> fields();
 
     @Nonnull
-    public abstract Collection<MethodSpec> methods();
+    protected abstract List<MethodSpec> methods();
 
     @Nonnull
-    public abstract Collection<ClassDefinition> innerClasses();
+    protected abstract List<TypeSpec> innerClasses();
 
     @Nonnull
-    public TypeSpec toTypeSpec() {
+    @Override
+    public TypeSpec create() {
         final TypeSpec.Builder builder = TypeSpec.classBuilder(name());
         modifiers().forEach(builder::addModifiers);
         superClass().ifPresent(builder::superclass);
         interfaces().forEach(builder::addSuperinterface);
         builder.addFields(fields());
         methods().forEach(builder::addMethod);
-        innerClasses().stream().map(ClassDefinition::toTypeSpec).forEach(builder::addType);
+        innerClasses().forEach(builder::addType);
         return builder.build();
     }
 }

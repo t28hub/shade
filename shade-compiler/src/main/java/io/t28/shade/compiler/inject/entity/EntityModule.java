@@ -6,8 +6,6 @@ import com.google.inject.Provides;
 import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
 import com.squareup.javapoet.ClassName;
-import com.squareup.javapoet.FieldSpec;
-import com.squareup.javapoet.MethodSpec;
 
 import java.util.List;
 
@@ -16,8 +14,10 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.lang.model.element.TypeElement;
 
-import io.t28.shade.compiler.definitions.ClassDefinition;
-import io.t28.shade.compiler.definitions.entity.EntityDefinition;
+import io.t28.shade.compiler.factories.FieldFactory;
+import io.t28.shade.compiler.factories.MethodFactory;
+import io.t28.shade.compiler.factories.TypeFactory;
+import io.t28.shade.compiler.factories.entity.EntityClassFactory;
 
 @SuppressWarnings("unused")
 public class EntityModule implements Module {
@@ -28,19 +28,19 @@ public class EntityModule implements Module {
 
     @Override
     public void configure(Binder binder) {
-        binder.bind(new TypeLiteral<List<FieldSpec>>(){})
+        binder.bind(new TypeLiteral<List<FieldFactory>>(){})
                 .annotatedWith(Names.named("Entity"))
                 .toProvider(FieldListProvider.class)
                 .in(Singleton.class);
 
-        binder.bind(new TypeLiteral<List<MethodSpec>>(){})
+        binder.bind(new TypeLiteral<List<MethodFactory>>(){})
                 .annotatedWith(Names.named("Entity"))
                 .toProvider(MethodListProvider.class)
                 .in(Singleton.class);
 
-        binder.bind(ClassDefinition.class)
+        binder.bind(TypeFactory.class)
                 .annotatedWith(Names.named("Entity"))
-                .to(EntityDefinition.class);
+                .to(EntityClassFactory.class);
     }
 
     @Nonnull

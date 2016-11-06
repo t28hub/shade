@@ -1,5 +1,7 @@
 package io.t28.shade.compiler;
 
+import android.graphics.Typeface;
+
 import com.google.auto.service.AutoService;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Guice;
@@ -22,7 +24,7 @@ import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 
 import io.t28.shade.annotations.Shade;
-import io.t28.shade.compiler.definitions.ClassDefinition;
+import io.t28.shade.compiler.factories.TypeFactory;
 import io.t28.shade.compiler.inject.preference.PreferenceModule;
 import io.t28.shade.compiler.inject.ShadeModule;
 import io.t28.shade.compiler.inject.editor.EditorModule;
@@ -74,8 +76,8 @@ public class ShadeProcessor extends AbstractProcessor {
                 .map(element -> {
                     final Injector childInjector = injector.createChildInjector(new PreferenceModule(element), new EntityModule(), new EditorModule());
                     final String packageName = childInjector.getInstance(Key.get(String.class, Names.named("PackageName")));
-                    final ClassDefinition definition = childInjector.getInstance(Key.get(ClassDefinition.class, Names.named("Preference")));
-                    return tuple(packageName, definition.toTypeSpec());
+                    final TypeFactory factory = childInjector.getInstance(Key.get(TypeFactory.class, Names.named("Preference")));
+                    return tuple(packageName, factory.create());
                 })
                 .forEach(tuple2 -> {
                     try {

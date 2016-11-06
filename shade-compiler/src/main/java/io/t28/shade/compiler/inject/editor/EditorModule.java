@@ -6,8 +6,6 @@ import com.google.inject.Provides;
 import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
 import com.squareup.javapoet.ClassName;
-import com.squareup.javapoet.FieldSpec;
-import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 
@@ -19,8 +17,10 @@ import javax.inject.Singleton;
 import javax.lang.model.element.TypeElement;
 
 import io.t28.shade.Editor;
-import io.t28.shade.compiler.definitions.ClassDefinition;
-import io.t28.shade.compiler.definitions.editor.EditorDefinition;
+import io.t28.shade.compiler.factories.FieldFactory;
+import io.t28.shade.compiler.factories.MethodFactory;
+import io.t28.shade.compiler.factories.TypeFactory;
+import io.t28.shade.compiler.factories.editor.EditorClassFactory;
 
 @SuppressWarnings("unused")
 public class EditorModule implements Module {
@@ -31,19 +31,20 @@ public class EditorModule implements Module {
 
     @Override
     public void configure(Binder binder) {
-        binder.bind(new TypeLiteral<List<FieldSpec>>(){})
+        binder.bind(new TypeLiteral<List<FieldFactory>>(){})
                 .annotatedWith(Names.named("Editor"))
                 .toProvider(FieldListProvider.class)
                 .in(Singleton.class);
 
-        binder.bind(new TypeLiteral<List<MethodSpec>>(){})
+        binder.bind(new TypeLiteral<List<MethodFactory>>(){})
                 .annotatedWith(Names.named("Editor"))
                 .toProvider(MethodListProvider.class)
                 .in(Singleton.class);
 
-        binder.bind(ClassDefinition.class)
+        binder.bind(TypeFactory.class)
                 .annotatedWith(Names.named("Editor"))
-                .to(EditorDefinition.class);
+                .to(EditorClassFactory.class)
+                .in(Singleton.class);
     }
 
     @Nonnull
