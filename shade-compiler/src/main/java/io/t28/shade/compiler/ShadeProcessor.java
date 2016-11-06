@@ -23,8 +23,7 @@ import javax.tools.Diagnostic;
 
 import io.t28.shade.annotations.Shade;
 import io.t28.shade.compiler.definitions.ClassDefinition;
-import io.t28.shade.compiler.definitions.preferences.PreferenceDefinition;
-import io.t28.shade.compiler.inject.PreferenceModule;
+import io.t28.shade.compiler.inject.preference.PreferenceModule;
 import io.t28.shade.compiler.inject.ShadeModule;
 import io.t28.shade.compiler.inject.editor.EditorModule;
 import io.t28.shade.compiler.inject.entity.EntityModule;
