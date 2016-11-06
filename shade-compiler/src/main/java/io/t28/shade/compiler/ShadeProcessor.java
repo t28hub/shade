@@ -26,6 +26,7 @@ import io.t28.shade.compiler.definitions.ClassDefinition;
 import io.t28.shade.compiler.definitions.preferences.PreferenceDefinition;
 import io.t28.shade.compiler.inject.PreferenceModule;
 import io.t28.shade.compiler.inject.ShadeModule;
+import io.t28.shade.compiler.inject.editor.EditorModule;
 import io.t28.shade.compiler.inject.entity.EntityModule;
 
 import static org.jooq.lambda.tuple.Tuple.tuple;
@@ -72,7 +73,7 @@ public class ShadeProcessor extends AbstractProcessor {
                     return true;
                 })
                 .map(element -> {
-                    final Injector childInjector = injector.createChildInjector(new PreferenceModule(element), new EntityModule());
+                    final Injector childInjector = injector.createChildInjector(new PreferenceModule(element), new EntityModule(), new EditorModule());
                     final String packageName = childInjector.getInstance(Key.get(String.class, Names.named("PackageName")));
                     final ClassDefinition definition = childInjector.getInstance(Key.get(ClassDefinition.class, Names.named("Preference")));
                     return tuple(packageName, definition.toTypeSpec());
