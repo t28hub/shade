@@ -1,7 +1,5 @@
 package io.t28.shade.compiler;
 
-import android.graphics.Typeface;
-
 import com.google.auto.service.AutoService;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Guice;

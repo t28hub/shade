@@ -1,6 +1,5 @@
 package io.t28.shade.compiler.factories.entity;
 
-import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
@@ -9,7 +8,6 @@ import java.util.List;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.util.Types;
 
