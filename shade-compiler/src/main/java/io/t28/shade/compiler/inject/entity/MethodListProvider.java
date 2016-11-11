@@ -1,13 +1,11 @@
 package io.t28.shade.compiler.inject.entity;
 
 import com.google.common.collect.ImmutableList;
-import com.squareup.javapoet.ClassName;
 
 import java.util.List;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.inject.Provider;
 import javax.lang.model.util.Types;
 
