@@ -15,12 +15,14 @@ import io.t28.shade.annotations.Shade;
 public class PropertyAttribute {
     private final ExecutableElement element;
     private final Shade.Property annotation;
-    private final ConverterAttribute converter;
 
-    public PropertyAttribute(@Nonnull ExecutableElement element, @Nonnull Shade.Property annotation) {
+    public PropertyAttribute(@Nonnull ExecutableElement element) {
+        final Shade.Property annotation = element.getAnnotation(Shade.Property.class);
+        if (annotation == null) {
+            throw new IllegalArgumentException("element must be annotated with Shade.Property");
+        }
         this.element = element;
         this.annotation = annotation;
-        this.converter = ConverterAttribute.create(annotation);
     }
 
     @Nonnull
@@ -29,7 +31,6 @@ public class PropertyAttribute {
         return MoreObjects.toStringHelper(this)
                 .add("element", element)
                 .add("annotation", annotation)
-                .add("converter", converter)
                 .toString();
     }
 
@@ -69,7 +70,7 @@ public class PropertyAttribute {
 
     @Nonnull
     public ConverterAttribute converter() {
-        return converter;
+        return ConverterAttribute.create(annotation);
     }
 
     @Nonnull

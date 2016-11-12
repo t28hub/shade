@@ -26,6 +26,8 @@ dependencies {
     compile 'com.android.support:support-annotations:24.2.1'
 
     testCompile 'junit:junit:4.12'
+    testCompile 'org.assertj:assertj-core:3.5.2'
+    testCompile 'org.mockito:mockito-all:2.0.2-beta'
     testCompile 'com.google.testing.compile:compile-testing:0.8'
     testCompile 'com.google.truth:truth:0.30'
 }
