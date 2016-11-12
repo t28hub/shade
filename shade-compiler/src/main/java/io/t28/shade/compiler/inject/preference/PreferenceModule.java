@@ -16,8 +16,6 @@ import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 
-import io.t28.shade.annotations.Shade;
-import io.t28.shade.compiler.attributes.PropertyAttribute;
 import io.t28.shade.compiler.factories.FieldFactory;
 import io.t28.shade.compiler.factories.MethodFactory;
 import io.t28.shade.compiler.factories.TypeFactory;
@@ -35,10 +33,6 @@ public class PreferenceModule implements Module {
 
     @Override
     public void configure(Binder binder) {
-        binder.bind(new TypeLiteral<List<PropertyAttribute>>() {})
-                .toProvider(PropertyListProvider.class)
-                .in(Singleton.class);
-
         binder.bind(new TypeLiteral<List<FieldFactory>>(){})
                 .annotatedWith(Names.named("Preference"))
                 .toProvider(FieldListProvider.class)
@@ -64,12 +58,6 @@ public class PreferenceModule implements Module {
     @Provides
     public TypeElement provideElement() {
         return element;
-    }
-
-    @Nonnull
-    @Provides
-    public Shade.Preference provideAnnotation() {
-        return element.getAnnotation(Shade.Preference.class);
     }
 
     @Nonnull
