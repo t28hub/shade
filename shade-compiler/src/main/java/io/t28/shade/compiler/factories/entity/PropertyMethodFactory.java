@@ -23,7 +23,7 @@ public class PropertyMethodFactory extends MethodFactory {
     @Override
     public MethodSpec create() {
         final CodeBlock statement = createDefensiveStatement(
-                types, property.method(), property.simpleName()
+                types, property.method(), property.methodName()
         );
         return MethodSpec.overriding(property.method())
                 .addModifiers(Modifier.FINAL)

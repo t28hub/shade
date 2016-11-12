@@ -18,7 +18,7 @@ public class PropertyFieldFactory extends FieldFactory {
     @Nonnull
     @Override
     public FieldSpec create() {
-        return FieldSpec.builder(property.typeName(), property.simpleName())
+        return FieldSpec.builder(property.returnTypeName(), property.methodName())
                 .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
                 .build();
     }

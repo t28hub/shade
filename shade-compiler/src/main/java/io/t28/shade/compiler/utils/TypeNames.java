@@ -38,7 +38,7 @@ public class TypeNames {
     @Nonnull
     public static TypeElement toTypeElement(@Nonnull TypeMirror typeMirror) {
         if (typeMirror.getKind() != TypeKind.DECLARED) {
-            throw new IllegalArgumentException("Kind of type(" + typeMirror + ") must be " + TypeKind.DECLARED);
+            throw new IllegalArgumentException("Kind of returnType(" + typeMirror + ") must be " + TypeKind.DECLARED);
         }
 
         final DeclaredType declaredType = (DeclaredType) typeMirror;

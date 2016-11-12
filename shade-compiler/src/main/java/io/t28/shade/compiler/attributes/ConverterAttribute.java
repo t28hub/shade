@@ -53,7 +53,7 @@ public class ConverterAttribute {
         final TypeName supportedType = TypeNames.unbox(types.get(INDEX_SUPPORTED_TYPE));
         final TypeName convertedType = TypeNames.unbox(types.get(INDEX_CONVERTED_TYPE));
         if (!DEFAULT_CLASS.equals(className) && !SupportedType.contains(supportedType)) {
-            throw new IllegalArgumentException("Cannot save type(" + supportedType + ") to a SharedPreferences");
+            throw new IllegalArgumentException("Cannot save returnType(" + supportedType + ") to a SharedPreferences");
         }
         return new ConverterAttribute(className, supportedType, convertedType);
     }

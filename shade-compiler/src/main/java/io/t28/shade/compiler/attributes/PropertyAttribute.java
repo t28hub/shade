@@ -1,6 +1,5 @@
 package io.t28.shade.compiler.attributes;
 
-import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
 import com.squareup.javapoet.TypeName;
 
@@ -26,39 +25,30 @@ public class PropertyAttribute {
     }
 
     @Nonnull
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this)
-                .add("element", element)
-                .add("annotation", annotation)
-                .toString();
-    }
-
-    @Nonnull
-    public String simpleName() {
-        return element.getSimpleName().toString();
-    }
-
-    @Nonnull
     public ExecutableElement method() {
         return element;
     }
 
     @Nonnull
-    public TypeMirror type() {
+    public String methodName() {
+        return element.getSimpleName().toString();
+    }
+
+    @Nonnull
+    public TypeMirror returnType() {
         return element.getReturnType();
     }
 
     @Nonnull
-    public TypeName typeName() {
-        return TypeName.get(type());
+    public TypeName returnTypeName() {
+        return TypeName.get(returnType());
     }
 
     @Nonnull
     public String key() {
         final String key = annotation.value();
         if (Strings.isNullOrEmpty(key)) {
-            throw new IllegalArgumentException("Specified key is empty in " + simpleName());
+            throw new IllegalStateException("Defined key for " + methodName() + " is empty");
         }
         return key;
     }
@@ -78,7 +68,6 @@ public class PropertyAttribute {
         return Optional.of(annotation.name()).filter(value -> !value.isEmpty());
     }
 
-    @Shade.Mode
     public int mode() {
         return annotation.mode();
     }
