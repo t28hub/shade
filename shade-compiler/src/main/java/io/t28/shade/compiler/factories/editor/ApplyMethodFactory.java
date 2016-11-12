@@ -63,15 +63,15 @@ public class ApplyMethodFactory extends MethodFactory {
             final ConverterAttribute converter = property.converter();
             final TypeName valueType;
             if (converter.isDefault()) {
-                valueType = property.typeName();
+                valueType = property.returnTypeName();
             } else {
                 valueType = converter.supportedType();
             }
 
             final SupportedType supported = SupportedType.find(valueType)
-                    .orElseThrow(() -> new IllegalArgumentException("Specified type(" + valueType + ") is not supported and should use a converter"));
+                    .orElseThrow(() -> new IllegalArgumentException("Specified returnType(" + valueType + ") is not supported and should use a converter"));
             final CodeBlock saveStatement = buildSaveStatement(property, supported);
-            final String constantName = toBitConstant(property.simpleName());
+            final String constantName = toBitConstant(property.methodName());
             builder.beginControlFlow("if (($L & $L) != $L)", "changedBits", constantName, "UNCHANGED")
                     .addStatement("$L", saveStatement)
                     .endControlFlow();
@@ -79,7 +79,7 @@ public class ApplyMethodFactory extends MethodFactory {
         builder.addStatement("editor.apply()");
 
         final String arguments = properties.stream()
-                .map(property -> CodeBlock.of("this.$L", property.simpleName()).toString())
+                .map(property -> CodeBlock.of("this.$L", property.methodName()).toString())
                 .collect(joining(", "));
         builder.addStatement("$L", CodeBlock.of("return new $T($L)", entityImplClass, arguments));
         return builder.build();
@@ -90,11 +90,11 @@ public class ApplyMethodFactory extends MethodFactory {
         final CodeBlock statement;
         if (converter.isDefault()) {
             statement = CodeBlock.builder()
-                    .add("this.$L", property.simpleName())
+                    .add("this.$L", property.methodName())
                     .build();
         } else {
             statement = CodeBlock.builder()
-                    .add("new $T().toSupported(this.$L)", converter.className(), property.simpleName())
+                    .add("new $T().toSupported(this.$L)", converter.className(), property.methodName())
                     .build();
         }
 

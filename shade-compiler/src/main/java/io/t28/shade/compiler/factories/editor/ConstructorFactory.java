@@ -43,7 +43,7 @@ public class ConstructorFactory extends MethodFactory {
         // Statements
         builder.addStatement("this.$L = $L", "context", "context");
         preference.properties().forEach(property -> {
-            final String name = property.simpleName();
+            final String name = property.methodName();
             builder.addStatement("this.$L = $N.$L()", name, "source", name);
         });
         return builder.build();

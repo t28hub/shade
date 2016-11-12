@@ -28,14 +28,14 @@ public class PropertyMethodFactory extends MethodFactory {
     @Nonnull
     @Override
     public MethodSpec create() {
-        final String name = property.simpleName();
+        final String name = property.methodName();
         final MethodSpec.Builder builder = MethodSpec.methodBuilder(name)
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                 .addAnnotation(NonNull.class)
                 .returns(editorImplClass);
 
         // Parameters
-        final TypeName type = property.typeName();
+        final TypeName type = property.returnTypeName();
         final ParameterSpec parameter;
         if (type.isPrimitive()) {
             parameter = ParameterSpec.builder(type, name)

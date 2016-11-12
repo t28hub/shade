@@ -44,7 +44,7 @@ public class PreferenceAttributeTest {
     @Before
     public void setUp() throws Exception {
         initMocks(this);
-        when(element.getAnnotation(eq(Shade.Preference.class))).thenReturn(annotation);
+        doReturn(annotation).when(element).getAnnotation(Shade.Preference.class);
         underTest = new PreferenceAttribute(element);
     }
 
@@ -60,16 +60,6 @@ public class PreferenceAttributeTest {
         })
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("element must be annotated with Shade.Preference");
-    }
-
-    @Test
-    public void toString_shouldReturnStringRepresentation() throws Exception {
-        // exercise
-        final String actual = underTest.toString();
-
-        // verify
-        assertThat(actual)
-                .isEqualTo("PreferenceAttribute{element=element, annotation=annotation}");
     }
 
     @Test
@@ -98,6 +88,10 @@ public class PreferenceAttributeTest {
     @Test
     public void name_shouldThrowException_whenPreferencesNameIsEmpty() throws Exception {
         // setup
+        final Name name = mock(Name.class);
+        when(name.toString()).thenReturn("Example");
+        when(element.getSimpleName()).thenReturn(name);
+
         when(annotation.value()).thenReturn("");
 
         // verify
@@ -105,8 +99,8 @@ public class PreferenceAttributeTest {
             // exercise
             underTest.name();
         })
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("SharedPreferences name must not be empty");
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Defined name for Example is empty");
     }
 
     @Test

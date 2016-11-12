@@ -24,7 +24,7 @@ public class PropertyBitConstantFactory extends FieldFactory {
     @Nonnull
     @Override
     public FieldSpec create() {
-        final String name = toBitConstant(property.simpleName());
+        final String name = toBitConstant(property.methodName());
         final String value = String.format(FORMAT_BIT, (int) Math.pow(2, index));
         return FieldSpec.builder(long.class, name)
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)

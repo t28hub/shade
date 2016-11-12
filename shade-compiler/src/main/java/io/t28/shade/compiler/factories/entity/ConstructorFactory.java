@@ -35,7 +35,7 @@ public class ConstructorFactory extends MethodFactory {
         // Parameters
         final List<PropertyAttribute> properties = preference.properties();
         properties.forEach(property -> {
-            final ParameterSpec parameter = ParameterSpec.builder(property.typeName(), property.simpleName())
+            final ParameterSpec parameter = ParameterSpec.builder(property.returnTypeName(), property.methodName())
                     .addModifiers(Modifier.FINAL)
                     .build();
             builder.addParameter(parameter);
@@ -44,7 +44,7 @@ public class ConstructorFactory extends MethodFactory {
         // Statements
         properties.forEach(property -> {
             final CodeBlock statement = CodeBlock.builder()
-                    .add("this.$L = $L", property.simpleName(), createDefensiveStatement(types, property.type(), property.simpleName()))
+                    .add("this.$L = $L", property.methodName(), createDefensiveStatement(types, property.returnType(), property.methodName()))
                     .build();
             builder.addStatement("$L", statement);
         });

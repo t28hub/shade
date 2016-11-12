@@ -1,14 +1,10 @@
 package io.t28.shade.compiler.attributes;
 
-import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import javax.lang.model.element.ExecutableElement;
@@ -33,14 +29,6 @@ public class PreferenceAttribute {
         this.annotation = annotation;
     }
 
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this)
-                .add("element", element)
-                .add("annotation", annotation)
-                .toString();
-    }
-
     @Nonnull
     public TypeElement element() {
         return element;
@@ -50,7 +38,7 @@ public class PreferenceAttribute {
     public String name() {
         final String name = annotation.value();
         if (Strings.isNullOrEmpty(name)) {
-            throw new IllegalArgumentException("SharedPreferences name must not be empty");
+            throw new IllegalStateException("Defined name for " + element.getSimpleName() + " is empty");
         }
         return name;
     }

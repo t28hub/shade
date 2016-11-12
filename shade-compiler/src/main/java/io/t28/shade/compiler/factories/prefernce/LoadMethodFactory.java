@@ -52,18 +52,18 @@ public class LoadMethodFactory extends MethodFactory {
             final ConverterAttribute converter = property.converter();
             final TypeName supportedType;
             if (converter.isDefault()) {
-                supportedType = property.typeName();
+                supportedType = property.returnTypeName();
             } else {
                 supportedType = converter.supportedType();
             }
 
             final SupportedType supported = SupportedType.find(supportedType)
-                    .orElseThrow(() -> new IllegalArgumentException("Specified type(" + supportedType + ") is not supported and should use a converter"));
+                    .orElseThrow(() -> new IllegalArgumentException("Specified returnType(" + supportedType + ") is not supported and should use a converter"));
             builder.addStatement("$L", buildLoadStatement(property, supported));
         });
 
         final String arguments = properties.stream()
-                .map(PropertyAttribute::simpleName)
+                .map(PropertyAttribute::methodName)
                 .collect(joining(", "));
         builder.addStatement("return new $T($L)", entityImplClass, arguments);
         return builder.build();
@@ -83,11 +83,11 @@ public class LoadMethodFactory extends MethodFactory {
         final ConverterAttribute converter = property.converter();
         if (converter.isDefault()) {
             return CodeBlock.builder()
-                    .add("final $T $N = $L", property.typeName(), property.simpleName(), statement)
+                    .add("final $T $N = $L", property.returnTypeName(), property.methodName(), statement)
                     .build();
         }
         return CodeBlock.builder()
-                .add("final $T $N = new $T().toConverted(", converter.convertedType(), property.simpleName(), converter.className())
+                .add("final $T $N = new $T().toConverted(", converter.convertedType(), property.methodName(), converter.className())
                 .add("$L", statement)
                 .add(")")
                 .build();
