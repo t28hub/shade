@@ -15,7 +15,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public enum SupportedTypes {
+public enum SupportedType {
     BOOLEAN(TypeName.BOOLEAN) {
         private static final boolean DEFAULT = false;
 
@@ -134,11 +134,11 @@ public enum SupportedTypes {
 
     private final TypeName type;
 
-    SupportedTypes(@Nonnull TypeName type) {
+    SupportedType(@Nonnull TypeName type) {
         this.type = type;
     }
 
-    public static Optional<SupportedTypes> find(@Nonnull TypeName type) {
+    public static Optional<SupportedType> find(@Nonnull TypeName type) {
         return Stream.of(values())
                 .filter(supported -> supported.type.equals(type))
                 .findFirst();
