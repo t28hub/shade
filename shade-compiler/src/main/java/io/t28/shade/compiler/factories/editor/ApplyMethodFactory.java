@@ -14,7 +14,7 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.lang.model.element.Modifier;
 
-import io.t28.shade.compiler.utils.SupportedTypes;
+import io.t28.shade.compiler.utils.SupportedType;
 import io.t28.shade.compiler.attributes.ConverterAttribute;
 import io.t28.shade.compiler.attributes.PreferenceAttribute;
 import io.t28.shade.compiler.attributes.PropertyAttribute;
@@ -68,7 +68,7 @@ public class ApplyMethodFactory extends MethodFactory {
                 valueType = converter.supportedType();
             }
 
-            final SupportedTypes supported = SupportedTypes.find(valueType)
+            final SupportedType supported = SupportedType.find(valueType)
                     .orElseThrow(() -> new IllegalArgumentException("Specified returnType(" + valueType + ") is not supported and should use a converter"));
             final CodeBlock saveStatement = buildSaveStatement(property, supported);
             final String constantName = toBitConstant(property.methodName());
@@ -85,7 +85,7 @@ public class ApplyMethodFactory extends MethodFactory {
         return builder.build();
     }
 
-    private CodeBlock buildSaveStatement(PropertyAttribute property, SupportedTypes supported) {
+    private CodeBlock buildSaveStatement(PropertyAttribute property, SupportedType supported) {
         final ConverterAttribute converter = property.converter();
         final CodeBlock statement;
         if (converter.isDefault()) {
