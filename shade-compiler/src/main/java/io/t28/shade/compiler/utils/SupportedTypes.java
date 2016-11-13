@@ -1,4 +1,4 @@
-package io.t28.shade.compiler;
+package io.t28.shade.compiler.utils;
 
 import android.support.annotation.NonNull;
 
@@ -15,7 +15,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public enum SupportedType {
+public enum SupportedTypes {
     BOOLEAN(TypeName.BOOLEAN) {
         private static final boolean DEFAULT = false;
 
@@ -134,11 +134,11 @@ public enum SupportedType {
 
     private final TypeName type;
 
-    SupportedType(@Nonnull TypeName type) {
+    SupportedTypes(@Nonnull TypeName type) {
         this.type = type;
     }
 
-    public static Optional<SupportedType> find(@Nonnull TypeName type) {
+    public static Optional<SupportedTypes> find(@Nonnull TypeName type) {
         return Stream.of(values())
                 .filter(supported -> supported.type.equals(type))
                 .findFirst();

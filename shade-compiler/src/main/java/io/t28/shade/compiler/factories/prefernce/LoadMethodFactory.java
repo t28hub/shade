@@ -14,7 +14,7 @@ import javax.annotation.Nonnull;
 import javax.inject.Named;
 import javax.lang.model.element.Modifier;
 
-import io.t28.shade.compiler.SupportedType;
+import io.t28.shade.compiler.utils.SupportedTypes;
 import io.t28.shade.compiler.attributes.ConverterAttribute;
 import io.t28.shade.compiler.attributes.PreferenceAttribute;
 import io.t28.shade.compiler.attributes.PropertyAttribute;
@@ -57,7 +57,7 @@ public class LoadMethodFactory extends MethodFactory {
                 supportedType = converter.supportedType();
             }
 
-            final SupportedType supported = SupportedType.find(supportedType)
+            final SupportedTypes supported = SupportedTypes.find(supportedType)
                     .orElseThrow(() -> new IllegalArgumentException("Specified returnType(" + supportedType + ") is not supported and should use a converter"));
             builder.addStatement("$L", buildLoadStatement(property, supported));
         });
@@ -69,7 +69,7 @@ public class LoadMethodFactory extends MethodFactory {
         return builder.build();
     }
 
-    private CodeBlock buildLoadStatement(PropertyAttribute property, SupportedType supported) {
+    private CodeBlock buildLoadStatement(PropertyAttribute property, SupportedTypes supported) {
         final CodeBlock statement = property.name()
                 .map(name -> CodeBlock.builder()
                         .add("this.$L\n", "context")

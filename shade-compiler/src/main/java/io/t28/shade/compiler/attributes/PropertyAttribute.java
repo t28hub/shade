@@ -13,7 +13,6 @@ import javax.lang.model.type.TypeMirror;
 
 import io.t28.shade.annotations.Shade;
 import io.t28.shade.compiler.utils.TypeElements;
-import io.t28.shade.compiler.utils.TypeNames;
 
 public class PropertyAttribute {
     private final ExecutableElement element;
