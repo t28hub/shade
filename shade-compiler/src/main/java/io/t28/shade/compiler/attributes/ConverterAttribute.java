@@ -10,7 +10,7 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.lang.model.element.TypeElement;
 
-import io.t28.shade.compiler.SupportedType;
+import io.t28.shade.compiler.utils.SupportedTypes;
 import io.t28.shade.compiler.utils.TypeNames;
 import io.t28.shade.converters.Converter;
 import io.t28.shade.converters.DefaultConverter;
@@ -43,7 +43,7 @@ public class ConverterAttribute {
 
         final TypeName supportedType = TypeNames.unbox(types.get(INDEX_SUPPORTED_TYPE));
         final TypeName convertedType = TypeNames.unbox(types.get(INDEX_CONVERTED_TYPE));
-        if (!DEFAULT_CLASS.equals(className) && !SupportedType.contains(supportedType)) {
+        if (!DEFAULT_CLASS.equals(className) && !SupportedTypes.contains(supportedType)) {
             throw new IllegalArgumentException("SharedPreferences does not support to save type(" + supportedType + ")");
         }
         this.className = className;

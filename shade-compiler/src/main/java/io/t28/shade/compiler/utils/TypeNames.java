@@ -1,24 +1,19 @@
 package io.t28.shade.compiler.utils;
 
-import com.google.common.collect.ImmutableSet;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
-import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.Types;
 
 import static java.util.stream.Collectors.toList;
 
@@ -33,34 +28,6 @@ public class TypeNames {
         } catch (UnsupportedOperationException e) {
             return source;
         }
-    }
-
-    @Nonnull
-    public static Set<TypeName> collectHierarchyTypes(@Nonnull TypeMirror typeMirror, @Nonnull Types types) {
-        if (typeMirror.getKind() != TypeKind.DECLARED) {
-            return ImmutableSet.of();
-        }
-
-        if (isObject(typeMirror)) {
-            return ImmutableSet.of();
-        }
-
-        TypeElement element = (TypeElement) types.asElement(typeMirror);
-        final Set<TypeName> classes = new HashSet<>();
-        while (!isObject(typeMirror)) {
-            classes.addAll(element.getInterfaces()
-                    .stream()
-                    .map(TypeName::get)
-                    .collect(toList()));
-
-            typeMirror = element.getSuperclass();
-            element = (TypeElement) types.asElement(typeMirror);
-            if (element == null) {
-                break;
-            }
-            classes.add(TypeName.get(typeMirror));
-        }
-        return ImmutableSet.copyOf(classes);
     }
 
     @Nonnull
@@ -124,9 +91,5 @@ public class TypeNames {
         return Stream.of(parameterizedTargetType.getActualTypeArguments())
                 .map(ClassName::get)
                 .collect(toList());
-    }
-
-    private static boolean isObject(TypeMirror typeMirror) {
-        return typeMirror.toString().equals(Object.class.getName());
     }
 }
