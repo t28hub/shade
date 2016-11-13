@@ -28,8 +28,8 @@ public class LoadMethodFactory extends MethodFactory {
     private final ClassName entityImplClass;
 
     public LoadMethodFactory(@Nonnull PreferenceAttribute preference,
-                             @Nonnull @Named("Entity") ClassName entityClass,
-                             @Nonnull @Named("EntityImpl") ClassName entityImplClass) {
+                             @Nonnull ClassName entityClass,
+                             @Nonnull ClassName entityImplClass) {
         this.preference = preference;
         this.entityClass = entityClass;
         this.entityImplClass = entityImplClass;

@@ -7,7 +7,6 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 
 import javax.annotation.Nonnull;
-import javax.inject.Named;
 import javax.lang.model.element.Modifier;
 
 import io.t28.shade.compiler.factories.MethodFactory;
@@ -16,8 +15,8 @@ public class EditMethodFactory extends MethodFactory {
     private final ClassName entityClass;
     private final ClassName editorImplClass;
 
-    public EditMethodFactory(@Nonnull @Named("Entity") ClassName entityClass,
-                             @Nonnull @Named("EditorImpl") ClassName editorImplClass) {
+    public EditMethodFactory(@Nonnull ClassName entityClass,
+                             @Nonnull ClassName editorImplClass) {
         this.entityClass = entityClass;
         this.editorImplClass = editorImplClass;
     }
