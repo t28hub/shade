@@ -13,7 +13,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
 
-import io.t28.shade.annotations.Shade;
+import io.t28.shade.Shade;
 import io.t28.shade.converters.Converter;
 import io.t28.shade.converters.DefaultConverter;
 

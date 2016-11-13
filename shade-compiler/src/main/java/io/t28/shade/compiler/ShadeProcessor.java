@@ -21,7 +21,7 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 
-import io.t28.shade.annotations.Shade;
+import io.t28.shade.Shade;
 import io.t28.shade.compiler.factories.TypeFactory;
 import io.t28.shade.compiler.inject.preference.PreferenceModule;
 import io.t28.shade.compiler.inject.ShadeModule;

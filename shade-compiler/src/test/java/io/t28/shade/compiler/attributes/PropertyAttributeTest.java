@@ -18,7 +18,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Name;
 import javax.lang.model.type.TypeMirror;
 
-import io.t28.shade.annotations.Shade;
+import io.t28.shade.Shade;
 import io.t28.shade.converters.DefaultConverter;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -106,7 +106,7 @@ public class PropertyAttributeTest {
     @Test
     public void key_shouldReturnKeyOfProperty() throws Exception {
         // setup
-        when(annotation.value()).thenReturn("test_key");
+        when(annotation.key()).thenReturn("test_key");
 
         // exercise
         final String actual = underTest.key();
@@ -123,7 +123,7 @@ public class PropertyAttributeTest {
         when(name.toString()).thenReturn("getName");
         when(element.getSimpleName()).thenReturn(name);
 
-        when(annotation.value()).thenReturn("");
+        when(annotation.key()).thenReturn("");
 
         // verify
         assertThatThrownBy(() -> {

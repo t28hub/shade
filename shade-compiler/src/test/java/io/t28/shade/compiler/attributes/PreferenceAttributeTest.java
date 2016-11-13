@@ -17,7 +17,7 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 
-import io.t28.shade.annotations.Shade;
+import io.t28.shade.Shade;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -75,7 +75,7 @@ public class PreferenceAttributeTest {
     @Test
     public void name_shouldReturnPreferencesName() throws Exception {
         // setup
-        when(annotation.value()).thenReturn("io.t28.shade.test");
+        when(annotation.name()).thenReturn("io.t28.shade.test");
 
         // exercise
         final String actual = underTest.name();
@@ -92,7 +92,7 @@ public class PreferenceAttributeTest {
         when(name.toString()).thenReturn("Example");
         when(element.getSimpleName()).thenReturn(name);
 
-        when(annotation.value()).thenReturn("");
+        when(annotation.name()).thenReturn("");
 
         // verify
         assertThatThrownBy(() -> {
