@@ -36,20 +36,6 @@ public class TypeNames {
     }
 
     @Nonnull
-    public static TypeElement toTypeElement(@Nonnull TypeMirror typeMirror) {
-        if (typeMirror.getKind() != TypeKind.DECLARED) {
-            throw new IllegalArgumentException("Kind of returnType(" + typeMirror + ") must be " + TypeKind.DECLARED);
-        }
-
-        final DeclaredType declaredType = (DeclaredType) typeMirror;
-        final Element element = declaredType.asElement();
-        if (!(element instanceof TypeElement)) {
-            throw new IllegalArgumentException("Provided element(" + element + ") is not instance of TypeElement");
-        }
-        return (TypeElement) element;
-    }
-
-    @Nonnull
     public static Set<TypeName> collectHierarchyTypes(@Nonnull TypeMirror typeMirror, @Nonnull Types types) {
         if (typeMirror.getKind() != TypeKind.DECLARED) {
             return ImmutableSet.of();
@@ -104,7 +90,7 @@ public class TypeNames {
         while (currentElement != null) {
             for (final TypeMirror interfaceType : currentElement.getInterfaces()) {
                 final DeclaredType declaredType = (DeclaredType) interfaceType;
-                final TypeElement interfaceElement = TypeNames.toTypeElement(declaredType);
+                final TypeElement interfaceElement = TypeElements.toTypeElement(declaredType);
                 if (!interfaceElement.getSimpleName().toString().equals(clazz.getSimpleName())) {
                     continue;
                 }
@@ -119,7 +105,7 @@ public class TypeNames {
                 currentElement = null;
                 continue;
             }
-            currentElement = TypeNames.toTypeElement(superClassType);
+            currentElement = TypeElements.toTypeElement(superClassType);
         }
         return Collections.emptyList();
     }

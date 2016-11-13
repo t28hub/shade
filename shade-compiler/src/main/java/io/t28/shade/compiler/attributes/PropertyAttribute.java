@@ -7,9 +7,13 @@ import java.util.Optional;
 
 import javax.annotation.Nonnull;
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.MirroredTypeException;
 import javax.lang.model.type.TypeMirror;
 
 import io.t28.shade.annotations.Shade;
+import io.t28.shade.compiler.utils.TypeElements;
+import io.t28.shade.compiler.utils.TypeNames;
 
 public class PropertyAttribute {
     private final ExecutableElement element;
@@ -60,7 +64,13 @@ public class PropertyAttribute {
 
     @Nonnull
     public ConverterAttribute converter() {
-        return ConverterAttribute.create(annotation);
+        try {
+            final Class<?> converterClass = annotation.converter();
+            return new ConverterAttribute(converterClass);
+        } catch (MirroredTypeException e) {
+            final TypeElement element = TypeElements.toTypeElement(e.getTypeMirror());
+            return new ConverterAttribute(element);
+        }
     }
 
     @Nonnull
