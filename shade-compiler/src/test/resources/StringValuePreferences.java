@@ -23,6 +23,13 @@ public final class StringValuePreferences {
     }
 
     @NonNull
+    public StringValue save(@NonNull final StringValue entity) {
+        final StringValueEditor editor = this.edit(entity);
+        editor.value(entity.value());
+        return editor.apply();
+    }
+
+    @NonNull
     public StringValueEditor edit(@NonNull final StringValue entity) {
         return new StringValueEditor(this.context, entity);
     }
