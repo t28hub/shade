@@ -1,5 +1,4 @@
 apply plugin: 'com.android.application'
-apply plugin: 'android-apt'
 
 android {
     def androidVersions = rootProject.ext.androidVersions
@@ -33,7 +32,7 @@ android {
 
 dependencies {
     // Shade
-    apt project(':shade-compiler')
+    annotationProcessor project(':shade-compiler')
     compile project(':shade')
 
     // Support libraries
