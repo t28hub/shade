@@ -5,7 +5,7 @@ import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import io.t28.shade.Editor;
-import io.t28.shade.annotations.Shade;
+import io.t28.shade.Shade;
 
 public final class StringValuePreferences {
     @NonNull
@@ -17,7 +17,7 @@ public final class StringValuePreferences {
 
     @NonNull
     public StringValue load() {
-        final SharedPreferences preference = this.context.getSharedPreferences("io.t28.shade.testing", 0);
+        final SharedPreferences preference = this.context.getSharedPreferences("io.t28.shade.test", 0);
         final String value = preference.getString("key_string", "");
         return new StringValueImpl(value);
     }
@@ -42,7 +42,9 @@ public final class StringValuePreferences {
         }
 
         @Override
-        @Shade.Property("key_string")
+        @Shade.Property(
+                key = "key_string"
+        )
         public final String value() {
             return value;
         }
@@ -74,7 +76,7 @@ public final class StringValuePreferences {
         @NonNull
         @Override
         public final StringValue apply() {
-            final SharedPreferences preferences = this.context.getSharedPreferences("io.t28.shade.testing", 0);
+            final SharedPreferences preferences = this.context.getSharedPreferences("io.t28.shade.test", 0);
             final SharedPreferences.Editor editor = preferences.edit();
             if ((changedBits & BIT_VALUE) != UNCHANGED) {
                 editor.putString("key_string", this.value);

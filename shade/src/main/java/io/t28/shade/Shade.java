@@ -1,4 +1,4 @@
-package io.t28.shade.annotations;
+package io.t28.shade;
 
 import android.content.Context;
 import android.support.annotation.IntDef;
@@ -16,7 +16,7 @@ public @interface Shade {
     @Target({ElementType.TYPE})
     @Retention(RetentionPolicy.CLASS)
     @interface Preference {
-        String value();
+        String name();
 
         @Mode
         int mode() default Context.MODE_PRIVATE;
@@ -25,16 +25,16 @@ public @interface Shade {
     @Target({ElementType.METHOD})
     @Retention(RetentionPolicy.CLASS)
     @interface Property {
-        String value();
-
-        String defValue() default "";
-
-        Class<? extends Converter> converter() default DefaultConverter.class;
-
         String name() default "";
 
         @Mode
         int mode() default Context.MODE_PRIVATE;
+
+        String key();
+
+        String defValue() default "";
+
+        Class<? extends Converter> converter() default DefaultConverter.class;
     }
 
     @SuppressWarnings("deprecation")

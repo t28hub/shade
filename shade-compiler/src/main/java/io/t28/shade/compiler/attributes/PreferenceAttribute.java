@@ -11,7 +11,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 
-import io.t28.shade.annotations.Shade;
+import io.t28.shade.Shade;
 
 import static java.util.stream.Collectors.toList;
 
@@ -36,7 +36,7 @@ public class PreferenceAttribute {
 
     @Nonnull
     public String name() {
-        final String name = annotation.value();
+        final String name = annotation.name();
         if (Strings.isNullOrEmpty(name)) {
             throw new IllegalStateException("Defined name for " + element.getSimpleName() + " is empty");
         }

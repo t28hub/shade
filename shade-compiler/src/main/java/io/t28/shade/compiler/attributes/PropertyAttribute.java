@@ -11,7 +11,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.MirroredTypeException;
 import javax.lang.model.type.TypeMirror;
 
-import io.t28.shade.annotations.Shade;
+import io.t28.shade.Shade;
 import io.t28.shade.compiler.utils.TypeElements;
 
 public class PropertyAttribute {
@@ -49,7 +49,7 @@ public class PropertyAttribute {
 
     @Nonnull
     public String key() {
-        final String key = annotation.value();
+        final String key = annotation.key();
         if (Strings.isNullOrEmpty(key)) {
             throw new IllegalStateException("Defined key for " + methodName() + " is empty");
         }
