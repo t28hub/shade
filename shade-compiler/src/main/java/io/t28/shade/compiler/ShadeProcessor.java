@@ -7,7 +7,6 @@ import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.name.Names;
 
-import java.io.IOException;
 import java.util.Set;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -23,14 +22,12 @@ import javax.tools.Diagnostic;
 
 import io.t28.shade.Shade;
 import io.t28.shade.compiler.factories.TypeFactory;
-import io.t28.shade.compiler.inject.preference.PreferenceModule;
 import io.t28.shade.compiler.inject.ShadeModule;
 import io.t28.shade.compiler.inject.editor.EditorModule;
 import io.t28.shade.compiler.inject.entity.EntityModule;
+import io.t28.shade.compiler.inject.preference.PreferenceModule;
 
-import static org.jooq.lambda.tuple.Tuple.tuple;
-
-@SuppressWarnings({"unused"})
+@SuppressWarnings({"unused", "WeakerAccess"})
 @AutoService(Processor.class)
 public class ShadeProcessor extends AbstractProcessor {
     private Injector injector;
@@ -66,21 +63,18 @@ public class ShadeProcessor extends AbstractProcessor {
                 .filter(element -> {
                     final ElementKind kind = element.getKind();
                     if (kind != ElementKind.CLASS && kind != ElementKind.INTERFACE) {
-                        messager.printMessage(Diagnostic.Kind.ERROR, "Shade.Preference is not allowed to use " + kind);
+                        messager.printMessage(Diagnostic.Kind.ERROR, "@Shade.Preference is not allowed to use for " + kind);
                         return false;
                     }
                     return true;
                 })
-                .map(element -> {
-                    final Injector childInjector = injector.createChildInjector(new PreferenceModule(element), new EntityModule(), new EditorModule());
-                    final String packageName = childInjector.getInstance(Key.get(String.class, Names.named("PackageName")));
-                    final TypeFactory factory = childInjector.getInstance(Key.get(TypeFactory.class, Names.named("Preference")));
-                    return tuple(packageName, factory.create());
-                })
-                .forEach(tuple2 -> {
+                .forEach(element -> {
                     try {
-                        writer.write(tuple2.v1(), tuple2.v2());
-                    } catch (IOException e) {
+                        final Injector childInjector = injector.createChildInjector(new PreferenceModule(element), new EntityModule(), new EditorModule());
+                        final String packageName = childInjector.getInstance(Key.get(String.class, Names.named("PackageName")));
+                        final TypeFactory factory = childInjector.getInstance(Key.get(TypeFactory.class, Names.named("Preference")));
+                        writer.write(packageName, factory.create());
+                    } catch (Exception e) {
                         messager.printMessage(Diagnostic.Kind.ERROR, e.getMessage());
                     }
                 });

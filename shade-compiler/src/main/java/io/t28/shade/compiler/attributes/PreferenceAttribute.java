@@ -7,9 +7,12 @@ import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.util.Elements;
 
 import io.t28.shade.Shade;
 
@@ -18,15 +21,23 @@ import static java.util.stream.Collectors.toList;
 public class PreferenceAttribute {
     private final TypeElement element;
     private final Shade.Preference annotation;
+    private final Elements elementUtils;
 
     @Inject
-    public PreferenceAttribute(@Nonnull TypeElement element) {
+    public PreferenceAttribute(@Nonnull TypeElement element, @Nonnull Elements elementUtils) {
+        final Set<Modifier> modifiers = element.getModifiers();
+        if (!modifiers.contains(Modifier.ABSTRACT)) {
+            throw new IllegalArgumentException("Class('" + element.getSimpleName() + "') annotated with @Shade.Preference must be an abstract class or interface");
+        }
+        checkConstructor(element);
+
         final Shade.Preference annotation = element.getAnnotation(Shade.Preference.class);
         if (annotation == null) {
-            throw new IllegalArgumentException("element must be annotated with Shade.Preference");
+            throw new IllegalArgumentException("Class('" + element.getSimpleName() + "') must be annotated with @Shade.Preference");
         }
         this.element = element;
         this.annotation = annotation;
+        this.elementUtils = elementUtils;
     }
 
     @Nonnull
@@ -57,12 +68,27 @@ public class PreferenceAttribute {
                 })
                 .map(enclosed -> {
                     final ExecutableElement executable = (ExecutableElement) enclosed;
-                    final Set<Modifier> modifiers = enclosed.getModifiers();
-                    if (modifiers.contains(Modifier.PRIVATE) || modifiers.contains(Modifier.FINAL)) {
-                        throw new IllegalArgumentException("Annotated method '" + executable.getSimpleName() + "' must be overridable");
-                    }
-                    return new PropertyAttribute(executable);
+                    return new PropertyAttribute(executable, elementUtils);
                 })
                 .collect(toList());
+    }
+
+    private static void checkConstructor(TypeElement element) {
+        element.getEnclosedElements()
+                .stream()
+                .filter(enclosed -> enclosed.getKind() == ElementKind.CONSTRUCTOR)
+                .map(ExecutableElement.class::cast)
+                .findFirst()
+                .ifPresent(constructorElement -> {
+                    final Set<Modifier> modifiers = constructorElement.getModifiers();
+                    if (modifiers.contains(Modifier.PRIVATE) || modifiers.contains(Modifier.FINAL)) {
+                        throw new IllegalArgumentException("Class('" + element.getSimpleName() + "') annotated with @Shade.Preference must provide an overridable empty constructor");
+                    }
+
+                    final List<? extends VariableElement> parameters = constructorElement.getParameters();
+                    if (!parameters.isEmpty()) {
+                        throw new IllegalArgumentException("Class('" + element.getSimpleName() + "') annotated with @Shade.Preference must provide an overridable empty constructor");
+                    }
+                });
     }
 }
