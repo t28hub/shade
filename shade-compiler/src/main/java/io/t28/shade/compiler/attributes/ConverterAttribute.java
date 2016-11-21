@@ -1,14 +1,17 @@
 package io.t28.shade.compiler.attributes;
 
-import android.support.annotation.VisibleForTesting;
-
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 
 import io.t28.shade.compiler.utils.SupportedType;
 import io.t28.shade.compiler.utils.TypeNames;
@@ -26,23 +29,21 @@ public class ConverterAttribute {
     private final TypeName convertedType;
 
     @SuppressWarnings("WeakerAccess")
-    public ConverterAttribute(@Nonnull Class<?> type) {
-        this(ClassName.get(type), TypeNames.collectGenericsTypes(type, Converter.class));
-    }
-
-    @SuppressWarnings("WeakerAccess")
     public ConverterAttribute(@Nonnull TypeElement element) {
-        this(ClassName.get(element), TypeNames.collectGenericsTypes(element, Converter.class));
-    }
+        final ClassName className = ClassName.get(element);
+        final Set<Modifier> modifiers = element.getModifiers();
+        if (!modifiers.contains(Modifier.PUBLIC) && modifiers.contains(Modifier.ABSTRACT)) {
+            throw new IllegalArgumentException("Converter('" + className + "') must be concrete public class");
+        }
+        checkConstructor(element);
 
-    @VisibleForTesting
-    ConverterAttribute(@Nonnull ClassName className, @Nonnull List<TypeName> types) {
-        if (types.size() != GENERICS_SIZE) {
-            throw new IllegalArgumentException("Specified converter(" + className + ") does not have enough generic types");
+        final List<TypeName> typeNames = TypeNames.collectGenericsTypes(element, Converter.class);
+        if (typeNames.size() != GENERICS_SIZE) {
+            throw new IllegalArgumentException("Converter(" + className + ") must have 2 generic types");
         }
 
-        final TypeName supportedType = TypeNames.unbox(types.get(INDEX_SUPPORTED_TYPE));
-        final TypeName convertedType = TypeNames.unbox(types.get(INDEX_CONVERTED_TYPE));
+        final TypeName supportedType = TypeNames.unbox(typeNames.get(INDEX_SUPPORTED_TYPE));
+        final TypeName convertedType = TypeNames.unbox(typeNames.get(INDEX_CONVERTED_TYPE));
         if (!DEFAULT_CLASS.equals(className) && !SupportedType.contains(supportedType)) {
             throw new IllegalArgumentException("SharedPreferences does not support to save type(" + supportedType + ")");
         }
@@ -68,5 +69,24 @@ public class ConverterAttribute {
     @Nonnull
     public TypeName convertedType() {
         return convertedType;
+    }
+
+    private static void checkConstructor(TypeElement element) {
+        element.getEnclosedElements()
+                .stream()
+                .filter(enclosed -> enclosed.getKind() == ElementKind.CONSTRUCTOR)
+                .map(ExecutableElement.class::cast)
+                .findFirst()
+                .ifPresent(constructorElement -> {
+                    final Set<Modifier> modifiers = constructorElement.getModifiers();
+                    if (modifiers.contains(Modifier.PRIVATE) || modifiers.contains(Modifier.FINAL)) {
+                        throw new IllegalArgumentException("Converter('" + element.getSimpleName() + "') must provide a public empty constructor");
+                    }
+
+                    final List<? extends VariableElement> parameters = constructorElement.getParameters();
+                    if (!parameters.isEmpty()) {
+                        throw new IllegalArgumentException("Converter('" + element.getSimpleName() + "') must provide a public empty constructor");
+                    }
+                });
     }
 }
