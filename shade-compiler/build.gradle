@@ -16,7 +16,6 @@ handler.sdkLoader.repositories.forEach { repository ->
 }
 
 dependencies {
-    compile project(':shade')
     compile 'com.squareup:javapoet:1.7.0'
     compile 'com.google.inject:guice:4.1.0'
     compile 'org.jooq:jool:0.9.11'
