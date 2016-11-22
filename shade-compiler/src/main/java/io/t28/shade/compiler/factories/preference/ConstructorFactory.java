@@ -12,8 +12,6 @@ import javax.lang.model.element.Modifier;
 import io.t28.shade.compiler.factories.MethodFactory;
 
 public class ConstructorFactory extends MethodFactory {
-    public ConstructorFactory() {
-    }
 
     @Nonnull
     @Override
