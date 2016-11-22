@@ -12,26 +12,26 @@ import javax.inject.Provider;
 
 import io.t28.shade.compiler.attributes.PreferenceAttribute;
 import io.t28.shade.compiler.factories.MethodFactory;
-import io.t28.shade.compiler.factories.prefernce.ConstructorFactory;
-import io.t28.shade.compiler.factories.prefernce.EditMethodFactory;
-import io.t28.shade.compiler.factories.prefernce.LoadMethodFactory;
-import io.t28.shade.compiler.factories.prefernce.SaveMethodFactory;
+import io.t28.shade.compiler.factories.preference.ConstructorFactory;
+import io.t28.shade.compiler.factories.preference.EditMethodFactory;
+import io.t28.shade.compiler.factories.preference.LoadMethodFactory;
+import io.t28.shade.compiler.factories.preference.SaveMethodFactory;
 
 public class MethodListProvider implements Provider<List<MethodFactory>> {
     private final PreferenceAttribute preference;
     private final ClassName entityClass;
     private final ClassName entityImplClass;
-    private final ClassName editorImplClass;
+    private final ClassName editorClass;
 
     @Inject
     public MethodListProvider(@Nonnull PreferenceAttribute preference,
                               @Nonnull @Named("Entity") ClassName entityClass,
                               @Nonnull @Named("EntityImpl") ClassName entityImplClass,
-                              @Nonnull @Named("EditorImpl") ClassName editorImplClass) {
+                              @Nonnull @Named("Editor") ClassName editorClass) {
         this.preference = preference;
         this.entityClass = entityClass;
         this.entityImplClass = entityImplClass;
-        this.editorImplClass = editorImplClass;
+        this.editorClass = editorClass;
     }
 
     @Override
@@ -39,8 +39,8 @@ public class MethodListProvider implements Provider<List<MethodFactory>> {
         final ImmutableList.Builder<MethodFactory> builder = ImmutableList.builder();
         builder.add(new ConstructorFactory());
         builder.add(new LoadMethodFactory(preference, entityClass, entityImplClass));
-        builder.add(new SaveMethodFactory(preference, entityClass, editorImplClass));
-        builder.add(new EditMethodFactory(entityClass, editorImplClass));
+        builder.add(new SaveMethodFactory(preference, entityClass, editorClass));
+        builder.add(new EditMethodFactory(entityClass, editorClass));
         return builder.build();
     }
 }

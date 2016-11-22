@@ -22,18 +22,15 @@ import io.t28.shade.compiler.factories.TypeFactory;
 import static java.util.stream.Collectors.toList;
 
 public class EditorClassFactory extends TypeFactory {
-    private final TypeName editorClass;
-    private final ClassName editorImplClass;
+    private final ClassName editorClass;
     private final List<FieldFactory> fieldFactories;
     private final List<MethodFactory> methodFactories;
 
     @Inject
-    public EditorClassFactory(@Nonnull @Named("Editor") TypeName editorClass,
-                              @Nonnull @Named("EditorImpl") ClassName editorImplClass,
+    public EditorClassFactory(@Nonnull @Named("Editor") ClassName editorClass,
                               @Nonnull @Named("Editor") List<FieldFactory> fieldFactories,
                               @Nonnull @Named("Editor") List<MethodFactory> methodFactories) {
         this.editorClass = editorClass;
-        this.editorImplClass = editorImplClass;
         this.fieldFactories = fieldFactories;
         this.methodFactories = methodFactories;
     }
@@ -41,7 +38,7 @@ public class EditorClassFactory extends TypeFactory {
     @Nonnull
     @Override
     protected String name() {
-        return editorImplClass.simpleName();
+        return editorClass.simpleName();
     }
 
     @Nonnull
@@ -59,7 +56,7 @@ public class EditorClassFactory extends TypeFactory {
     @Nonnull
     @Override
     protected List<TypeName> interfaces() {
-        return ImmutableList.of(editorClass);
+        return ImmutableList.of();
     }
 
     @Nonnull

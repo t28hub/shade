@@ -17,12 +17,12 @@ import io.t28.shade.compiler.factories.MethodFactory;
 
 public class PropertyMethodFactory extends MethodFactory {
     private final PropertyAttribute property;
-    private final ClassName editorImplClass;
+    private final ClassName editorClass;
 
     public PropertyMethodFactory(@Nonnull PropertyAttribute property,
-                                 @Nonnull ClassName editorImplClass) {
+                                 @Nonnull ClassName editorClass) {
         this.property = property;
-        this.editorImplClass = editorImplClass;
+        this.editorClass = editorClass;
     }
 
     @Nonnull
@@ -32,7 +32,7 @@ public class PropertyMethodFactory extends MethodFactory {
         final MethodSpec.Builder builder = MethodSpec.methodBuilder(name)
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                 .addAnnotation(NonNull.class)
-                .returns(editorImplClass);
+                .returns(editorClass);
 
         // Parameters
         final TypeName type = property.returnTypeName();

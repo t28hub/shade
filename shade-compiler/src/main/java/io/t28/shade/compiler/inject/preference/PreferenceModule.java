@@ -19,7 +19,7 @@ import javax.lang.model.util.Elements;
 import io.t28.shade.compiler.factories.FieldFactory;
 import io.t28.shade.compiler.factories.MethodFactory;
 import io.t28.shade.compiler.factories.TypeFactory;
-import io.t28.shade.compiler.factories.prefernce.PreferenceClassFactory;
+import io.t28.shade.compiler.factories.preference.PreferenceClassFactory;
 
 @SuppressWarnings("unused")
 public class PreferenceModule implements Module {

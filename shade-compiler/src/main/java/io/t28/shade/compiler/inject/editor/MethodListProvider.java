@@ -20,17 +20,17 @@ public class MethodListProvider implements Provider<List<MethodFactory>> {
     private final PreferenceAttribute preference;
     private final ClassName entityClass;
     private final ClassName entityImplClass;
-    private final ClassName editorImplClass;
+    private final ClassName editorClass;
 
     @Inject
     public MethodListProvider(@Nonnull PreferenceAttribute preference,
                               @Nonnull @Named("Entity") ClassName entityClass,
                               @Nonnull @Named("EntityImpl") ClassName entityImplClass,
-                              @Nonnull @Named("EditorImpl") ClassName editorImplClass) {
+                              @Nonnull @Named("Editor") ClassName editorClass) {
         this.preference = preference;
         this.entityClass = entityClass;
         this.entityImplClass = entityImplClass;
-        this.editorImplClass = editorImplClass;
+        this.editorClass = editorClass;
     }
 
     @Override
@@ -38,7 +38,7 @@ public class MethodListProvider implements Provider<List<MethodFactory>> {
         final ImmutableList.Builder<MethodFactory> builder = ImmutableList.builder();
         builder.add(new ConstructorFactory(preference, entityClass));
         preference.properties().forEach(property -> {
-            final MethodFactory factory = new PropertyMethodFactory(property, editorImplClass);
+            final MethodFactory factory = new PropertyMethodFactory(property, editorClass);
             builder.add(factory);
         });
         builder.add(new ApplyMethodFactory(preference, entityClass, entityImplClass));

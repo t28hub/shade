@@ -44,7 +44,6 @@ public class ApplyMethodFactory extends MethodFactory {
 
         // Annotations
         builder.addAnnotation(NonNull.class);
-        builder.addAnnotation(Override.class);
 
         // Returns
         builder.returns(entityClass);
