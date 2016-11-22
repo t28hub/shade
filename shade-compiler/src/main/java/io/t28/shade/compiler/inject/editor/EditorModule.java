@@ -26,9 +26,6 @@ import io.t28.shade.compiler.factories.editor.EditorClassFactory;
 public class EditorModule implements Module {
     private static final String EDITOR_IMPL_SUFFIX = "Editor";
 
-    public EditorModule() {
-    }
-
     @Override
     public void configure(Binder binder) {
         binder.bind(new TypeLiteral<List<FieldFactory>>(){})

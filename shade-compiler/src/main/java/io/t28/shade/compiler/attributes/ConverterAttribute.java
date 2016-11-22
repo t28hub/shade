@@ -37,7 +37,7 @@ public class ConverterAttribute {
         }
         checkConstructor(element);
 
-        final List<TypeName> typeNames = TypeNames.collectGenericsTypes(element, Converter.class);
+        final List<TypeName> typeNames = TypeNames.collectGenericTypes(element, Converter.class);
         if (typeNames.size() != GENERICS_SIZE) {
             throw new IllegalArgumentException("Converter(" + className + ") must have 2 generic types");
         }

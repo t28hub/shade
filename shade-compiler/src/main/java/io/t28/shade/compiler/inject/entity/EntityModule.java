@@ -23,9 +23,6 @@ import io.t28.shade.compiler.factories.entity.EntityClassFactory;
 public class EntityModule implements Module {
     private static final String ENTITY_IMPL_SUFFIX = "Impl";
 
-    public EntityModule() {
-    }
-
     @Override
     public void configure(Binder binder) {
         binder.bind(new TypeLiteral<List<FieldFactory>>(){})
