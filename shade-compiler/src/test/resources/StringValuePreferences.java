@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import io.t28.shade.Editor;
 import io.t28.shade.Shade;
 
 public final class StringValuePreferences {
@@ -50,7 +49,7 @@ public final class StringValuePreferences {
         }
     }
 
-    public static class StringValueEditor implements Editor<StringValue> {
+    public static class StringValueEditor {
         private static final long UNCHANGED = 0x0L;
 
         private static final long BIT_VALUE = 0x1L;
@@ -74,7 +73,6 @@ public final class StringValuePreferences {
         }
 
         @NonNull
-        @Override
         public final StringValue apply() {
             final SharedPreferences preferences = this.context.getSharedPreferences("io.t28.shade.test", 0);
             final SharedPreferences.Editor editor = preferences.edit();

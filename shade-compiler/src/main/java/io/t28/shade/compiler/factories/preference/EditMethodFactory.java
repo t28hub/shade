@@ -1,4 +1,4 @@
-package io.t28.shade.compiler.factories.prefernce;
+package io.t28.shade.compiler.factories.preference;
 
 import android.support.annotation.NonNull;
 
@@ -13,12 +13,12 @@ import io.t28.shade.compiler.factories.MethodFactory;
 
 public class EditMethodFactory extends MethodFactory {
     private final ClassName entityClass;
-    private final ClassName editorImplClass;
+    private final ClassName editorClass;
 
     public EditMethodFactory(@Nonnull ClassName entityClass,
-                             @Nonnull ClassName editorImplClass) {
+                             @Nonnull ClassName editorClass) {
         this.entityClass = entityClass;
-        this.editorImplClass = editorImplClass;
+        this.editorClass = editorClass;
     }
 
     @Nonnull
@@ -27,12 +27,12 @@ public class EditMethodFactory extends MethodFactory {
         final MethodSpec.Builder builder = MethodSpec.methodBuilder("edit");
         builder.addModifiers(Modifier.PUBLIC);
         builder.addAnnotation(NonNull.class);
-        builder.returns(editorImplClass);
+        builder.returns(editorClass);
         builder.addParameter(ParameterSpec.builder(entityClass, "entity")
                 .addModifiers(Modifier.FINAL)
                 .addAnnotation(NonNull.class)
                 .build());
-        builder.addStatement("return new $L(this.$N, $N)", editorImplClass, "context", "entity");
+        builder.addStatement("return new $L(this.$N, $N)", editorClass, "context", "entity");
         return builder.build();
     }
 }

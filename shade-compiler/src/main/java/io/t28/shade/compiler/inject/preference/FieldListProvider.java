@@ -9,7 +9,7 @@ import javax.inject.Inject;
 import javax.inject.Provider;
 
 import io.t28.shade.compiler.factories.FieldFactory;
-import io.t28.shade.compiler.factories.prefernce.ContextFieldFactory;
+import io.t28.shade.compiler.factories.preference.ContextFieldFactory;
 
 public class FieldListProvider implements Provider<List<FieldFactory>> {
     private final ContextFieldFactory contextFieldFactory;

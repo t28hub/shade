@@ -1,4 +1,4 @@
-package io.t28.shade.compiler.factories.prefernce;
+package io.t28.shade.compiler.factories.preference;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
