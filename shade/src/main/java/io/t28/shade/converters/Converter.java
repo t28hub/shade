@@ -1,7 +1,12 @@
 package io.t28.shade.converters;
 
-public interface Converter<C, S> {
-    C toConverted(S supported);
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
-    S toSupported(C converted);
+public interface Converter<A, B> {
+    @NonNull
+    A toConverted(@Nullable B supported);
+
+    @NonNull
+    B toSupported(@Nullable A converted);
 }
