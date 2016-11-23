@@ -25,11 +25,6 @@ public @interface Shade {
     @Target({ElementType.METHOD})
     @Retention(RetentionPolicy.CLASS)
     @interface Property {
-        String name() default "";
-
-        @Mode
-        int mode() default Context.MODE_PRIVATE;
-
         String key();
 
         String defValue() default "";

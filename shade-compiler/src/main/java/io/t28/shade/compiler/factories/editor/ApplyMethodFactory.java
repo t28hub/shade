@@ -96,16 +96,7 @@ public class ApplyMethodFactory extends MethodFactory {
                     .add("new $T().toSupported(this.$L)", converter.className(), property.methodName())
                     .build();
         }
-
-        return property.name()
-                .map(name -> CodeBlock.builder()
-                        .add("this.context")
-                        .add(".getSharedPreferences($S, $L)", name, property.mode())
-                        .add(".edit()")
-                        .add(supported.buildSaveStatement("", property.key(), statement))
-                        .add(".apply()")
-                        .build())
-                .orElse(supported.buildSaveStatement("editor", property.key(), statement));
+        return supported.buildSaveStatement("editor", property.key(), statement);
     }
 
     private String toBitConstant(String name) {

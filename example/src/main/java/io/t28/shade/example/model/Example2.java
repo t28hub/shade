@@ -28,7 +28,6 @@ public abstract class Example2 {
     public abstract String string();
 
     @Shade.Property(
-            name = "io.t28.shade.example.set",
             key = "string_set_value"
     )
     public abstract Set<String> set();
@@ -40,7 +39,6 @@ public abstract class Example2 {
     public abstract Date date();
 
     @Shade.Property(
-            name = "io.t28.shade.example.test",
             key = "url_value",
             defValue = "https://github.com/",
             converter = UriConverter.class
