@@ -15,7 +15,6 @@ import io.t28.shade.compiler.factories.MethodFactory;
 import io.t28.shade.compiler.factories.preference.ConstructorFactory;
 import io.t28.shade.compiler.factories.preference.EditMethodFactory;
 import io.t28.shade.compiler.factories.preference.LoadMethodFactory;
-import io.t28.shade.compiler.factories.preference.SaveMethodFactory;
 
 public class MethodListProvider implements Provider<List<MethodFactory>> {
     private final PreferenceAttribute preference;
@@ -37,10 +36,9 @@ public class MethodListProvider implements Provider<List<MethodFactory>> {
     @Override
     public List<MethodFactory> get() {
         final ImmutableList.Builder<MethodFactory> builder = ImmutableList.builder();
-        builder.add(new ConstructorFactory());
+        builder.add(new ConstructorFactory(preference));
         builder.add(new LoadMethodFactory(preference, entityClass, entityImplClass));
-        builder.add(new SaveMethodFactory(preference, entityClass, editorClass));
-        builder.add(new EditMethodFactory(entityClass, editorClass));
+        builder.add(new EditMethodFactory(editorClass));
         return builder.build();
     }
 }

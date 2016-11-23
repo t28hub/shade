@@ -5,6 +5,7 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,22 +17,34 @@ public abstract class TypeFactory implements Factory<TypeSpec> {
     protected abstract String name();
 
     @Nonnull
-    protected abstract List<Modifier> modifiers();
+    protected List<Modifier> modifiers() {
+        return Collections.emptyList();
+    }
 
     @Nonnull
-    protected abstract Optional<TypeName> superClass();
+    protected Optional<TypeName> superClass() {
+        return Optional.empty();
+    }
 
     @Nonnull
-    protected abstract List<TypeName> interfaces();
+    protected List<TypeName> interfaces() {
+        return Collections.emptyList();
+    }
 
     @Nonnull
-    protected abstract List<FieldSpec> fields();
+    protected List<FieldSpec> fields() {
+        return Collections.emptyList();
+    }
 
     @Nonnull
-    protected abstract List<MethodSpec> methods();
+    protected List<MethodSpec> methods() {
+        return Collections.emptyList();
+    }
 
     @Nonnull
-    protected abstract List<TypeSpec> innerClasses();
+    protected List<TypeSpec> innerClasses() {
+        return Collections.emptyList();
+    }
 
     @Nonnull
     @Override

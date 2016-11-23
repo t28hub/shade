@@ -7,6 +7,7 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -69,9 +70,9 @@ public class EntityClassFactory extends TypeFactory {
     @Override
     protected List<TypeName> interfaces() {
         if (element.getKind() == ElementKind.INTERFACE) {
-            return ImmutableList.of(entityClass);
+            return Collections.singletonList(entityClass);
         }
-        return ImmutableList.of();
+        return Collections.emptyList();
     }
 
     @Nonnull
@@ -88,11 +89,5 @@ public class EntityClassFactory extends TypeFactory {
         return methodFactories.stream()
                 .map(Factory::create)
                 .collect(toList());
-    }
-
-    @Nonnull
-    @Override
-    protected List<TypeSpec> innerClasses() {
-        return ImmutableList.of();
     }
 }
