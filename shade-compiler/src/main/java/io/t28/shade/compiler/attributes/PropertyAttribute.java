@@ -95,13 +95,4 @@ public class PropertyAttribute {
             return new ConverterAttribute(element);
         }
     }
-
-    @Nonnull
-    public Optional<String> name() {
-        return Optional.of(annotation.name()).filter(value -> !value.isEmpty());
-    }
-
-    public int mode() {
-        return annotation.mode();
-    }
 }

@@ -69,16 +69,7 @@ public class LoadMethodFactory extends MethodFactory {
     }
 
     private CodeBlock buildLoadStatement(PropertyAttribute property, SupportedType supported) {
-        final CodeBlock statement = property.name()
-                .map(name -> CodeBlock.builder()
-                        .add("this.$L\n", "context")
-                        .indent().indent()
-                        .add(".getSharedPreferences($S, $L)\n", name, property.mode())
-                        .add(supported.buildLoadStatement("", property.key(), property.defaultValue().orElse(null)))
-                        .unindent().unindent()
-                        .build())
-                .orElse(supported.buildLoadStatement("preference", property.key(), property.defaultValue().orElse(null)));
-
+        final CodeBlock statement = supported.buildLoadStatement("preference", property.key(), property.defaultValue().orElse(null));
         final ConverterAttribute converter = property.converter();
         if (converter.isDefault()) {
             return CodeBlock.builder()
