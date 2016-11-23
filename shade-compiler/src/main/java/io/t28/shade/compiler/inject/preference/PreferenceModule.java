@@ -16,7 +16,8 @@ import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 
-import io.t28.shade.compiler.factories.FieldFactory;
+import io.t28.shade.compiler.attributes.PreferenceAttribute;
+import io.t28.shade.compiler.attributes.PropertyAttribute;
 import io.t28.shade.compiler.factories.MethodFactory;
 import io.t28.shade.compiler.factories.TypeFactory;
 import io.t28.shade.compiler.factories.preference.PreferenceClassFactory;
@@ -33,11 +34,6 @@ public class PreferenceModule implements Module {
 
     @Override
     public void configure(Binder binder) {
-        binder.bind(new TypeLiteral<List<FieldFactory>>(){})
-                .annotatedWith(Names.named("Preference"))
-                .toProvider(FieldListProvider.class)
-                .in(Singleton.class);
-
         binder.bind(new TypeLiteral<List<MethodFactory>>(){})
                 .annotatedWith(Names.named("Preference"))
                 .toProvider(MethodListProvider.class)
@@ -73,5 +69,12 @@ public class PreferenceModule implements Module {
     @Named("Preference")
     public ClassName provideClassName(@Nonnull @Named("PackageName") String packageName) {
         return ClassName.get(packageName, element.getSimpleName() + SUFFIX);
+    }
+
+    @Nonnull
+    @Provides
+    @Singleton
+    public List<PropertyAttribute> providePropertyAttributes(@Nonnull PreferenceAttribute attribute) {
+        return attribute.properties();
     }
 }

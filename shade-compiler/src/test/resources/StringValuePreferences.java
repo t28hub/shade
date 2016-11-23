@@ -7,11 +7,13 @@ import android.support.annotation.Nullable;
 import io.t28.shade.Shade;
 
 public final class StringValuePreferences {
-    @NonNull
     private final Context context;
+
+    private final SharedPreferences preferences;
 
     public StringValuePreferences(@NonNull final Context context) {
         this.context = context.getApplicationContext();
+        this.preferences = this.context.getSharedPreferences("io.t28.shade.test", 0);
     }
 
     @NonNull
@@ -22,15 +24,8 @@ public final class StringValuePreferences {
     }
 
     @NonNull
-    public StringValue save(@NonNull final StringValue entity) {
-        final StringValueEditor editor = this.edit(entity);
-        editor.value(entity.value());
-        return editor.apply();
-    }
-
-    @NonNull
-    public StringValueEditor edit(@NonNull final StringValue entity) {
-        return new StringValueEditor(this.context, entity);
+    public Editor edit() {
+        return new Editor(preferences);
     }
 
     public static class StringValueImpl implements StringValue {
@@ -49,38 +44,33 @@ public final class StringValuePreferences {
         }
     }
 
-    public static class StringValueEditor {
-        private static final long UNCHANGED = 0x0L;
+    public static class Editor {
+        private final SharedPreferences.Editor editor;
 
-        private static final long BIT_VALUE = 0x1L;
-
-        private final Context context;
-
-        private long changedBits = 0x0L;
-
-        private String value;
-
-        private StringValueEditor(@NonNull final Context context, @NonNull final StringValue source) {
-            this.context = context;
-            this.value = source.value();
+        private Editor(@NonNull final SharedPreferences preferences) {
+            this.editor = preferences.edit();
         }
 
         @NonNull
-        public final StringValueEditor value(@Nullable final String value) {
-            this.changedBits |= BIT_VALUE;
-            this.value = value;
+        public Editor putValue(@Nullable final String newValue) {
+            editor.putString("key_string", newValue);
             return this;
         }
 
         @NonNull
-        public final StringValue apply() {
-            final SharedPreferences preferences = this.context.getSharedPreferences("io.t28.shade.test", 0);
-            final SharedPreferences.Editor editor = preferences.edit();
-            if ((changedBits & BIT_VALUE) != UNCHANGED) {
-                editor.putString("key_string", this.value);
-            }
+        public Editor removeValue() {
+            editor.remove("key_string");
+            return this;
+        }
+
+        @NonNull
+        public Editor clear() {
+            editor.clear();
+            return this;
+        }
+
+        public void apply() {
             editor.apply();
-            return new StringValueImpl(this.value);
         }
     }
 }

@@ -1,38 +1,41 @@
 package io.t28.shade.compiler.factories.editor;
 
+import android.content.SharedPreferences;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
+import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableList;
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeName;
-import com.squareup.javapoet.TypeSpec;
 
 import java.util.List;
-import java.util.Optional;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.lang.model.element.Modifier;
 
-import io.t28.shade.compiler.factories.FieldFactory;
-import io.t28.shade.compiler.factories.MethodFactory;
+import io.t28.shade.compiler.attributes.ConverterAttribute;
+import io.t28.shade.compiler.attributes.PropertyAttribute;
 import io.t28.shade.compiler.factories.TypeFactory;
+import io.t28.shade.compiler.utils.SupportedType;
 
 import static java.util.stream.Collectors.toList;
 
 public class EditorClassFactory extends TypeFactory {
     private final ClassName editorClass;
-    private final List<FieldFactory> fieldFactories;
-    private final List<MethodFactory> methodFactories;
+    private final List<PropertyAttribute> properties;
 
     @Inject
     public EditorClassFactory(@Nonnull @Named("Editor") ClassName editorClass,
-                              @Nonnull @Named("Editor") List<FieldFactory> fieldFactories,
-                              @Nonnull @Named("Editor") List<MethodFactory> methodFactories) {
+                              @Nonnull List<PropertyAttribute> properties) {
         this.editorClass = editorClass;
-        this.fieldFactories = fieldFactories;
-        this.methodFactories = methodFactories;
+        this.properties = ImmutableList.copyOf(properties);
     }
 
     @Nonnull
@@ -49,35 +52,125 @@ public class EditorClassFactory extends TypeFactory {
 
     @Nonnull
     @Override
-    protected Optional<TypeName> superClass() {
-        return Optional.empty();
-    }
-
-    @Nonnull
-    @Override
-    protected List<TypeName> interfaces() {
-        return ImmutableList.of();
-    }
-
-    @Nonnull
-    @Override
     protected List<FieldSpec> fields() {
-        return fieldFactories.stream()
-                .map(FieldFactory::create)
-                .collect(toList());
+        return ImmutableList.of(
+                FieldSpec.builder(SharedPreferences.Editor.class, "editor")
+                        .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
+                        .build()
+        );
     }
 
     @Nonnull
     @Override
     protected List<MethodSpec> methods() {
-        return methodFactories.stream()
-                .map(MethodFactory::create)
+        return ImmutableList.<MethodSpec>builder()
+                .add(buildConstructorSpec())
+                .addAll(buildPutMethodSpecs())
+                .addAll(buildRemoveMethodSpecs())
+                .add(buildClearMethodSpec())
+                .add(buildApplyMethodSpec())
+                .build();
+    }
+
+    private MethodSpec buildConstructorSpec() {
+        return MethodSpec.constructorBuilder()
+                .addModifiers(Modifier.PRIVATE)
+                .addParameter(ParameterSpec.builder(SharedPreferences.class, "preferences")
+                        .addAnnotation(NonNull.class)
+                        .addModifiers(Modifier.FINAL)
+                        .build()
+                )
+                .addStatement("this.$L = $L", "editor", "preferences.edit()")
+                .build();
+    }
+
+    private List<MethodSpec> buildPutMethodSpecs() {
+        return properties
+                .stream()
+                .map(property -> {
+                    final String methodName = CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, property.methodName());
+                    final MethodSpec.Builder builder = MethodSpec.methodBuilder("put" + methodName)
+                            .addAnnotation(NonNull.class)
+                            .addModifiers(Modifier.PUBLIC);
+
+                    final TypeName valueType = property.returnTypeName();
+                    if (valueType.isPrimitive()) {
+                        builder.addParameter(ParameterSpec.builder(valueType, "newValue")
+                                .addModifiers(Modifier.FINAL)
+                                .build());
+                    } else {
+                        builder.addParameter(ParameterSpec.builder(valueType, "newValue")
+                                .addModifiers(Modifier.FINAL)
+                                .addAnnotation(Nullable.class)
+                                .build());
+                    }
+
+                    final ConverterAttribute converter = property.converter();
+                    final TypeName storeType;
+                    if (converter.isDefault()) {
+                        storeType = property.returnTypeName();
+                    } else {
+                        storeType = converter.supportedType();
+                    }
+
+                    final SupportedType supportedType = SupportedType
+                            .find(storeType)
+                            .orElseThrow(() -> new IllegalArgumentException(""));
+                    return builder
+                            .addStatement("$L", buildSaveStatement(property, supportedType))
+                            .addStatement("return this")
+                            .returns(editorClass)
+                            .build();
+                })
                 .collect(toList());
     }
 
-    @Nonnull
-    @Override
-    protected List<TypeSpec> innerClasses() {
-        return ImmutableList.of();
+    private List<MethodSpec> buildRemoveMethodSpecs() {
+        return properties
+                .stream()
+                .map(property -> {
+                    final String methodName = CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, property.methodName());
+                    return MethodSpec.methodBuilder("remove" + methodName)
+                            .addAnnotation(NonNull.class)
+                            .addModifiers(Modifier.PUBLIC)
+                            .addStatement("$L.remove($S)", "editor", property.key())
+                            .addStatement("return this")
+                            .returns(editorClass)
+                            .build();
+
+                })
+                .collect(toList());
+    }
+
+    private MethodSpec buildClearMethodSpec() {
+        return MethodSpec.methodBuilder("clear")
+                .addAnnotation(NonNull.class)
+                .addModifiers(Modifier.PUBLIC)
+                .addStatement("$L.clear()", "editor")
+                .addStatement("return this")
+                .returns(editorClass)
+                .build();
+    }
+
+    private MethodSpec buildApplyMethodSpec() {
+        return MethodSpec.methodBuilder("apply")
+                .addModifiers(Modifier.PUBLIC)
+                .addStatement("$L.apply()", "editor")
+                .build();
+    }
+
+    private CodeBlock buildSaveStatement(PropertyAttribute property, SupportedType supported) {
+        final ConverterAttribute converter = property.converter();
+        final CodeBlock statement;
+        if (converter.isDefault()) {
+            statement = CodeBlock.builder()
+                    .add("newValue")
+                    .build();
+        } else {
+            statement = CodeBlock.builder()
+                    .add("new $T().toSupported($L)", converter.className(), "newValue")
+                    .build();
+        }
+        return supported.buildSaveStatement("editor", property.key(), statement);
     }
 }
