@@ -20,7 +20,7 @@ public final class StringValuePreferences {
     public StringValue load() {
         final SharedPreferences preference = this.context.getSharedPreferences("io.t28.shade.test", 0);
         final String value = preference.getString("key_string", "");
-        return new StringValueImpl(value);
+        return new StringValue$$Impl(value);
     }
 
     @NonNull
@@ -28,10 +28,10 @@ public final class StringValuePreferences {
         return new Editor(preferences);
     }
 
-    public static class StringValueImpl implements StringValue {
+    public static class StringValue$$Impl implements StringValue {
         private final String value;
 
-        private StringValueImpl(final String value) {
+        private StringValue$$Impl(final String value) {
             this.value = value;
         }
 
