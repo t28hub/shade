@@ -2,7 +2,6 @@ package io.t28.shade.compiler.factories;
 
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableList;
@@ -88,17 +87,16 @@ public class EditorClassFactory extends TypeFactory {
                     final String methodName = CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, property.methodName());
                     final MethodSpec.Builder builder = MethodSpec.methodBuilder("put" + methodName)
                             .addAnnotation(NonNull.class)
-                            .addModifiers(Modifier.PUBLIC);
+                            .addModifiers(Modifier.PUBLIC)
+                            .returns(editorClass);
 
                     final TypeName valueType = property.returnTypeName();
                     if (valueType.isPrimitive()) {
                         builder.addParameter(ParameterSpec.builder(valueType, "newValue")
-                                .addModifiers(Modifier.FINAL)
                                 .build());
                     } else {
                         builder.addParameter(ParameterSpec.builder(valueType, "newValue")
-                                .addModifiers(Modifier.FINAL)
-                                .addAnnotation(Nullable.class)
+                                .addAnnotation(NonNull.class)
                                 .build());
                     }
 
@@ -114,7 +112,6 @@ public class EditorClassFactory extends TypeFactory {
                     return builder
                             .addStatement("$L", buildSaveStatement(property, supportedType))
                             .addStatement("return this")
-                            .returns(editorClass)
                             .build();
                 })
                 .collect(toList());

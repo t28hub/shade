@@ -3,7 +3,6 @@ package io.t28.shade.testing;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import io.t28.shade.Shade;
 
 @SuppressWarnings("all")
@@ -58,7 +57,7 @@ public final class StringValuePreferences {
         }
 
         @NonNull
-        public Editor putValue(@Nullable final String newValue) {
+        public Editor putValue(@NonNull String newValue) {
             editor.putString("key_string", newValue);
             return this;
         }
