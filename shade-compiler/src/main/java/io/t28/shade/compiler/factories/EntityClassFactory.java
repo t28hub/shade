@@ -1,5 +1,7 @@
 package io.t28.shade.compiler.factories;
 
+import android.support.annotation.NonNull;
+
 import com.google.common.collect.ImmutableList;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -21,6 +23,7 @@ import javax.inject.Named;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
+import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 
@@ -94,10 +97,13 @@ public class EntityClassFactory extends TypeFactory {
     @Nonnull
     @Override
     protected List<MethodSpec> methods() {
-        return ImmutableList.<MethodSpec>builder()
-                .add(buildConstructorSpec())
-                .addAll(buildGetMethodSpecs())
-                .build();
+        final ImmutableList.Builder<MethodSpec> builder = ImmutableList.builder();
+        builder.add(buildConstructorSpec());
+        if (!isToStringDefined()) {
+            builder.add(buildToStringMethodSpec());
+        }
+        builder.addAll(buildGetMethodSpecs());
+        return builder.build();
     }
 
     private MethodSpec buildConstructorSpec() {
@@ -121,10 +127,36 @@ public class EntityClassFactory extends TypeFactory {
         return builder.build();
     }
 
+    private MethodSpec buildToStringMethodSpec() {
+        final MethodSpec.Builder builder = MethodSpec.methodBuilder("toString")
+                .addAnnotation(NonNull.class)
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .returns(String.class);
+
+        final StringBuilder statementBuilder = new StringBuilder(32);
+        statementBuilder.append("\"").append(entityClass.simpleName()).append("{\" +\n");
+        properties.forEach(property -> {
+            statementBuilder.append("\"")
+                    .append(property.methodName())
+                    .append("=\" + ")
+                    .append(property.methodName());
+            if (properties.indexOf(property) == properties.size() - 1) {
+                statementBuilder.append(" +\n");
+            } else {
+                statementBuilder.append(" + \",\" +\n");
+            }
+        });
+        statementBuilder.append("\"}\"");
+        builder.addStatement("return $L", statementBuilder.toString());
+        return builder.build();
+    }
+
     private List<MethodSpec> buildGetMethodSpecs() {
         return properties.stream()
                 .map(property -> {
-                    final CodeBlock statement = createUnmodifiableStatement(property.method(), property.methodName());
+                    final ExecutableElement method = property.method();
+                    final CodeBlock statement = createUnmodifiableStatement(method.getReturnType(), property.methodName());
                     return MethodSpec.overriding(property.method())
                             .addStatement("return $L", statement)
                             .build();
@@ -132,9 +164,17 @@ public class EntityClassFactory extends TypeFactory {
                 .collect(toList());
     }
 
-    @Nonnull
-    protected CodeBlock createUnmodifiableStatement(@Nonnull ExecutableElement method, @Nonnull String name) {
-        return createUnmodifiableStatement(method.getReturnType(), name);
+    private boolean isToStringDefined() {
+        return element.getEnclosedElements()
+            .stream()
+            .anyMatch(enclosed -> {
+                if (enclosed.getKind() != ElementKind.METHOD) {
+                    return false;
+                }
+
+                final Name methodName = enclosed.getSimpleName();
+                return "toString".equals(methodName.toString());
+            });
     }
 
     @Nonnull
