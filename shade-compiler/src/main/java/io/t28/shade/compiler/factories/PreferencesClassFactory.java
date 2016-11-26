@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 
+import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableList;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -22,7 +23,6 @@ import javax.lang.model.element.Modifier;
 
 import io.t28.shade.compiler.attributes.ConverterAttribute;
 import io.t28.shade.compiler.attributes.PreferencesAttribute;
-import io.t28.shade.compiler.attributes.PropertyAttribute;
 import io.t28.shade.compiler.utils.SupportedType;
 
 import static java.util.stream.Collectors.joining;
@@ -67,16 +67,9 @@ public class PreferencesClassFactory extends TypeFactory {
     @Nonnull
     @Override
     protected List<FieldSpec> fields() {
-        return ImmutableList.<FieldSpec>builder()
-                .add(FieldSpec.builder(Context.class, "context")
-                        .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
-                        .build()
-                )
-                .add(FieldSpec.builder(SharedPreferences.class, "preferences")
-                        .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
-                        .build()
-                )
-                .build();
+        return ImmutableList.of(FieldSpec.builder(SharedPreferences.class, "preferences")
+                .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
+                .build());
     }
 
     @Nonnull
@@ -84,7 +77,8 @@ public class PreferencesClassFactory extends TypeFactory {
     protected List<MethodSpec> methods() {
         return ImmutableList.<MethodSpec>builder()
                 .add(buildConstructorSpec())
-                .add(buildLoadMethodSpec())
+                .add(buildGetMethodSpec())
+                .addAll(buildGetMethodSpecs())
                 .add(buildEditMethodSpec())
                 .build();
     }
@@ -104,56 +98,60 @@ public class PreferencesClassFactory extends TypeFactory {
                         .addModifiers(Modifier.FINAL)
                         .addAnnotation(NonNull.class)
                         .build())
-                .addStatement("this.$N = $N.getApplicationContext()", "context", "context")
-                .addStatement("this.$N = this.$N.getSharedPreferences($S, $L)", "preferences", "context", preferences.name(), preferences.mode())
+                .addStatement("final $T applicationContext = $N.getApplicationContext()", Context.class, "context")
+                .addStatement("this.$N = applicationContext.getSharedPreferences($S, $L)", "preferences", preferences.name(), preferences.mode())
                 .build();
     }
 
-    private MethodSpec buildLoadMethodSpec() {
-        final MethodSpec.Builder builder = MethodSpec.methodBuilder("load")
+    private MethodSpec buildGetMethodSpec() {
+        final MethodSpec.Builder builder = MethodSpec.methodBuilder("get")
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(NonNull.class)
                 .returns(entityClass);
-        builder.addStatement(
-                "final $T $N = this.$N.getSharedPreferences($S, $L)",
-                SharedPreferences.class, "preferences", "context", preferences.name(), preferences.mode()
-        );
 
-        final List<PropertyAttribute> properties = preferences.properties();
-        properties.forEach(property -> {
-            final ConverterAttribute converter = property.converter();
-            final TypeName supportedType;
-            if (converter.isDefault()) {
-                supportedType = property.returnTypeName();
-            } else {
-                supportedType = converter.supportedType();
-            }
-
-            final SupportedType supported = SupportedType.find(supportedType)
-                    .orElseThrow(() -> new IllegalArgumentException("Specified returnType(" + supportedType + ") is not supported and should use a converter"));
-            builder.addStatement("$L", buildLoadStatement(property, supported));
-        });
-
-        final String arguments = properties.stream()
-                .map(PropertyAttribute::methodName)
+        final String arguments = preferences.properties()
+                .stream()
+                .map(property -> {
+                    final String methodName = "get" + CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, property.methodName());
+                    return methodName + "()";
+                })
                 .collect(joining(", "));
         builder.addStatement("return new $T($L)", entityImplClass, arguments);
         return builder.build();
     }
 
-    private CodeBlock buildLoadStatement(PropertyAttribute property, SupportedType supported) {
-        final CodeBlock statement = supported.buildLoadStatement("preferences", property.key(), property.defaultValue().orElse(null));
-        final ConverterAttribute converter = property.converter();
-        if (converter.isDefault()) {
-            return CodeBlock.builder()
-                    .add("final $T $N = $L", property.returnTypeName(), property.methodName(), statement)
-                    .build();
-        }
-        return CodeBlock.builder()
-                .add("final $T $N = new $T().toConverted(", converter.convertedType(), property.methodName(), converter.className())
-                .add("$L", statement)
-                .add(")")
-                .build();
+    private List<MethodSpec> buildGetMethodSpecs() {
+        return preferences.properties()
+                .stream()
+                .map(property -> {
+                    final String methodName = "get" + CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, property.methodName());
+                    final MethodSpec.Builder builder = MethodSpec.methodBuilder(methodName)
+                            .addModifiers(Modifier.PUBLIC);
+
+                    final TypeName returnType = property.returnTypeName();
+                    if (!returnType.isPrimitive()) {
+                        builder.addAnnotation(NonNull.class);
+                    }
+                    builder.returns(returnType);
+
+                    final ConverterAttribute converter = property.converter();
+                    final TypeName valueType;
+                    if (converter.isDefault()) {
+                        valueType = property.returnTypeName();
+                    } else {
+                        valueType = converter.supportedType();
+                    }
+
+                    final SupportedType supported = SupportedType.find(valueType);
+                    final CodeBlock statement = supported.buildLoadStatement("preferences", property.key(), property.defaultValue().orElse(null));
+                    if (converter.isDefault()) {
+                        builder.addStatement("return $L", statement);
+                    } else {
+                        builder.addStatement("return new $T().toConverted($L)", converter.className(), statement);
+                    }
+                    return builder.build();
+                })
+                .collect(toList());
     }
 
     private MethodSpec buildEditMethodSpec() {

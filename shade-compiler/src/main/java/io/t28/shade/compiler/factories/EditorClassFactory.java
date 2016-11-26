@@ -113,9 +113,7 @@ public class EditorClassFactory extends TypeFactory {
                         storeType = converter.supportedType();
                     }
 
-                    final SupportedType supportedType = SupportedType
-                            .find(storeType)
-                            .orElseThrow(() -> new IllegalArgumentException(""));
+                    final SupportedType supportedType = SupportedType.find(storeType);
                     return builder
                             .addStatement("$L", buildSaveStatement(property, supportedType))
                             .addStatement("return this")

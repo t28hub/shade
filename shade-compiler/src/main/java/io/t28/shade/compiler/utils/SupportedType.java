@@ -138,14 +138,21 @@ public enum SupportedType {
         this.type = type;
     }
 
-    public static Optional<SupportedType> find(@Nonnull TypeName type) {
+    @Nonnull
+    public static SupportedType find(@Nonnull TypeName type) {
         return Stream.of(values())
                 .filter(supported -> supported.type.equals(type))
-                .findFirst();
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Type(" + type + ") is not supported by SharedPreferences"));
     }
 
     public static boolean contains(@Nonnull TypeName type) {
-        return find(type).isPresent();
+        try {
+            find(type);
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
     }
 
     @Nonnull

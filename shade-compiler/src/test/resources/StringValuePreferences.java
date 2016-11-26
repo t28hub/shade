@@ -7,20 +7,21 @@ import android.support.annotation.Nullable;
 import io.t28.shade.Shade;
 
 public final class StringValuePreferences {
-    private final Context context;
-
     private final SharedPreferences preferences;
 
     public StringValuePreferences(@NonNull final Context context) {
-        this.context = context.getApplicationContext();
-        this.preferences = this.context.getSharedPreferences("io.t28.shade.test", 0);
+        final Context applicationContext = context.getApplicationContext();
+        this.preferences = applicationContext.getSharedPreferences("io.t28.shade.test", 0);
     }
 
     @NonNull
-    public StringValue load() {
-        final SharedPreferences preferences = this.context.getSharedPreferences("io.t28.shade.test", 0);
-        final String value = preferences.getString("key_string", "");
-        return new StringValue$$Impl(value);
+    public StringValue get() {
+        return new StringValue$$Impl(getValue());
+    }
+
+    @NonNull
+    public String getValue() {
+        return preferences.getString("key_string", "");
     }
 
     @NonNull
@@ -39,7 +40,7 @@ public final class StringValuePreferences {
         @Shade.Property(
                 key = "key_string"
         )
-        public final String value() {
+        public String value() {
             return value;
         }
     }

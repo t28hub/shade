@@ -21,13 +21,13 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        final Example oldValue = preferences.load();
+        final Example oldValue = preferences.get();
         Log.d(MainActivity.class.getSimpleName(), oldValue.toString());
         preferences.edit()
                 .putIntValue(100)
                 .putLongValue(200)
                 .apply();
-        final Example newValue = preferences.load();
+        final Example newValue = preferences.get();
         Log.d(MainActivity.class.getSimpleName(), newValue.toString());
     }
 }

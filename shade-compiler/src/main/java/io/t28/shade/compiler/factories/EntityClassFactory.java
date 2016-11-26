@@ -128,7 +128,6 @@ public class EntityClassFactory extends TypeFactory {
                 .map(property -> {
                     final CodeBlock statement = createUnmodifiableStatement(property.method(), property.methodName());
                     return MethodSpec.overriding(property.method())
-                            .addModifiers(Modifier.FINAL)
                             .addStatement("return $L", statement)
                             .build();
                 })
