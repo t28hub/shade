@@ -18,13 +18,13 @@ import io.t28.shade.Shade;
 
 import static java.util.stream.Collectors.toList;
 
-public class PreferenceAttribute {
+public class PreferencesAttribute {
     private final TypeElement element;
     private final Shade.Preference annotation;
     private final Elements elementUtils;
 
     @Inject
-    public PreferenceAttribute(@Nonnull TypeElement element, @Nonnull Elements elementUtils) {
+    public PreferencesAttribute(@Nonnull TypeElement element, @Nonnull Elements elementUtils) {
         final Set<Modifier> modifiers = element.getModifiers();
         if (!modifiers.contains(Modifier.ABSTRACT)) {
             throw new IllegalArgumentException("Class('" + element.getSimpleName() + "') annotated with @Shade.Preference must be an abstract class or interface");

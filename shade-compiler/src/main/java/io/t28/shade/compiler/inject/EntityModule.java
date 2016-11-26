@@ -1,4 +1,4 @@
-package io.t28.shade.compiler.inject.entity;
+package io.t28.shade.compiler.inject;
 
 import com.google.inject.Binder;
 import com.google.inject.Module;
@@ -11,7 +11,7 @@ import javax.inject.Named;
 import javax.lang.model.element.TypeElement;
 
 import io.t28.shade.compiler.factories.TypeFactory;
-import io.t28.shade.compiler.factories.entity.EntityClassFactory;
+import io.t28.shade.compiler.factories.EntityClassFactory;
 
 @SuppressWarnings("unused")
 public class EntityModule implements Module {
