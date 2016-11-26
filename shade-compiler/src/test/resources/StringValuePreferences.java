@@ -40,6 +40,14 @@ public final class StringValuePreferences {
             this.value = value;
         }
 
+        @NonNull
+        @Override
+        public String toString() {
+            return "StringValue{" +
+                    "value=" + value +
+                    "}";
+        }
+
         @Override
         @Shade.Property(
                 key = "key_string"
