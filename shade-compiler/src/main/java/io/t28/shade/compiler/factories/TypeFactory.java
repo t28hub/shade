@@ -1,5 +1,6 @@
 package io.t28.shade.compiler.factories;
 
+import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
@@ -15,6 +16,11 @@ import javax.lang.model.element.Modifier;
 public abstract class TypeFactory implements Factory<TypeSpec> {
     @Nonnull
     protected abstract String name();
+
+    @Nonnull
+    protected List<AnnotationSpec> annotations() {
+        return Collections.emptyList();
+    }
 
     @Nonnull
     protected List<Modifier> modifiers() {
@@ -50,6 +56,7 @@ public abstract class TypeFactory implements Factory<TypeSpec> {
     @Override
     public TypeSpec create() {
         final TypeSpec.Builder builder = TypeSpec.classBuilder(name());
+        builder.addAnnotations(annotations());
         modifiers().forEach(builder::addModifiers);
         superClass().ifPresent(builder::superclass);
         interfaces().forEach(builder::addSuperinterface);

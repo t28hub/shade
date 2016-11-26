@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableList;
+import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
@@ -60,6 +61,14 @@ public class PreferencesClassFactory extends TypeFactory {
 
     @Nonnull
     @Override
+    protected List<AnnotationSpec> annotations() {
+        return ImmutableList.of(AnnotationSpec.builder(SuppressWarnings.class)
+                .addMember("value", "$S", "all")
+                .build());
+    }
+
+    @Nonnull
+    @Override
     protected List<Modifier> modifiers() {
         return ImmutableList.of(Modifier.PUBLIC, Modifier.FINAL);
     }
@@ -79,6 +88,7 @@ public class PreferencesClassFactory extends TypeFactory {
                 .add(buildConstructorSpec())
                 .add(buildGetMethodSpec())
                 .addAll(buildGetMethodSpecs())
+                .addAll(buildContainsMethodSpecs())
                 .add(buildEditMethodSpec())
                 .build();
     }
@@ -150,6 +160,20 @@ public class PreferencesClassFactory extends TypeFactory {
                         builder.addStatement("return new $T().toConverted($L)", converter.className(), statement);
                     }
                     return builder.build();
+                })
+                .collect(toList());
+    }
+
+    private List<MethodSpec> buildContainsMethodSpecs() {
+        return preferences.properties()
+                .stream()
+                .map(property -> {
+                    final String methodName = "contains" + CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, property.methodName());
+                    return MethodSpec.methodBuilder(methodName)
+                            .addModifiers(Modifier.PUBLIC)
+                            .returns(TypeName.BOOLEAN)
+                            .addStatement("return $L.contains($S)", "preferences", property.key())
+                            .build();
                 })
                 .collect(toList());
     }
