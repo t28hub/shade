@@ -22,7 +22,6 @@ import javax.lang.model.element.Modifier;
 
 import io.t28.shade.compiler.attributes.ConverterAttribute;
 import io.t28.shade.compiler.attributes.PropertyAttribute;
-import io.t28.shade.compiler.factories.TypeFactory;
 import io.t28.shade.compiler.utils.SupportedType;
 
 import static java.util.stream.Collectors.toList;
@@ -56,8 +55,7 @@ public class EditorClassFactory extends TypeFactory {
         return ImmutableList.of(
                 FieldSpec.builder(SharedPreferences.Editor.class, "editor")
                         .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
-                        .build()
-        );
+                        .build());
     }
 
     @Nonnull
@@ -77,7 +75,6 @@ public class EditorClassFactory extends TypeFactory {
                 .addModifiers(Modifier.PRIVATE)
                 .addParameter(ParameterSpec.builder(SharedPreferences.class, "preferences")
                         .addAnnotation(NonNull.class)
-                        .addModifiers(Modifier.FINAL)
                         .build()
                 )
                 .addStatement("this.$L = $L", "editor", "preferences.edit()")
