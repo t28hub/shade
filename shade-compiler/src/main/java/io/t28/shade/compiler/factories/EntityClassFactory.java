@@ -1,4 +1,4 @@
-package io.t28.shade.compiler.factories.entity;
+package io.t28.shade.compiler.factories;
 
 import com.google.common.collect.ImmutableList;
 import com.squareup.javapoet.ClassName;

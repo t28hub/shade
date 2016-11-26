@@ -1,9 +1,8 @@
-package io.t28.shade.compiler.inject.preference;
+package io.t28.shade.compiler.inject;
 
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Provides;
-import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
 import com.squareup.javapoet.ClassName;
 
@@ -16,11 +15,10 @@ import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 
-import io.t28.shade.compiler.attributes.PreferenceAttribute;
+import io.t28.shade.compiler.attributes.PreferencesAttribute;
 import io.t28.shade.compiler.attributes.PropertyAttribute;
-import io.t28.shade.compiler.factories.MethodFactory;
 import io.t28.shade.compiler.factories.TypeFactory;
-import io.t28.shade.compiler.factories.preference.PreferenceClassFactory;
+import io.t28.shade.compiler.factories.PreferencesClassFactory;
 
 @SuppressWarnings("unused")
 public class PreferenceModule implements Module {
@@ -34,20 +32,10 @@ public class PreferenceModule implements Module {
 
     @Override
     public void configure(Binder binder) {
-        binder.bind(new TypeLiteral<List<MethodFactory>>(){})
-                .annotatedWith(Names.named("Preference"))
-                .toProvider(MethodListProvider.class)
-                .in(Singleton.class);
-
-        binder.bind(new TypeLiteral<List<TypeFactory>>(){})
-                .annotatedWith(Names.named("Preference"))
-                .toProvider(InnerClassListProvider.class)
-                .in(Singleton.class);
-
         binder.bind(TypeFactory.class)
-                .annotatedWith(Names.named("Preference"))
-                .to(PreferenceClassFactory.class)
-        .in(Singleton.class);
+                .annotatedWith(Names.named("Preferences"))
+                .to(PreferencesClassFactory.class)
+                .in(Singleton.class);
     }
 
     @Nonnull
@@ -66,7 +54,7 @@ public class PreferenceModule implements Module {
 
     @Nonnull
     @Provides
-    @Named("Preference")
+    @Named("Preferences")
     public ClassName provideClassName(@Nonnull @Named("PackageName") String packageName) {
         return ClassName.get(packageName, element.getSimpleName() + SUFFIX);
     }
@@ -74,7 +62,7 @@ public class PreferenceModule implements Module {
     @Nonnull
     @Provides
     @Singleton
-    public List<PropertyAttribute> providePropertyAttributes(@Nonnull PreferenceAttribute attribute) {
+    public List<PropertyAttribute> providePropertyAttributes(@Nonnull PreferencesAttribute attribute) {
         return attribute.properties();
     }
 }

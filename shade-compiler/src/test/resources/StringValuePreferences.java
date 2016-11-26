@@ -18,8 +18,8 @@ public final class StringValuePreferences {
 
     @NonNull
     public StringValue load() {
-        final SharedPreferences preference = this.context.getSharedPreferences("io.t28.shade.test", 0);
-        final String value = preference.getString("key_string", "");
+        final SharedPreferences preferences = this.context.getSharedPreferences("io.t28.shade.test", 0);
+        final String value = preferences.getString("key_string", "");
         return new StringValue$$Impl(value);
     }
 

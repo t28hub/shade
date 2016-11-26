@@ -1,4 +1,4 @@
-package io.t28.shade.compiler.factories.editor;
+package io.t28.shade.compiler.factories;
 
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
