@@ -10,7 +10,7 @@ import io.t28.shade.Shade;
 public final class StringValuePreferences {
     private final SharedPreferences preferences;
 
-    public StringValuePreferences(@NonNull final Context context) {
+    public StringValuePreferences(@NonNull Context context) {
         final Context applicationContext = context.getApplicationContext();
         this.preferences = applicationContext.getSharedPreferences("io.t28.shade.test", 0);
     }
@@ -37,7 +37,7 @@ public final class StringValuePreferences {
     public static class StringValue$$Impl implements StringValue {
         private final String value;
 
-        private StringValue$$Impl(final String value) {
+        private StringValue$$Impl(String value) {
             this.value = value;
         }
 
@@ -53,7 +53,7 @@ public final class StringValuePreferences {
     public static class Editor {
         private final SharedPreferences.Editor editor;
 
-        private Editor(@NonNull final SharedPreferences preferences) {
+        private Editor(@NonNull SharedPreferences preferences) {
             this.editor = preferences.edit();
         }
 

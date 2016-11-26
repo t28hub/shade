@@ -25,7 +25,6 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 
 import io.t28.shade.compiler.attributes.PropertyAttribute;
-import io.t28.shade.compiler.factories.TypeFactory;
 
 import static java.util.stream.Collectors.toList;
 
@@ -108,7 +107,6 @@ public class EntityClassFactory extends TypeFactory {
         // Parameters
         properties.forEach(property -> {
             final ParameterSpec parameter = ParameterSpec.builder(property.returnTypeName(), property.methodName())
-                    .addModifiers(Modifier.FINAL)
                     .build();
             builder.addParameter(parameter);
         });

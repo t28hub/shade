@@ -105,7 +105,6 @@ public class PreferencesClassFactory extends TypeFactory {
         return MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(ParameterSpec.builder(Context.class, "context")
-                        .addModifiers(Modifier.FINAL)
                         .addAnnotation(NonNull.class)
                         .build())
                 .addStatement("final $T applicationContext = $N.getApplicationContext()", Context.class, "context")
