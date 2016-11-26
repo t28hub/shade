@@ -11,8 +11,8 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
-import io.t28.shade.compiler.ClassWriter;
-import io.t28.shade.compiler.Writer;
+import io.t28.shade.compiler.utils.ClassWriter;
+import io.t28.shade.compiler.utils.Writer;
 
 @SuppressWarnings("unused")
 public class ShadeModule implements Module {

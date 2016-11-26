@@ -25,7 +25,8 @@ import io.t28.shade.compiler.factories.TypeFactory;
 import io.t28.shade.compiler.inject.ShadeModule;
 import io.t28.shade.compiler.inject.EditorModule;
 import io.t28.shade.compiler.inject.EntityModule;
-import io.t28.shade.compiler.inject.PreferenceModule;
+import io.t28.shade.compiler.inject.PreferencesModule;
+import io.t28.shade.compiler.utils.Writer;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 @AutoService(Processor.class)
@@ -70,7 +71,7 @@ public class ShadeProcessor extends AbstractProcessor {
                 })
                 .forEach(element -> {
                     try {
-                        final Injector childInjector = injector.createChildInjector(new PreferenceModule(element), new EntityModule(), new EditorModule());
+                        final Injector childInjector = injector.createChildInjector(new PreferencesModule(element), new EntityModule(), new EditorModule());
                         final String packageName = childInjector.getInstance(Key.get(String.class, Names.named("PackageName")));
                         final TypeFactory factory = childInjector.getInstance(Key.get(TypeFactory.class, Names.named("Preferences")));
                         writer.write(packageName, factory.create());

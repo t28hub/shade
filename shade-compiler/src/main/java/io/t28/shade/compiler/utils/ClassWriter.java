@@ -1,4 +1,4 @@
-package io.t28.shade.compiler;
+package io.t28.shade.compiler.utils;
 
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.TypeSpec;

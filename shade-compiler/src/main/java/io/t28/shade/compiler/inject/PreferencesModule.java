@@ -21,12 +21,12 @@ import io.t28.shade.compiler.factories.TypeFactory;
 import io.t28.shade.compiler.factories.PreferencesClassFactory;
 
 @SuppressWarnings("unused")
-public class PreferenceModule implements Module {
+public class PreferencesModule implements Module {
     private static final String SUFFIX = "Preferences";
 
     private final TypeElement element;
 
-    public PreferenceModule(@Nonnull TypeElement element) {
+    public PreferencesModule(@Nonnull TypeElement element) {
         this.element = element;
     }
 
