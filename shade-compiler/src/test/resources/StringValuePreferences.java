@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import io.t28.shade.Shade;
 
+@SuppressWarnings("all")
 public final class StringValuePreferences {
     private final SharedPreferences preferences;
 
@@ -22,6 +23,10 @@ public final class StringValuePreferences {
     @NonNull
     public String getValue() {
         return preferences.getString("key_string", "");
+    }
+
+    public boolean containsValue() {
+        return preferences.contains("key_string");
     }
 
     @NonNull
