@@ -2,8 +2,11 @@ machine:
   java:
     version: oraclejdk8
   post:
+    - sudo service couchdb stop
+    - sudo service memcached stop
     - sudo service mysql stop
     - sudo service postgresql stop
+    - sudo service rabbitmq-server stop
   timezone:
     Asia/Tokyo
   environment:
