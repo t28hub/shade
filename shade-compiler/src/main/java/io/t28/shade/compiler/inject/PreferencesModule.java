@@ -15,10 +15,11 @@ import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 
+import io.t28.shade.Preferences;
 import io.t28.shade.compiler.attributes.PreferencesAttribute;
 import io.t28.shade.compiler.attributes.PropertyAttribute;
-import io.t28.shade.compiler.factories.TypeFactory;
 import io.t28.shade.compiler.factories.PreferencesClassFactory;
+import io.t28.shade.compiler.factories.TypeFactory;
 
 @SuppressWarnings("unused")
 public class PreferencesModule implements Module {
@@ -57,6 +58,14 @@ public class PreferencesModule implements Module {
     @Named("Preferences")
     public ClassName provideClassName(@Nonnull @Named("PackageName") String packageName) {
         return ClassName.get(packageName, element.getSimpleName() + SUFFIX);
+    }
+
+    @Nonnull
+    @Provides
+    @Singleton
+    public PreferencesAttribute providePreferencesAttribute(@Nonnull TypeElement element, @Nonnull Elements elementUtils) {
+        final Preferences annotation = element.getAnnotation(Preferences.class);
+        return new PreferencesAttribute(element, annotation, elementUtils);
     }
 
     @Nonnull

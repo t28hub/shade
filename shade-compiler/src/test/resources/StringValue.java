@@ -1,9 +1,10 @@
 package io.t28.shade.testing;
 
-import io.t28.shade.Shade;
+import io.t28.shade.Property;
+import io.t28.shade.Preferences;
 
-@Shade.Preference(name = "io.t28.shade.test")
+@Preferences(name = "io.t28.shade.test")
 public interface StringValue {
-    @Shade.Property(key = "key_string")
+    @Property(key = "key_string")
     String value();
 }

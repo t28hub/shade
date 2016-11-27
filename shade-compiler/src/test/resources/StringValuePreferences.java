@@ -5,15 +5,14 @@ import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-import io.t28.shade.Shade;
+import io.t28.shade.Property;
 
 @SuppressWarnings("all")
 public final class StringValuePreferences {
     private final SharedPreferences preferences;
 
     public StringValuePreferences(@NonNull Context context) {
-        final Context applicationContext = context.getApplicationContext();
-        this.preferences = applicationContext.getSharedPreferences("io.t28.shade.test", 0);
+        this.preferences = context.getApplicationContext().getSharedPreferences("io.t28.shade.test", 0);
     }
 
     @NonNull
@@ -68,7 +67,7 @@ public final class StringValuePreferences {
         }
 
         @Override
-        @Shade.Property(
+        @Property(
                 key = "key_string"
         )
         public String value() {

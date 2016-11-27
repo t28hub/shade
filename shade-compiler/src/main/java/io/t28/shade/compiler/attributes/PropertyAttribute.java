@@ -16,12 +16,12 @@ import javax.lang.model.type.MirroredTypeException;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 
-import io.t28.shade.Shade;
+import io.t28.shade.Property;
 import io.t28.shade.compiler.utils.TypeElements;
 
 public class PropertyAttribute {
     private final ExecutableElement element;
-    private final Shade.Property annotation;
+    private final Property annotation;
     private final Elements elementUtils;
 
     public PropertyAttribute(@Nonnull ExecutableElement element, @Nonnull Elements elementUtils) {
@@ -40,7 +40,7 @@ public class PropertyAttribute {
             throw new IllegalArgumentException("Method('" + element.getSimpleName() + "') annotated with @Shade.Property must return non void");
         }
 
-        final Shade.Property annotation = element.getAnnotation(Shade.Property.class);
+        final Property annotation = element.getAnnotation(Property.class);
         if (annotation == null) {
             throw new IllegalArgumentException("Method('" + element.getSimpleName() + "') must be annotated with @Shade.Property");
         }

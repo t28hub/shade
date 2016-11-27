@@ -8,6 +8,7 @@ import com.google.inject.Key;
 import com.google.inject.name.Names;
 
 import java.util.Set;
+import java.util.stream.Stream;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Messager;
@@ -20,7 +21,8 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 
-import io.t28.shade.Shade;
+import io.t28.shade.DefaultPreferences;
+import io.t28.shade.Preferences;
 import io.t28.shade.compiler.factories.TypeFactory;
 import io.t28.shade.compiler.inject.ShadeModule;
 import io.t28.shade.compiler.inject.EditorModule;
@@ -41,7 +43,10 @@ public class ShadeProcessor extends AbstractProcessor {
 
     @Override
     public Set<String> getSupportedAnnotationTypes() {
-        return ImmutableSet.of(Shade.Preference.class.getCanonicalName());
+        return ImmutableSet.of(
+                Preferences.class.getCanonicalName(),
+                DefaultPreferences.class.getCanonicalName()
+        );
     }
 
     @Override
@@ -58,13 +63,14 @@ public class ShadeProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment environment) {
         injector.injectMembers(this);
-        environment.getElementsAnnotatedWith(Shade.Preference.class)
-                .stream()
+        Stream.concat(
+                environment.getElementsAnnotatedWith(Preferences.class).stream(),
+                environment.getElementsAnnotatedWith(DefaultPreferences.class).stream())
                 .map(TypeElement.class::cast)
                 .filter(element -> {
                     final ElementKind kind = element.getKind();
                     if (kind != ElementKind.CLASS && kind != ElementKind.INTERFACE) {
-                        messager.printMessage(Diagnostic.Kind.ERROR, "@Shade.Preference is not allowed to use for " + kind);
+                        messager.printMessage(Diagnostic.Kind.ERROR, "@SharedPreferences is not allowed to use for " + kind);
                         return false;
                     }
                     return true;
