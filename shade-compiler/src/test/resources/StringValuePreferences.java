@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import io.t28.shade.Shade;
+import java.util.Objects;
 
 @SuppressWarnings("all")
 public final class StringValuePreferences {
@@ -46,6 +47,23 @@ public final class StringValuePreferences {
             return "StringValue{" +
                     "value=" + value +
                     "}";
+        }
+
+        @Override
+        public boolean equals(Object object) {
+            if (this == object) {
+                return true;
+            }
+            if (!(object instanceof StringValue)) {
+                return false;
+            }
+            final StringValue that = (StringValue) object;
+            return Objects.equals(value, that.value());
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(value);
         }
 
         @Override

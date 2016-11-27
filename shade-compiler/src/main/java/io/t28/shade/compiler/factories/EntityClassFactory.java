@@ -14,6 +14,7 @@ import com.squareup.javapoet.TypeName;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -23,12 +24,13 @@ import javax.inject.Named;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
-import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 
 import io.t28.shade.compiler.attributes.PropertyAttribute;
+import io.t28.shade.compiler.utils.TypeElements;
 
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
 public class EntityClassFactory extends TypeFactory {
@@ -99,8 +101,17 @@ public class EntityClassFactory extends TypeFactory {
     protected List<MethodSpec> methods() {
         final ImmutableList.Builder<MethodSpec> builder = ImmutableList.builder();
         builder.add(buildConstructorSpec());
-        if (!isToStringDefined()) {
+
+        if (!TypeElements.isMethodDefined(element, "toString")) {
             builder.add(buildToStringMethodSpec());
+        }
+
+        if (!TypeElements.isMethodDefined(element, "equals")) {
+            builder.add(buildEqualsMethodSpec());
+        }
+
+        if (!TypeElements.isMethodDefined(element, "hashCode")) {
+            builder.add(buildHashCodeMethodSpec());
         }
         builder.addAll(buildGetMethodSpecs());
         return builder.build();
@@ -152,6 +163,54 @@ public class EntityClassFactory extends TypeFactory {
         return builder.build();
     }
 
+    private MethodSpec buildEqualsMethodSpec() {
+        final MethodSpec.Builder builder = MethodSpec.methodBuilder("equals")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .returns(boolean.class)
+                .addParameter(Object.class, "object");
+
+        builder.beginControlFlow("if (this == object)")
+                .addStatement("return true")
+                .endControlFlow();
+
+        builder.beginControlFlow("if (!(object instanceof $T))", entityClass)
+                .addStatement("return false")
+                .endControlFlow();
+
+        builder.addStatement("final $T that = ($T) object", entityClass, entityClass);
+
+        final CodeBlock.Builder statementBuilder = CodeBlock.builder();
+        properties.forEach(property -> {
+            final String methodName = property.methodName();
+            final TypeName typeName = property.returnTypeName();
+            if (typeName.isPrimitive()) {
+                statementBuilder.add("$L == that.$L()", methodName, methodName);
+            } else {
+                statementBuilder.add("$T.equals($L, that.$L())", Objects.class, methodName, methodName);
+            }
+
+            if (properties.size() - 1 != properties.indexOf(property)) {
+                statementBuilder.add(" &&\n");
+            }
+        });
+        builder.addStatement("return $L", statementBuilder.build());
+        return builder.build();
+    }
+
+    private MethodSpec buildHashCodeMethodSpec() {
+        final MethodSpec.Builder builder = MethodSpec.methodBuilder("hashCode")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .returns(int.class);
+
+        final String arguments = properties.stream()
+                .map(PropertyAttribute::methodName)
+                .collect(joining(", "));
+        builder.addStatement("return $T.hash($L)", Objects.class, arguments);
+        return builder.build();
+    }
+
     private List<MethodSpec> buildGetMethodSpecs() {
         return properties.stream()
                 .map(property -> {
@@ -162,19 +221,6 @@ public class EntityClassFactory extends TypeFactory {
                             .build();
                 })
                 .collect(toList());
-    }
-
-    private boolean isToStringDefined() {
-        return element.getEnclosedElements()
-            .stream()
-            .anyMatch(enclosed -> {
-                if (enclosed.getKind() != ElementKind.METHOD) {
-                    return false;
-                }
-
-                final Name methodName = enclosed.getSimpleName();
-                return "toString".equals(methodName.toString());
-            });
     }
 
     @Nonnull
