@@ -3,8 +3,9 @@ package io.t28.shade.testing;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 import io.t28.shade.Shade;
-import java.util.Objects;
 
 @SuppressWarnings("all")
 public final class StringValuePreferences {
@@ -44,9 +45,9 @@ public final class StringValuePreferences {
         @NonNull
         @Override
         public String toString() {
-            return "StringValue{" +
-                    "value=" + value +
-                    "}";
+            return MoreObjects.toStringHelper("StringValue")
+                    .add("value", value)
+                    .toString();
         }
 
         @Override
@@ -58,12 +59,12 @@ public final class StringValuePreferences {
                 return false;
             }
             final StringValue that = (StringValue) object;
-            return Objects.equals(value, that.value());
+            return Objects.equal(value, that.value());
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(value);
+            return Objects.hashCode(value);
         }
 
         @Override

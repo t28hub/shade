@@ -2,6 +2,8 @@ package io.t28.shade.compiler.factories;
 
 import android.support.annotation.NonNull;
 
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -14,7 +16,6 @@ import com.squareup.javapoet.TypeName;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -145,21 +146,14 @@ public class EntityClassFactory extends TypeFactory {
                 .addModifiers(Modifier.PUBLIC)
                 .returns(String.class);
 
-        final StringBuilder statementBuilder = new StringBuilder(32);
-        statementBuilder.append("\"").append(entityClass.simpleName()).append("{\" +\n");
+        final CodeBlock.Builder statementBuilder = CodeBlock.builder();
+        statementBuilder.add("return $T.toStringHelper($S)\n", MoreObjects.class, entityClass.simpleName());
         properties.forEach(property -> {
-            statementBuilder.append("\"")
-                    .append(property.methodName())
-                    .append("=\" + ")
-                    .append(property.methodName());
-            if (properties.indexOf(property) == properties.size() - 1) {
-                statementBuilder.append(" +\n");
-            } else {
-                statementBuilder.append(" + \",\" +\n");
-            }
+            final String name = property.methodName();
+            statementBuilder.add(".add($S, $L)\n", name, name);
         });
-        statementBuilder.append("\"}\"");
-        builder.addStatement("return $L", statementBuilder.toString());
+        statementBuilder.add(".toString()");
+        builder.addStatement("$L", statementBuilder.build());
         return builder.build();
     }
 
@@ -187,7 +181,7 @@ public class EntityClassFactory extends TypeFactory {
             if (typeName.isPrimitive()) {
                 statementBuilder.add("$L == that.$L()", methodName, methodName);
             } else {
-                statementBuilder.add("$T.equals($L, that.$L())", Objects.class, methodName, methodName);
+                statementBuilder.add("$T.equal($L, that.$L())", Objects.class, methodName, methodName);
             }
 
             if (properties.size() - 1 != properties.indexOf(property)) {
@@ -207,7 +201,7 @@ public class EntityClassFactory extends TypeFactory {
         final String arguments = properties.stream()
                 .map(PropertyAttribute::methodName)
                 .collect(joining(", "));
-        builder.addStatement("return $T.hash($L)", Objects.class, arguments);
+        builder.addStatement("return $T.hashCode($L)", Objects.class, arguments);
         return builder.build();
     }
 
