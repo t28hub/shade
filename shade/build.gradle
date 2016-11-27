@@ -25,6 +25,7 @@ android {
 }
 
 dependencies {
+    compile 'com.google.guava:guava:20.0'
     compile 'com.android.support:support-annotations:24.2.1'
 
     testCompile 'junit:junit:4.12'
