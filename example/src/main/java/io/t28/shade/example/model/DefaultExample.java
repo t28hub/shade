@@ -1,9 +1,9 @@
 package io.t28.shade.example.model;
 
-import io.t28.shade.DefaultPreferences;
-import io.t28.shade.Property;
+import io.t28.shade.annotation.Preferences;
+import io.t28.shade.annotation.Property;
 
-@DefaultPreferences
+@Preferences
 public interface DefaultExample {
     @Property(key = "user_name", defValue = "default")
     String name();

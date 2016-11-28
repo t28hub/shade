@@ -1,4 +1,4 @@
-package io.t28.shade;
+package io.t28.shade.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

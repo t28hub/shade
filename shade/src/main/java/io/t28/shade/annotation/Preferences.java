@@ -1,4 +1,4 @@
-package io.t28.shade;
+package io.t28.shade.annotation;
 
 import android.content.Context;
 import android.support.annotation.IntDef;
@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.CLASS)
 public @interface Preferences {
-    String name();
+    String name() default "";
 
     @Mode
     int mode() default Context.MODE_PRIVATE;
