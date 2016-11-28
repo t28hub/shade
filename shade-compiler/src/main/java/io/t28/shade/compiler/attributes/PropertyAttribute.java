@@ -16,7 +16,7 @@ import javax.lang.model.type.MirroredTypeException;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 
-import io.t28.shade.Property;
+import io.t28.shade.annotation.Property;
 import io.t28.shade.compiler.utils.TypeElements;
 
 public class PropertyAttribute {

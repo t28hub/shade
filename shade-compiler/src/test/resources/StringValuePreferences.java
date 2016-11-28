@@ -5,7 +5,7 @@ import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-import io.t28.shade.Property;
+import io.t28.shade.annotation.Property;
 
 @SuppressWarnings("all")
 public final class StringValuePreferences {
