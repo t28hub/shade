@@ -6,34 +6,34 @@ import java.util.List;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
-import javax.inject.Inject;
-import javax.lang.model.element.ElementKind;
+import javax.annotation.Nullable;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.util.Elements;
 
-import io.t28.shade.Shade;
+import io.t28.shade.Property;
+import io.t28.shade.Preferences;
+import io.t28.shade.compiler.utils.TypeElements;
 
 import static java.util.stream.Collectors.toList;
 
 public class PreferencesAttribute {
     private final TypeElement element;
-    private final Shade.Preference annotation;
+    @Nullable
+    private final Preferences annotation;
     private final Elements elementUtils;
 
-    @Inject
-    public PreferencesAttribute(@Nonnull TypeElement element, @Nonnull Elements elementUtils) {
+    public PreferencesAttribute(@Nonnull TypeElement element, @Nullable Preferences annotation, @Nonnull Elements elementUtils) {
         final Set<Modifier> modifiers = element.getModifiers();
         if (!modifiers.contains(Modifier.ABSTRACT)) {
-            throw new IllegalArgumentException("Class('" + element.getSimpleName() + "') annotated with @Shade.Preference must be an abstract class or interface");
+            throw new IllegalArgumentException("Annotated class(" + element.getSimpleName() + ") with @Preferences or @DefaultPreferences must be an abstract class or interface");
         }
         checkConstructor(element);
 
-        final Shade.Preference annotation = element.getAnnotation(Shade.Preference.class);
-        if (annotation == null) {
-            throw new IllegalArgumentException("Class('" + element.getSimpleName() + "') must be annotated with @Shade.Preference");
+        if (annotation != null && Strings.isNullOrEmpty(annotation.name())) {
+            throw new IllegalStateException("SharedPreferences name must not be empty");
         }
         this.element = element;
         this.annotation = annotation;
@@ -45,16 +45,22 @@ public class PreferencesAttribute {
         return element;
     }
 
+    public boolean isDefault() {
+        return annotation == null;
+    }
+
     @Nonnull
     public String name() {
-        final String name = annotation.name();
-        if (Strings.isNullOrEmpty(name)) {
-            throw new IllegalStateException("Defined name for " + element.getSimpleName() + " is empty");
+        if (annotation == null) {
+            throw new IllegalStateException("@DefaultPreferences does not provided name");
         }
-        return name;
+        return annotation.name();
     }
 
     public int mode() {
+        if (annotation == null) {
+            throw new IllegalStateException("@DefaultPreferences does not provided mode");
+        }
         return annotation.mode();
     }
 
@@ -63,7 +69,7 @@ public class PreferencesAttribute {
         return element.getEnclosedElements()
                 .stream()
                 .filter(enclosed -> {
-                    final Shade.Property annotation = enclosed.getAnnotation(Shade.Property.class);
+                    final Property annotation = enclosed.getAnnotation(Property.class);
                     return annotation != null;
                 })
                 .map(enclosed -> {
@@ -74,21 +80,24 @@ public class PreferencesAttribute {
     }
 
     private static void checkConstructor(TypeElement element) {
-        element.getEnclosedElements()
-                .stream()
-                .filter(enclosed -> enclosed.getKind() == ElementKind.CONSTRUCTOR)
-                .map(ExecutableElement.class::cast)
-                .findFirst()
-                .ifPresent(constructorElement -> {
-                    final Set<Modifier> modifiers = constructorElement.getModifiers();
+        final List<ExecutableElement> constructors = TypeElements.findConstructors(element);
+        if (constructors.isEmpty()) {
+            return;
+        }
+
+        final boolean isMatched = constructors.stream()
+                .anyMatch(constructor -> {
+                    final Set<Modifier> modifiers = constructor.getModifiers();
                     if (modifiers.contains(Modifier.PRIVATE) || modifiers.contains(Modifier.FINAL)) {
-                        throw new IllegalArgumentException("Class('" + element.getSimpleName() + "') annotated with @Shade.Preference must provide an overridable empty constructor");
+                        return false;
                     }
 
-                    final List<? extends VariableElement> parameters = constructorElement.getParameters();
-                    if (!parameters.isEmpty()) {
-                        throw new IllegalArgumentException("Class('" + element.getSimpleName() + "') annotated with @Shade.Preference must provide an overridable empty constructor");
-                    }
+                    final List<? extends VariableElement> parameters = constructor.getParameters();
+                    return parameters.isEmpty();
                 });
+        if (isMatched) {
+            return;
+        }
+        throw new IllegalArgumentException("Annotated class(" + element.getSimpleName() + ") with @Preferences or @DefaultPreferences must provide an overridable empty constructor");
     }
 }

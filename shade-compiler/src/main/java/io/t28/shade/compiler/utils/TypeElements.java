@@ -2,6 +2,7 @@ package io.t28.shade.compiler.utils;
 
 import com.google.common.annotations.VisibleForTesting;
 
+import java.util.List;
 import java.util.function.Predicate;
 
 import javax.annotation.Nonnull;
@@ -12,6 +13,8 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+
+import static java.util.stream.Collectors.toList;
 
 public class TypeElements {
     private TypeElements() {
@@ -29,6 +32,15 @@ public class TypeElements {
             throw new IllegalArgumentException("Provided element(" + element + ") is not instance of TypeElement");
         }
         return (TypeElement) element;
+    }
+
+    @Nonnull
+    public static List<ExecutableElement> findConstructors(@Nonnull TypeElement element) {
+        return element.getEnclosedElements()
+                .stream()
+                .filter(enclosed -> enclosed.getKind() == ElementKind.CONSTRUCTOR)
+                .map(ExecutableElement.class::cast)
+                .collect(toList());
     }
 
     public static boolean isMethodDefined(@Nonnull TypeElement element, @Nonnull String name) {

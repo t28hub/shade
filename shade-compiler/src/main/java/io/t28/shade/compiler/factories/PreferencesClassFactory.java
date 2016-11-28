@@ -2,6 +2,7 @@ package io.t28.shade.compiler.factories;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 
 import com.google.common.base.CaseFormat;
@@ -102,14 +103,23 @@ public class PreferencesClassFactory extends TypeFactory {
     }
 
     private MethodSpec buildConstructorSpec() {
-        return MethodSpec.constructorBuilder()
+        final MethodSpec.Builder builder = MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(ParameterSpec.builder(Context.class, "context")
                         .addAnnotation(NonNull.class)
-                        .build())
-                .addStatement("final $T applicationContext = $N.getApplicationContext()", Context.class, "context")
-                .addStatement("this.$N = applicationContext.getSharedPreferences($S, $L)", "preferences", preferences.name(), preferences.mode())
-                .build();
+                        .build());
+        if (preferences.isDefault()) {
+            builder.addStatement(
+                    "this.$N = $T.getDefaultSharedPreferences($L.getApplicationContext())",
+                    "preferences", PreferenceManager.class, "context"
+            );
+        } else {
+            builder.addStatement(
+                    "this.$N = $L.getApplicationContext().getSharedPreferences($S, $L)",
+                    "preferences", "context", preferences.name(), preferences.mode()
+            );
+        }
+        return builder.build();
     }
 
     private MethodSpec buildGetMethodSpec() {

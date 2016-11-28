@@ -6,39 +6,40 @@ import android.net.Uri;
 import java.util.Date;
 import java.util.Set;
 
-import io.t28.shade.Shade;
+import io.t28.shade.Preferences;
+import io.t28.shade.Property;
 import io.t28.shade.example.converters.DateConverter;
 import io.t28.shade.example.converters.UriConverter;
 
-@Shade.Preference(
+@Preferences(
         name = "io.t28.shade.example",
         mode = Context.MODE_PRIVATE
 )
 public abstract class Example2 {
-    @Shade.Property(key = "int_value")
+    @Property(key = "int_value")
     public abstract int intValue();
 
-    @Shade.Property(
+    @Property(
             key = "long_value",
             defValue = "1024"
     )
     public abstract long longValue();
 
-    @Shade.Property(key = "string_value")
+    @Property(key = "string_value")
     public abstract String string();
 
-    @Shade.Property(
+    @Property(
             key = "string_set_value"
     )
     public abstract Set<String> set();
 
-    @Shade.Property(
+    @Property(
             key = "date_value",
             converter = DateConverter.class
     )
     public abstract Date date();
 
-    @Shade.Property(
+    @Property(
             key = "url_value",
             defValue = "https://github.com/",
             converter = UriConverter.class
