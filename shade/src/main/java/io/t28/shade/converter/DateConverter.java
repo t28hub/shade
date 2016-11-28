@@ -1,4 +1,4 @@
-package io.t28.shade.converters;
+package io.t28.shade.converter;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -6,6 +6,8 @@ import android.support.annotation.Nullable;
 import java.util.Date;
 
 public class DateConverter implements Converter<Date, Long> {
+    private final long DEFAULT_TIMESTAMP = 0;
+
     @NonNull
     @Override
     public Date toConverted(@Nullable Long supported) {
@@ -19,7 +21,7 @@ public class DateConverter implements Converter<Date, Long> {
     @Override
     public Long toSupported(@Nullable Date converted) {
         if (converted == null) {
-            return Long.MIN_VALUE;
+            return DEFAULT_TIMESTAMP;
         }
         return converted.getTime();
     }

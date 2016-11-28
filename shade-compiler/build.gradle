@@ -11,7 +11,7 @@ targetCompatibility = javaVersions.targetCompatibility
 def logger = new LoggerWrapper(project.logger)
 def handler = new SdkHandler(project, logger)
 handler.sdkLoader.repositories.forEach { repository ->
-    repositories.maven{
+    repositories.maven {
         url = repository.toURI()
     }
 }
@@ -50,10 +50,10 @@ jacocoTestReport {
     group = 'report'
     description = 'Generate unit test coverage report'
     dependsOn = ['test']
+
     reports {
         xml.enabled = false
         csv.enabled = false
         html.enabled = true
     }
 }
-test.finalizedBy jacocoTestReport

@@ -1,4 +1,4 @@
-package io.t28.shade.converters;
+package io.t28.shade.converter;
 
 import android.net.Uri;
 import android.support.annotation.NonNull;

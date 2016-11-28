@@ -15,8 +15,8 @@ import javax.lang.model.element.VariableElement;
 
 import io.t28.shade.compiler.utils.SupportedType;
 import io.t28.shade.compiler.utils.TypeNames;
-import io.t28.shade.converters.Converter;
-import io.t28.shade.converters.DefaultConverter;
+import io.t28.shade.converter.Converter;
+import io.t28.shade.converter.DefaultConverter;
 
 public class ConverterAttribute {
     private static final int GENERICS_SIZE = 2;
