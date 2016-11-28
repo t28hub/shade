@@ -24,7 +24,11 @@ dependencies:
 
 test:
   override:
-    - ./gradlew test
+    - ./gradlew test --full-stacktrace
+  post:
+    - mkdir -p ${CIRCLE_TEST_REPORTS}/junit/
+    - find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ${CIRCLE_TEST_REPORTS}/junit/ \;
+    - cp -r shade-compiler/build/reports ${CIRCLE_ARTIFACTS}/shade-compiler
 
 deployment:
   master:
