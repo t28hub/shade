@@ -5,8 +5,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import io.t28.shade.converters.Converter;
-import io.t28.shade.converters.DefaultConverter;
+import io.t28.shade.converter.Converter;
+import io.t28.shade.converter.DefaultConverter;
 
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.CLASS)

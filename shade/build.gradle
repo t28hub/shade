@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'jacoco'
 
 android {
     def androidVersions = rootProject.ext.androidVersions
@@ -31,4 +32,37 @@ dependencies {
     provided 'com.google.guava:guava:20.0'
 
     testCompile 'junit:junit:4.12'
+    testCompile 'org.robolectric:robolectric:3.1.4'
+    testCompile 'org.assertj:assertj-core:1.7.1'
+    testCompile 'com.squareup.assertj:assertj-android:1.1.1'
+    testCompile 'org.mockito:mockito-all:2.0.2-beta'
+}
+
+jacoco {
+    toolVersion = '0.7.7.201606060606'
+    reportsDir = file("${project.buildDir}/reports/jacoco")
+}
+
+task jacocoTestReport(type: JacocoReport, dependsOn: 'testDebugUnitTest') {
+    group = 'report'
+    description = 'Generate unit test coverage report'
+
+    reports {
+        xml.enabled = false
+        csv.enabled = false
+        html.enabled = true
+    }
+
+    sourceDirectories = files(android.sourceSets.main.java.srcDirs)
+    classDirectories = fileTree(
+            dir: "${project.buildDir}/intermediates/classes/debug",
+            excludes: [
+                    '**/R.class',
+                    '**/R$*.class',
+                    '**/Manifest*.*',
+                    'android/**/*.*',
+                    '**/BuildConfig.*',
+            ]
+    )
+    executionData = files("${project.buildDir}/jacoco/testDebugUnitTest.exec")
 }

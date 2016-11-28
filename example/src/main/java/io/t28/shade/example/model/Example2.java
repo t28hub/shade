@@ -8,8 +8,8 @@ import java.util.Set;
 
 import io.t28.shade.Preferences;
 import io.t28.shade.Property;
-import io.t28.shade.example.converters.DateConverter;
-import io.t28.shade.example.converters.UriConverter;
+import io.t28.shade.converter.DateConverter;
+import io.t28.shade.converter.UriConverter;
 
 @Preferences(
         name = "io.t28.shade.example",
