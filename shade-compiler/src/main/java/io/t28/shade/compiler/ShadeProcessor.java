@@ -9,6 +9,7 @@ import com.google.inject.name.Names;
 
 import java.util.Set;
 
+import javax.annotation.Nonnull;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -31,6 +32,9 @@ import io.t28.shade.compiler.utils.Writer;
 @SuppressWarnings({"unused", "WeakerAccess"})
 @AutoService(Processor.class)
 public class ShadeProcessor extends AbstractProcessor {
+    private static final Key<String> PACKAGE_NAME_KEY = Key.get(String.class, Names.named("PackageName"));
+    private static final Key<TypeFactory> TYPE_FACTORY_KEY = Key.get(TypeFactory.class, Names.named("Preferences"));
+
     private Injector injector;
 
     @Inject
@@ -50,30 +54,34 @@ public class ShadeProcessor extends AbstractProcessor {
     }
 
     @Override
-    public synchronized void init(ProcessingEnvironment environment) {
+    public synchronized void init(@Nonnull ProcessingEnvironment environment) {
         super.init(environment);
         injector = Guice.createInjector(new ShadeModule(environment));
     }
 
     @Override
-    public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment environment) {
+    public boolean process(@Nonnull Set<? extends TypeElement> annotations, @Nonnull RoundEnvironment environment) {
         injector.injectMembers(this);
         environment.getElementsAnnotatedWith(Preferences.class)
                 .stream()
                 .map(TypeElement.class::cast)
                 .filter(element -> {
                     final ElementKind kind = element.getKind();
-                    if (kind != ElementKind.CLASS && kind != ElementKind.INTERFACE) {
-                        messager.printMessage(Diagnostic.Kind.ERROR, "@Preferences is not allowed to use for " + kind);
-                        return false;
+                    if (kind == ElementKind.INTERFACE || kind == ElementKind.CLASS) {
+                        return true;
                     }
-                    return true;
+                    messager.printMessage(Diagnostic.Kind.ERROR, "@Preferences is not allowed to use for " + kind);
+                    return false;
                 })
                 .forEach(element -> {
                     try {
-                        final Injector childInjector = injector.createChildInjector(new PreferencesModule(element), new EntityModule(), new EditorModule());
-                        final String packageName = childInjector.getInstance(Key.get(String.class, Names.named("PackageName")));
-                        final TypeFactory factory = childInjector.getInstance(Key.get(TypeFactory.class, Names.named("Preferences")));
+                        final Injector childInjector = injector.createChildInjector(
+                                new PreferencesModule(element),
+                                new EntityModule(),
+                                new EditorModule()
+                        );
+                        final String packageName = childInjector.getInstance(PACKAGE_NAME_KEY);
+                        final TypeFactory factory = childInjector.getInstance(TYPE_FACTORY_KEY);
                         writer.write(packageName, factory.create());
                     } catch (Exception e) {
                         messager.printMessage(Diagnostic.Kind.ERROR, e.getMessage());
