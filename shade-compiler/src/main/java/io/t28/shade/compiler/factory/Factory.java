@@ -1,4 +1,4 @@
-package io.t28.shade.compiler.factories;
+package io.t28.shade.compiler.factory;
 
 import javax.annotation.Nonnull;
 

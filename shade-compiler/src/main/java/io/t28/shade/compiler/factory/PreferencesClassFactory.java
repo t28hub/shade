@@ -1,4 +1,4 @@
-package io.t28.shade.compiler.factories;
+package io.t28.shade.compiler.factory;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -23,14 +23,19 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.lang.model.element.Modifier;
 
-import io.t28.shade.compiler.attributes.ConverterMetadata;
-import io.t28.shade.compiler.attributes.PreferencesMetadata;
+import io.t28.shade.compiler.metadata.ConverterMetadata;
+import io.t28.shade.compiler.metadata.PreferencesMetadata;
 import io.t28.shade.compiler.utils.SupportedType;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
 public class PreferencesClassFactory extends TypeFactory {
+    private static final String PARAMETER_CONTEXT = "context";
+    private static final String FIELD_PREFERENCES = "preferences";
+    private static final String METHOD_PREFIX_GET = "get";
+    private static final String METHOD_PREFIX_HAS = "contains";
+
     private final PreferencesMetadata preferences;
     private final ClassName editorClass;
     private final ClassName entityClass;
@@ -56,13 +61,13 @@ public class PreferencesClassFactory extends TypeFactory {
 
     @Nonnull
     @Override
-    protected String name() {
+    protected String getName() {
         return preferencesClass.simpleName();
     }
 
     @Nonnull
     @Override
-    protected List<AnnotationSpec> annotations() {
+    protected List<AnnotationSpec> getAnnotations() {
         return ImmutableList.of(AnnotationSpec.builder(SuppressWarnings.class)
                 .addMember("value", "$S", "all")
                 .build());
@@ -70,33 +75,34 @@ public class PreferencesClassFactory extends TypeFactory {
 
     @Nonnull
     @Override
-    protected List<Modifier> modifiers() {
-        return ImmutableList.of(Modifier.PUBLIC, Modifier.FINAL);
+    protected List<Modifier> getModifiers() {
+        return ImmutableList.of(Modifier.PUBLIC);
     }
 
     @Nonnull
     @Override
-    protected List<FieldSpec> fields() {
-        return ImmutableList.of(FieldSpec.builder(SharedPreferences.class, "preferences")
+    protected List<FieldSpec> getFields() {
+        return ImmutableList.of(FieldSpec.builder(SharedPreferences.class, FIELD_PREFERENCES)
                 .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
                 .build());
     }
 
     @Nonnull
     @Override
-    protected List<MethodSpec> methods() {
+    protected List<MethodSpec> getMethods() {
         return ImmutableList.<MethodSpec>builder()
                 .add(buildConstructorSpec())
                 .add(buildGetMethodSpec())
                 .addAll(buildGetMethodSpecs())
                 .addAll(buildContainsMethodSpecs())
                 .add(buildEditMethodSpec())
+                .add(buildProvideSharedPreferencesMethodSpec())
                 .build();
     }
 
     @Nonnull
     @Override
-    protected List<TypeSpec> innerClasses() {
+    protected List<TypeSpec> getEnclosedTypes() {
         return innerClassFactories.stream()
                 .map(TypeFactory::create)
                 .collect(toList());
@@ -105,35 +111,32 @@ public class PreferencesClassFactory extends TypeFactory {
     private MethodSpec buildConstructorSpec() {
         final MethodSpec.Builder builder = MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC)
-                .addParameter(ParameterSpec.builder(Context.class, "context")
+                .addParameter(ParameterSpec.builder(Context.class, PARAMETER_CONTEXT)
                         .addAnnotation(NonNull.class)
                         .build());
         if (preferences.isDefault()) {
             builder.addStatement(
                     "this.$N = $T.getDefaultSharedPreferences($L.getApplicationContext())",
-                    "preferences", PreferenceManager.class, "context"
+                    FIELD_PREFERENCES, PreferenceManager.class, PARAMETER_CONTEXT
             );
         } else {
             builder.addStatement(
                     "this.$N = $L.getApplicationContext().getSharedPreferences($S, $L)",
-                    "preferences", "context", preferences.getName(), preferences.getMode()
+                    FIELD_PREFERENCES, PARAMETER_CONTEXT, preferences.getName(), preferences.getMode()
             );
         }
         return builder.build();
     }
 
     private MethodSpec buildGetMethodSpec() {
-        final MethodSpec.Builder builder = MethodSpec.methodBuilder("get")
+        final MethodSpec.Builder builder = MethodSpec.methodBuilder(METHOD_PREFIX_GET)
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(NonNull.class)
                 .returns(entityClass);
 
         final String arguments = preferences.getProperties()
                 .stream()
-                .map(property -> {
-                    final String methodName = "get" + property.getName(CaseFormat.UPPER_CAMEL);
-                    return methodName + "()";
-                })
+                .map(property -> METHOD_PREFIX_GET + property.getName(CaseFormat.UPPER_CAMEL) + "()")
                 .collect(joining(", "));
         builder.addStatement("return new $T($L)", entityImplClass, arguments);
         return builder.build();
@@ -143,7 +146,7 @@ public class PreferencesClassFactory extends TypeFactory {
         return preferences.getProperties()
                 .stream()
                 .map(property -> {
-                    final String methodName = "get" + property.getName(CaseFormat.UPPER_CAMEL);
+                    final String methodName = METHOD_PREFIX_GET + property.getName(CaseFormat.UPPER_CAMEL);
                     final MethodSpec.Builder builder = MethodSpec.methodBuilder(methodName)
                             .addModifiers(Modifier.PUBLIC);
 
@@ -162,7 +165,11 @@ public class PreferencesClassFactory extends TypeFactory {
                     }
 
                     final SupportedType supported = SupportedType.find(valueType);
-                    final CodeBlock statement = supported.buildLoadStatement("preferences", property.getKey(), property.getDefaultValue().orElse(null));
+                    final CodeBlock statement = supported.buildLoadStatement(
+                            FIELD_PREFERENCES,
+                            property.getKey(),
+                            property.getDefaultValue().orElse(null)
+                    );
                     if (converter.isDefault()) {
                         builder.addStatement("return $L", statement);
                     } else {
@@ -177,11 +184,11 @@ public class PreferencesClassFactory extends TypeFactory {
         return preferences.getProperties()
                 .stream()
                 .map(property -> {
-                    final String methodName = "contains" + property.getName(CaseFormat.UPPER_CAMEL);
+                    final String methodName = METHOD_PREFIX_HAS + property.getName(CaseFormat.UPPER_CAMEL);
                     return MethodSpec.methodBuilder(methodName)
                             .addModifiers(Modifier.PUBLIC)
                             .returns(TypeName.BOOLEAN)
-                            .addStatement("return $L.contains($S)", "preferences", property.getKey())
+                            .addStatement("return $L.contains($S)", FIELD_PREFERENCES, property.getKey())
                             .build();
                 })
                 .collect(toList());
@@ -192,7 +199,16 @@ public class PreferencesClassFactory extends TypeFactory {
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(NonNull.class)
                 .returns(editorClass)
-                .addStatement("return new $L($N)", editorClass, "preferences")
+                .addStatement("return new $L($N)", editorClass, FIELD_PREFERENCES)
+                .build();
+    }
+
+    private MethodSpec buildProvideSharedPreferencesMethodSpec() {
+        return MethodSpec.methodBuilder("provideSharedPreferences")
+                .addAnnotation(NonNull.class)
+                .addModifiers(Modifier.PUBLIC)
+                .returns(SharedPreferences.class)
+                .addStatement("return $L", FIELD_PREFERENCES)
                 .build();
     }
 }

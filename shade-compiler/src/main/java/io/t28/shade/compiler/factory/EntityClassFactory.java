@@ -1,7 +1,8 @@
-package io.t28.shade.compiler.factories;
+package io.t28.shade.compiler.factory;
 
 import android.support.annotation.NonNull;
 
+import com.google.common.base.CaseFormat;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
@@ -10,34 +11,30 @@ import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
-import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.TypeMirror;
 
-import io.t28.shade.compiler.attributes.PropertyMetadata;
+import io.t28.shade.compiler.metadata.PropertyMetadata;
+import io.t28.shade.compiler.utils.CodeBlocks;
 import io.t28.shade.compiler.utils.TypeElements;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
 public class EntityClassFactory extends TypeFactory {
-    private static final ClassName CLASS_LIST = ClassName.get(List.class);
-    private static final ClassName CLASS_SET = ClassName.get(Set.class);
-    private static final ClassName CLASS_MAP = ClassName.get(Map.class);
+    private static final String METHOD_EQUALS = "equals";
+    private static final String METHOD_HASH_CODE = "hashCode";
+    private static final String METHOD_TO_STRING = "toString";
 
     private final TypeElement element;
     private final List<PropertyMetadata> properties;
@@ -57,19 +54,19 @@ public class EntityClassFactory extends TypeFactory {
 
     @Nonnull
     @Override
-    protected String name() {
+    protected String getName() {
         return entityImplClass.simpleName();
     }
 
     @Nonnull
     @Override
-    protected List<Modifier> modifiers() {
+    protected List<Modifier> getModifiers() {
         return ImmutableList.of(Modifier.PUBLIC, Modifier.STATIC);
     }
 
     @Nonnull
     @Override
-    protected Optional<TypeName> superClass() {
+    protected Optional<TypeName> getSuperClass() {
         if (element.getKind() == ElementKind.CLASS) {
             return Optional.of(entityClass);
         }
@@ -78,7 +75,7 @@ public class EntityClassFactory extends TypeFactory {
 
     @Nonnull
     @Override
-    protected List<TypeName> interfaces() {
+    protected List<TypeName> getInterfaces() {
         if (element.getKind() == ElementKind.INTERFACE) {
             return Collections.singletonList(entityClass);
         }
@@ -87,32 +84,35 @@ public class EntityClassFactory extends TypeFactory {
 
     @Nonnull
     @Override
-    protected List<FieldSpec> fields() {
-        final List<FieldSpec> fieldSpecs = properties
-                .stream()
-                .map(property -> FieldSpec.builder(property.getValueTypeName(), property.getMethodName())
+    protected List<FieldSpec> getFields() {
+        final List<FieldSpec> fieldSpecs = properties.stream()
+                .map(property -> {
+                    final String fieldName = getFieldName(property);
+                    final TypeName valueType = property.getValueTypeName();
+                    return FieldSpec.builder(valueType, fieldName)
                         .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
-                        .build())
+                        .build();
+                })
                 .collect(toList());
         return ImmutableList.copyOf(fieldSpecs);
     }
 
     @Nonnull
     @Override
-    protected List<MethodSpec> methods() {
+    protected List<MethodSpec> getMethods() {
         final ImmutableList.Builder<MethodSpec> builder = ImmutableList.builder();
         builder.add(buildConstructorSpec());
 
-        if (!TypeElements.isMethodDefined(element, "toString")) {
-            builder.add(buildToStringMethodSpec());
-        }
-
-        if (!TypeElements.isMethodDefined(element, "equals")) {
+        if (!TypeElements.isMethodDefined(element, METHOD_EQUALS)) {
             builder.add(buildEqualsMethodSpec());
         }
 
-        if (!TypeElements.isMethodDefined(element, "hashCode")) {
+        if (!TypeElements.isMethodDefined(element, METHOD_HASH_CODE)) {
             builder.add(buildHashCodeMethodSpec());
+        }
+
+        if (!TypeElements.isMethodDefined(element, METHOD_TO_STRING)) {
+            builder.add(buildToStringMethodSpec());
         }
         builder.addAll(buildGetMethodSpecs());
         return builder.build();
@@ -120,27 +120,28 @@ public class EntityClassFactory extends TypeFactory {
 
     private MethodSpec buildConstructorSpec() {
         final MethodSpec.Builder builder = MethodSpec.constructorBuilder();
-        builder.addModifiers(Modifier.PRIVATE);
+        builder.addModifiers(Modifier.PROTECTED);
 
         // Parameters
         properties.forEach(property -> {
-            final ParameterSpec parameter = ParameterSpec.builder(property.getValueTypeName(), property.getMethodName())
-                    .build();
-            builder.addParameter(parameter);
+            final TypeName valueType = property.getValueTypeName();
+            final String fieldName = getFieldName(property);
+            builder.addParameter(ParameterSpec.builder(valueType, fieldName).build());
         });
 
         // Statements
         properties.forEach(property -> {
-            final CodeBlock statement = CodeBlock.builder()
-                    .add("this.$L = $L", property.getMethodName(), createUnmodifiableStatement(property.getValueType(), property.getMethodName()))
-                    .build();
-            builder.addStatement("$L", statement);
+            final TypeName valueType = property.getValueTypeName();
+            final String fieldName = getFieldName(property);
+            builder.addStatement("$L", CodeBlock.builder()
+                    .add("this.$L = $L", fieldName, CodeBlocks.createUnmodifiableStatement(valueType, fieldName))
+                    .build());
         });
         return builder.build();
     }
 
     private MethodSpec buildToStringMethodSpec() {
-        final MethodSpec.Builder builder = MethodSpec.methodBuilder("toString")
+        final MethodSpec.Builder builder = MethodSpec.methodBuilder(METHOD_TO_STRING)
                 .addAnnotation(NonNull.class)
                 .addAnnotation(Override.class)
                 .addModifiers(Modifier.PUBLIC)
@@ -149,8 +150,8 @@ public class EntityClassFactory extends TypeFactory {
         final CodeBlock.Builder statementBuilder = CodeBlock.builder();
         statementBuilder.add("return $T.toStringHelper($S)\n", MoreObjects.class, entityClass.simpleName());
         properties.forEach(property -> {
-            final String name = property.getMethodName();
-            statementBuilder.add(".add($S, $L)\n", name, name);
+            final String fieldName = getFieldName(property);
+            statementBuilder.add(".add($S, $L)\n", fieldName, fieldName);
         });
         statementBuilder.add(".toString()");
         builder.addStatement("$L", statementBuilder.build());
@@ -158,7 +159,7 @@ public class EntityClassFactory extends TypeFactory {
     }
 
     private MethodSpec buildEqualsMethodSpec() {
-        final MethodSpec.Builder builder = MethodSpec.methodBuilder("equals")
+        final MethodSpec.Builder builder = MethodSpec.methodBuilder(METHOD_EQUALS)
                 .addAnnotation(Override.class)
                 .addModifiers(Modifier.PUBLIC)
                 .returns(boolean.class)
@@ -176,12 +177,13 @@ public class EntityClassFactory extends TypeFactory {
 
         final CodeBlock.Builder statementBuilder = CodeBlock.builder();
         properties.forEach(property -> {
+            final String fieldName = getFieldName(property);
             final String methodName = property.getMethodName();
-            final TypeName typeName = property.getValueTypeName();
-            if (typeName.isPrimitive()) {
-                statementBuilder.add("$L == that.$L()", methodName, methodName);
+            final TypeName valueType = property.getValueTypeName();
+            if (valueType.isPrimitive()) {
+                statementBuilder.add("$L == that.$L()", fieldName, methodName);
             } else {
-                statementBuilder.add("$T.equal($L, that.$L())", Objects.class, methodName, methodName);
+                statementBuilder.add("$T.equal($L, that.$L())", Objects.class, fieldName, methodName);
             }
 
             if (properties.size() - 1 != properties.indexOf(property)) {
@@ -193,13 +195,13 @@ public class EntityClassFactory extends TypeFactory {
     }
 
     private MethodSpec buildHashCodeMethodSpec() {
-        final MethodSpec.Builder builder = MethodSpec.methodBuilder("hashCode")
+        final MethodSpec.Builder builder = MethodSpec.methodBuilder(METHOD_HASH_CODE)
                 .addAnnotation(Override.class)
                 .addModifiers(Modifier.PUBLIC)
                 .returns(int.class);
 
         final String arguments = properties.stream()
-                .map(PropertyMetadata::getMethodName)
+                .map(EntityClassFactory::getFieldName)
                 .collect(joining(", "));
         builder.addStatement("return $T.hashCode($L)", Objects.class, arguments);
         return builder.build();
@@ -208,8 +210,9 @@ public class EntityClassFactory extends TypeFactory {
     private List<MethodSpec> buildGetMethodSpecs() {
         return properties.stream()
                 .map(property -> {
-                    final ExecutableElement method = property.getMethod();
-                    final CodeBlock statement = createUnmodifiableStatement(method.getReturnType(), property.getMethodName());
+                    final String fieldName = getFieldName(property);
+                    final TypeName valueType = property.getValueTypeName();
+                    final CodeBlock statement = CodeBlocks.createUnmodifiableStatement(valueType, fieldName);
                     return MethodSpec.overriding(property.getMethod())
                             .addStatement("return $L", statement)
                             .build();
@@ -217,29 +220,7 @@ public class EntityClassFactory extends TypeFactory {
                 .collect(toList());
     }
 
-    @Nonnull
-    private CodeBlock createUnmodifiableStatement(@Nonnull TypeMirror typeMirror, @Nonnull String name) {
-        final TypeName typeName = TypeName.get(typeMirror);
-        if (typeName instanceof ParameterizedTypeName) {
-            return createUnmodifiableCollectionStatement((ParameterizedTypeName) typeName, name);
-        }
-        return CodeBlock.of("$N", name);
-    }
-
-    @Nonnull
-    private CodeBlock createUnmodifiableCollectionStatement(@Nonnull ParameterizedTypeName typeName, @Nonnull String name) {
-        final TypeName rawType = typeName.rawType;
-        if (rawType.equals(CLASS_LIST)) {
-            return CodeBlock.of("$T.unmodifiableList($N)", Collections.class, name);
-        }
-
-        if (rawType.equals(CLASS_SET)) {
-            return CodeBlock.of("$T.unmodifiableSet($N)", Collections.class, name);
-        }
-
-        if (rawType.equals(CLASS_MAP)) {
-            return CodeBlock.of("$T.unmodifiableMap($N)", Collections.class, name);
-        }
-        return CodeBlock.of("$N", name);
+    private static String getFieldName(@Nonnull PropertyMetadata property) {
+        return property.getName(CaseFormat.LOWER_CAMEL);
     }
 }

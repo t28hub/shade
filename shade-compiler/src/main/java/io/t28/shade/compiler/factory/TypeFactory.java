@@ -1,4 +1,4 @@
-package io.t28.shade.compiler.factories;
+package io.t28.shade.compiler.factory;
 
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.FieldSpec;
@@ -15,54 +15,54 @@ import javax.lang.model.element.Modifier;
 
 public abstract class TypeFactory implements Factory<TypeSpec> {
     @Nonnull
-    protected abstract String name();
+    protected abstract String getName();
 
     @Nonnull
-    protected List<AnnotationSpec> annotations() {
+    protected List<AnnotationSpec> getAnnotations() {
         return Collections.emptyList();
     }
 
     @Nonnull
-    protected List<Modifier> modifiers() {
+    protected List<Modifier> getModifiers() {
         return Collections.emptyList();
     }
 
     @Nonnull
-    protected Optional<TypeName> superClass() {
+    protected Optional<TypeName> getSuperClass() {
         return Optional.empty();
     }
 
     @Nonnull
-    protected List<TypeName> interfaces() {
+    protected List<TypeName> getInterfaces() {
         return Collections.emptyList();
     }
 
     @Nonnull
-    protected List<FieldSpec> fields() {
+    protected List<FieldSpec> getFields() {
         return Collections.emptyList();
     }
 
     @Nonnull
-    protected List<MethodSpec> methods() {
+    protected List<MethodSpec> getMethods() {
         return Collections.emptyList();
     }
 
     @Nonnull
-    protected List<TypeSpec> innerClasses() {
+    protected List<TypeSpec> getEnclosedTypes() {
         return Collections.emptyList();
     }
 
     @Nonnull
     @Override
     public TypeSpec create() {
-        final TypeSpec.Builder builder = TypeSpec.classBuilder(name());
-        builder.addAnnotations(annotations());
-        modifiers().forEach(builder::addModifiers);
-        superClass().ifPresent(builder::superclass);
-        interfaces().forEach(builder::addSuperinterface);
-        builder.addFields(fields());
-        methods().forEach(builder::addMethod);
-        innerClasses().forEach(builder::addType);
+        final TypeSpec.Builder builder = TypeSpec.classBuilder(getName());
+        builder.addAnnotations(getAnnotations());
+        getModifiers().forEach(builder::addModifiers);
+        getSuperClass().ifPresent(builder::superclass);
+        getInterfaces().forEach(builder::addSuperinterface);
+        builder.addFields(getFields());
+        getMethods().forEach(builder::addMethod);
+        getEnclosedTypes().forEach(builder::addType);
         return builder.build();
     }
 }
