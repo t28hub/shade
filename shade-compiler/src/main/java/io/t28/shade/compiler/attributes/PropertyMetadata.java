@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
+import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.MirroredTypeException;
@@ -30,7 +31,7 @@ public class PropertyMetadata {
     private final Elements elementUtils;
 
     PropertyMetadata(@Nonnull ExecutableElement element, @Nonnull Elements elementUtils) {
-        final String methodName = element.getSimpleName().toString();
+        final Name methodName = element.getSimpleName();
         final Set<Modifier> modifiers = element.getModifiers();
         if (!modifiers.contains(Modifier.ABSTRACT)) {
             throw new IllegalArgumentException("Method('" + methodName + "') annotated with @Property must be an abstract method");
@@ -99,15 +100,15 @@ public class PropertyMetadata {
     }
 
     @Nonnull
-    public ConverterAttribute getConverter() {
+    public ConverterMetadata getConverter() {
         try {
             final Class<?> converterClass = annotation.converter();
             final String canonicalName = converterClass.getCanonicalName();
             final TypeElement element = elementUtils.getTypeElement(canonicalName);
-            return new ConverterAttribute(element);
+            return new ConverterMetadata(element);
         } catch (MirroredTypeException e) {
             final TypeElement element = TypeElements.toTypeElement(e.getTypeMirror());
-            return new ConverterAttribute(element);
+            return new ConverterMetadata(element);
         }
     }
 }
