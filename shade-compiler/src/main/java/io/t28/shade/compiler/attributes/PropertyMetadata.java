@@ -1,11 +1,14 @@
 package io.t28.shade.compiler.attributes;
 
+import com.google.common.base.CaseFormat;
 import com.google.common.base.Strings;
 import com.squareup.javapoet.TypeName;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.annotation.Nonnull;
 import javax.lang.model.element.ExecutableElement;
@@ -19,30 +22,36 @@ import javax.lang.model.util.Elements;
 import io.t28.shade.annotation.Property;
 import io.t28.shade.compiler.utils.TypeElements;
 
-public class PropertyAttribute {
+public class PropertyMetadata {
+    private static final Pattern GETTER_PATTERN = Pattern.compile("^(get|is|has|can)?([^a-z].+)");
+
     private final ExecutableElement element;
     private final Property annotation;
     private final Elements elementUtils;
 
-    public PropertyAttribute(@Nonnull ExecutableElement element, @Nonnull Elements elementUtils) {
+    PropertyMetadata(@Nonnull ExecutableElement element, @Nonnull Elements elementUtils) {
+        final String methodName = element.getSimpleName().toString();
         final Set<Modifier> modifiers = element.getModifiers();
         if (!modifiers.contains(Modifier.ABSTRACT)) {
-            throw new IllegalArgumentException("Method('" + element.getSimpleName() + "') annotated with @Shade.Property must be an abstract method");
+            throw new IllegalArgumentException("Method('" + methodName + "') annotated with @Property must be an abstract method");
         }
 
         final List<? extends VariableElement> parameters = element.getParameters();
         if (!parameters.isEmpty()) {
-            throw new IllegalArgumentException("Method('" + element.getSimpleName() + "') annotated with @Shade.Property must have no arguments");
+            throw new IllegalArgumentException("Method('" + methodName + "') annotated with @Property must have no arguments");
         }
 
         final TypeName returnType = TypeName.get(element.getReturnType());
         if (returnType.equals(TypeName.VOID)) {
-            throw new IllegalArgumentException("Method('" + element.getSimpleName() + "') annotated with @Shade.Property must return non void");
+            throw new IllegalArgumentException("Method('" + methodName + "') annotated with @Property must return non void");
         }
 
         final Property annotation = element.getAnnotation(Property.class);
         if (annotation == null) {
-            throw new IllegalArgumentException("Method('" + element.getSimpleName() + "') must be annotated with @Shade.Property");
+            throw new IllegalArgumentException("Method('" + methodName + "') must be annotated with @Property");
+        }
+        if (Strings.isNullOrEmpty(annotation.key())) {
+            throw new IllegalArgumentException("Defined key for '" + methodName + "' is empty");
         }
         this.element = element;
         this.annotation = annotation;
@@ -50,45 +59,51 @@ public class PropertyAttribute {
     }
 
     @Nonnull
-    public ExecutableElement method() {
+    public ExecutableElement getMethod() {
         return element;
     }
 
     @Nonnull
-    public String methodName() {
+    public String getMethodName() {
         return element.getSimpleName().toString();
     }
 
     @Nonnull
-    public TypeMirror returnType() {
+    public String getName(@Nonnull CaseFormat format) {
+        final String methodName = getMethodName();
+        final Matcher matcher = GETTER_PATTERN.matcher(methodName);
+        if (matcher.matches()) {
+            return CaseFormat.UPPER_CAMEL.to(format, matcher.group(2));
+        }
+        return CaseFormat.LOWER_CAMEL.to(format, methodName);
+    }
+
+    @Nonnull
+    public TypeMirror getValueType() {
         return element.getReturnType();
     }
 
     @Nonnull
-    public TypeName returnTypeName() {
-        return TypeName.get(returnType());
+    public TypeName getValueTypeName() {
+        return TypeName.get(getValueType());
     }
 
     @Nonnull
-    public String key() {
-        final String key = annotation.key();
-        if (Strings.isNullOrEmpty(key)) {
-            throw new IllegalStateException("Defined key for " + methodName() + " is empty");
-        }
-        return key;
+    public String getKey() {
+        return annotation.key();
     }
 
     @Nonnull
-    public Optional<String> defaultValue() {
+    public Optional<String> getDefaultValue() {
         return Optional.of(annotation.defValue()).filter(value -> !value.isEmpty());
     }
 
     @Nonnull
-    public ConverterAttribute converter() {
+    public ConverterAttribute getConverter() {
         try {
             final Class<?> converterClass = annotation.converter();
-            final String packageName = converterClass.getCanonicalName();
-            final TypeElement element = elementUtils.getTypeElement(packageName);
+            final String canonicalName = converterClass.getCanonicalName();
+            final TypeElement element = elementUtils.getTypeElement(canonicalName);
             return new ConverterAttribute(element);
         } catch (MirroredTypeException e) {
             final TypeElement element = TypeElements.toTypeElement(e.getTypeMirror());

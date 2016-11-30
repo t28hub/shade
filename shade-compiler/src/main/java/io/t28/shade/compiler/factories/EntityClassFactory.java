@@ -28,7 +28,7 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 
-import io.t28.shade.compiler.attributes.PropertyAttribute;
+import io.t28.shade.compiler.attributes.PropertyMetadata;
 import io.t28.shade.compiler.utils.TypeElements;
 
 import static java.util.stream.Collectors.joining;
@@ -40,13 +40,13 @@ public class EntityClassFactory extends TypeFactory {
     private static final ClassName CLASS_MAP = ClassName.get(Map.class);
 
     private final TypeElement element;
-    private final List<PropertyAttribute> properties;
+    private final List<PropertyMetadata> properties;
     private final ClassName entityClass;
     private final ClassName entityImplClass;
 
     @Inject
     public EntityClassFactory(@Nonnull TypeElement element,
-                              @Nonnull List<PropertyAttribute> properties,
+                              @Nonnull List<PropertyMetadata> properties,
                               @Nonnull @Named("Entity") ClassName entityClass,
                               @Nonnull @Named("EntityImpl") ClassName entityImplClass) {
         this.element = element;
@@ -90,7 +90,7 @@ public class EntityClassFactory extends TypeFactory {
     protected List<FieldSpec> fields() {
         final List<FieldSpec> fieldSpecs = properties
                 .stream()
-                .map(property -> FieldSpec.builder(property.returnTypeName(), property.methodName())
+                .map(property -> FieldSpec.builder(property.getValueTypeName(), property.getMethodName())
                         .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
                         .build())
                 .collect(toList());
@@ -124,7 +124,7 @@ public class EntityClassFactory extends TypeFactory {
 
         // Parameters
         properties.forEach(property -> {
-            final ParameterSpec parameter = ParameterSpec.builder(property.returnTypeName(), property.methodName())
+            final ParameterSpec parameter = ParameterSpec.builder(property.getValueTypeName(), property.getMethodName())
                     .build();
             builder.addParameter(parameter);
         });
@@ -132,7 +132,7 @@ public class EntityClassFactory extends TypeFactory {
         // Statements
         properties.forEach(property -> {
             final CodeBlock statement = CodeBlock.builder()
-                    .add("this.$L = $L", property.methodName(), createUnmodifiableStatement(property.returnType(), property.methodName()))
+                    .add("this.$L = $L", property.getMethodName(), createUnmodifiableStatement(property.getValueType(), property.getMethodName()))
                     .build();
             builder.addStatement("$L", statement);
         });
@@ -149,7 +149,7 @@ public class EntityClassFactory extends TypeFactory {
         final CodeBlock.Builder statementBuilder = CodeBlock.builder();
         statementBuilder.add("return $T.toStringHelper($S)\n", MoreObjects.class, entityClass.simpleName());
         properties.forEach(property -> {
-            final String name = property.methodName();
+            final String name = property.getMethodName();
             statementBuilder.add(".add($S, $L)\n", name, name);
         });
         statementBuilder.add(".toString()");
@@ -176,8 +176,8 @@ public class EntityClassFactory extends TypeFactory {
 
         final CodeBlock.Builder statementBuilder = CodeBlock.builder();
         properties.forEach(property -> {
-            final String methodName = property.methodName();
-            final TypeName typeName = property.returnTypeName();
+            final String methodName = property.getMethodName();
+            final TypeName typeName = property.getValueTypeName();
             if (typeName.isPrimitive()) {
                 statementBuilder.add("$L == that.$L()", methodName, methodName);
             } else {
@@ -199,7 +199,7 @@ public class EntityClassFactory extends TypeFactory {
                 .returns(int.class);
 
         final String arguments = properties.stream()
-                .map(PropertyAttribute::methodName)
+                .map(PropertyMetadata::getMethodName)
                 .collect(joining(", "));
         builder.addStatement("return $T.hashCode($L)", Objects.class, arguments);
         return builder.build();
@@ -208,9 +208,9 @@ public class EntityClassFactory extends TypeFactory {
     private List<MethodSpec> buildGetMethodSpecs() {
         return properties.stream()
                 .map(property -> {
-                    final ExecutableElement method = property.method();
-                    final CodeBlock statement = createUnmodifiableStatement(method.getReturnType(), property.methodName());
-                    return MethodSpec.overriding(property.method())
+                    final ExecutableElement method = property.getMethod();
+                    final CodeBlock statement = createUnmodifiableStatement(method.getReturnType(), property.getMethodName());
+                    return MethodSpec.overriding(property.getMethod())
                             .addStatement("return $L", statement)
                             .build();
                 })

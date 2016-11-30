@@ -58,7 +58,7 @@ public class PreferencesAttribute {
     }
 
     @Nonnull
-    public List<PropertyAttribute> properties() {
+    public List<PropertyMetadata> properties() {
         return element.getEnclosedElements()
                 .stream()
                 .filter(enclosed -> {
@@ -67,7 +67,7 @@ public class PreferencesAttribute {
                 })
                 .map(enclosed -> {
                     final ExecutableElement executable = (ExecutableElement) enclosed;
-                    return new PropertyAttribute(executable, elementUtils);
+                    return new PropertyMetadata(executable, elementUtils);
                 })
                 .collect(toList());
     }

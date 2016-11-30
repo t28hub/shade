@@ -23,7 +23,7 @@ public class TypeElements {
     @Nonnull
     public static TypeElement toTypeElement(@Nonnull TypeMirror type) {
         if (type.getKind() != TypeKind.DECLARED) {
-            throw new IllegalArgumentException("Kind of returnType(" + type + ") must be " + TypeKind.DECLARED);
+            throw new IllegalArgumentException("Kind of type(" + type + ") must be " + TypeKind.DECLARED);
         }
 
         final DeclaredType declaredType = (DeclaredType) type;

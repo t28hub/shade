@@ -131,7 +131,7 @@ public class PreferencesClassFactory extends TypeFactory {
         final String arguments = preferences.properties()
                 .stream()
                 .map(property -> {
-                    final String methodName = "get" + CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, property.methodName());
+                    final String methodName = "get" + property.getName(CaseFormat.UPPER_CAMEL);
                     return methodName + "()";
                 })
                 .collect(joining(", "));
@@ -143,26 +143,26 @@ public class PreferencesClassFactory extends TypeFactory {
         return preferences.properties()
                 .stream()
                 .map(property -> {
-                    final String methodName = "get" + CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, property.methodName());
+                    final String methodName = "get" + property.getName(CaseFormat.UPPER_CAMEL);
                     final MethodSpec.Builder builder = MethodSpec.methodBuilder(methodName)
                             .addModifiers(Modifier.PUBLIC);
 
-                    final TypeName returnType = property.returnTypeName();
+                    final TypeName returnType = property.getValueTypeName();
                     if (!returnType.isPrimitive()) {
                         builder.addAnnotation(NonNull.class);
                     }
                     builder.returns(returnType);
 
-                    final ConverterAttribute converter = property.converter();
+                    final ConverterAttribute converter = property.getConverter();
                     final TypeName valueType;
                     if (converter.isDefault()) {
-                        valueType = property.returnTypeName();
+                        valueType = property.getValueTypeName();
                     } else {
                         valueType = converter.supportedType();
                     }
 
                     final SupportedType supported = SupportedType.find(valueType);
-                    final CodeBlock statement = supported.buildLoadStatement("preferences", property.key(), property.defaultValue().orElse(null));
+                    final CodeBlock statement = supported.buildLoadStatement("preferences", property.getKey(), property.getDefaultValue().orElse(null));
                     if (converter.isDefault()) {
                         builder.addStatement("return $L", statement);
                     } else {
@@ -177,11 +177,11 @@ public class PreferencesClassFactory extends TypeFactory {
         return preferences.properties()
                 .stream()
                 .map(property -> {
-                    final String methodName = "contains" + CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, property.methodName());
+                    final String methodName = "contains" + property.getName(CaseFormat.UPPER_CAMEL);
                     return MethodSpec.methodBuilder(methodName)
                             .addModifiers(Modifier.PUBLIC)
                             .returns(TypeName.BOOLEAN)
-                            .addStatement("return $L.contains($S)", "preferences", property.key())
+                            .addStatement("return $L.contains($S)", "preferences", property.getKey())
                             .build();
                 })
                 .collect(toList());
