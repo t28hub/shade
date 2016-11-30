@@ -23,7 +23,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.lang.model.element.Modifier;
 
-import io.t28.shade.compiler.attributes.ConverterAttribute;
+import io.t28.shade.compiler.attributes.ConverterMetadata;
 import io.t28.shade.compiler.attributes.PreferencesAttribute;
 import io.t28.shade.compiler.utils.SupportedType;
 
@@ -153,12 +153,12 @@ public class PreferencesClassFactory extends TypeFactory {
                     }
                     builder.returns(returnType);
 
-                    final ConverterAttribute converter = property.getConverter();
+                    final ConverterMetadata converter = property.getConverter();
                     final TypeName valueType;
                     if (converter.isDefault()) {
                         valueType = property.getValueTypeName();
                     } else {
-                        valueType = converter.supportedType();
+                        valueType = converter.getSupportedType();
                     }
 
                     final SupportedType supported = SupportedType.find(valueType);
@@ -166,7 +166,7 @@ public class PreferencesClassFactory extends TypeFactory {
                     if (converter.isDefault()) {
                         builder.addStatement("return $L", statement);
                     } else {
-                        builder.addStatement("return new $T().toConverted($L)", converter.className(), statement);
+                        builder.addStatement("return new $T().toConverted($L)", converter.getClassName(), statement);
                     }
                     return builder.build();
                 })

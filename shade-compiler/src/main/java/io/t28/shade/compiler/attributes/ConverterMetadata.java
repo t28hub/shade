@@ -14,26 +14,26 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 
 import io.t28.shade.compiler.utils.SupportedType;
+import io.t28.shade.compiler.utils.TypeElements;
 import io.t28.shade.compiler.utils.TypeNames;
 import io.t28.shade.converter.Converter;
 import io.t28.shade.converter.DefaultConverter;
 
-public class ConverterAttribute {
+public class ConverterMetadata {
     private static final int GENERICS_SIZE = 2;
-    private static final int INDEX_CONVERTED_TYPE = 0;
-    private static final int INDEX_SUPPORTED_TYPE = 1;
+    private static final int CONVERTED_TYPE_INDEX = 0;
+    private static final int SUPPORTED_TYPE_INDEX = 1;
     private static final ClassName DEFAULT_CLASS = ClassName.get(DefaultConverter.class);
 
     private final ClassName className;
     private final TypeName supportedType;
     private final TypeName convertedType;
 
-    @SuppressWarnings("WeakerAccess")
-    public ConverterAttribute(@Nonnull TypeElement element) {
+    ConverterMetadata(@Nonnull TypeElement element) {
         final ClassName className = ClassName.get(element);
         final Set<Modifier> modifiers = element.getModifiers();
         if (!modifiers.contains(Modifier.PUBLIC) && modifiers.contains(Modifier.ABSTRACT)) {
-            throw new IllegalArgumentException("Converter('" + className + "') must be concrete public class");
+            throw new IllegalArgumentException("Converter('" + className + "') must be a concrete public class");
         }
         checkConstructor(element);
 
@@ -42,10 +42,10 @@ public class ConverterAttribute {
             throw new IllegalArgumentException("Converter(" + className + ") must have 2 generic types");
         }
 
-        final TypeName supportedType = TypeNames.unbox(typeNames.get(INDEX_SUPPORTED_TYPE));
-        final TypeName convertedType = TypeNames.unbox(typeNames.get(INDEX_CONVERTED_TYPE));
+        final TypeName supportedType = TypeNames.unbox(typeNames.get(SUPPORTED_TYPE_INDEX));
+        final TypeName convertedType = TypeNames.unbox(typeNames.get(CONVERTED_TYPE_INDEX));
         if (!DEFAULT_CLASS.equals(className) && !SupportedType.contains(supportedType)) {
-            throw new IllegalArgumentException("SharedPreferences does not support to save type(" + supportedType + ")");
+            throw new IllegalArgumentException("SharedPreferences does not support saving specified type(" + supportedType + ")");
         }
         this.className = className;
         this.supportedType = supportedType;
@@ -57,36 +57,39 @@ public class ConverterAttribute {
     }
 
     @Nonnull
-    public ClassName className() {
+    public ClassName getClassName() {
         return className;
     }
 
     @Nonnull
-    public TypeName supportedType() {
+    public TypeName getSupportedType() {
         return supportedType;
     }
 
     @Nonnull
-    public TypeName convertedType() {
+    public TypeName getConvertedType() {
         return convertedType;
     }
 
     private static void checkConstructor(TypeElement element) {
-        element.getEnclosedElements()
-                .stream()
-                .filter(enclosed -> enclosed.getKind() == ElementKind.CONSTRUCTOR)
-                .map(ExecutableElement.class::cast)
-                .findFirst()
-                .ifPresent(constructorElement -> {
-                    final Set<Modifier> modifiers = constructorElement.getModifiers();
+        final List<ExecutableElement> constructors = TypeElements.findConstructors(element);
+        if (constructors.isEmpty()) {
+            return;
+        }
+
+        final boolean isDefined = constructors.stream()
+                .anyMatch(constructor -> {
+                    final Set<Modifier> modifiers = constructor.getModifiers();
                     if (modifiers.contains(Modifier.PRIVATE) || modifiers.contains(Modifier.FINAL)) {
-                        throw new IllegalArgumentException("Converter('" + element.getSimpleName() + "') must provide a public empty constructor");
+                        return false;
                     }
 
-                    final List<? extends VariableElement> parameters = constructorElement.getParameters();
-                    if (!parameters.isEmpty()) {
-                        throw new IllegalArgumentException("Converter('" + element.getSimpleName() + "') must provide a public empty constructor");
-                    }
+                    final List<? extends VariableElement> parameters = constructor.getParameters();
+                    return parameters.isEmpty();
                 });
+
+        if (!isDefined) {
+            throw new IllegalArgumentException("Converter('" + element.getSimpleName() + "') must provide a public empty constructor");
+        }
     }
 }

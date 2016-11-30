@@ -19,7 +19,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.lang.model.element.Modifier;
 
-import io.t28.shade.compiler.attributes.ConverterAttribute;
+import io.t28.shade.compiler.attributes.ConverterMetadata;
 import io.t28.shade.compiler.attributes.PropertyMetadata;
 import io.t28.shade.compiler.utils.SupportedType;
 
@@ -99,12 +99,12 @@ public class EditorClassFactory extends TypeFactory {
                                 .build());
                     }
 
-                    final ConverterAttribute converter = property.getConverter();
+                    final ConverterMetadata converter = property.getConverter();
                     final TypeName storeType;
                     if (converter.isDefault()) {
                         storeType = property.getValueTypeName();
                     } else {
-                        storeType = converter.supportedType();
+                        storeType = converter.getSupportedType();
                     }
 
                     final SupportedType supportedType = SupportedType.find(storeType);
@@ -151,7 +151,7 @@ public class EditorClassFactory extends TypeFactory {
     }
 
     private CodeBlock buildSaveStatement(PropertyMetadata property, SupportedType supported) {
-        final ConverterAttribute converter = property.getConverter();
+        final ConverterMetadata converter = property.getConverter();
         final CodeBlock statement;
         if (converter.isDefault()) {
             statement = CodeBlock.builder()
@@ -159,7 +159,7 @@ public class EditorClassFactory extends TypeFactory {
                     .build();
         } else {
             statement = CodeBlock.builder()
-                    .add("new $T().toSupported($L)", converter.className(), "newValue")
+                    .add("new $T().toSupported($L)", converter.getClassName(), "newValue")
                     .build();
         }
         return supported.buildSaveStatement("editor", property.getKey(), statement);
