@@ -16,7 +16,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 
 import io.t28.shade.annotation.Preferences;
-import io.t28.shade.compiler.attributes.PreferencesAttribute;
+import io.t28.shade.compiler.attributes.PreferencesMetadata;
 import io.t28.shade.compiler.attributes.PropertyMetadata;
 import io.t28.shade.compiler.factories.PreferencesClassFactory;
 import io.t28.shade.compiler.factories.TypeFactory;
@@ -73,7 +73,7 @@ public class PreferencesModule implements Module {
     @Nonnull
     @Provides
     @Singleton
-    public List<PropertyMetadata> providePropertyAttributes(@Nonnull PreferencesAttribute attribute) {
-        return attribute.properties();
+    public List<PropertyMetadata> providePropertyAttributes(@Nonnull PreferencesMetadata attribute) {
+        return attribute.getProperties();
     }
 }

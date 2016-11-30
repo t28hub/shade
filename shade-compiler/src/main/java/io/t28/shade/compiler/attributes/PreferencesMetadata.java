@@ -19,15 +19,15 @@ import io.t28.shade.compiler.utils.TypeElements;
 
 import static java.util.stream.Collectors.toList;
 
-public class PreferencesAttribute {
+public class PreferencesMetadata {
     private final TypeElement element;
     private final Preferences annotation;
     private final Elements elementUtils;
 
     @Inject
-    public PreferencesAttribute(@Nonnull TypeElement element,
-                                @Nonnull Preferences annotation,
-                                @Nonnull Elements elementUtils) {
+    public PreferencesMetadata(@Nonnull TypeElement element,
+                               @Nonnull Preferences annotation,
+                               @Nonnull Elements elementUtils) {
         final Set<Modifier> modifiers = element.getModifiers();
         if (!modifiers.contains(Modifier.ABSTRACT)) {
             throw new IllegalArgumentException("Annotated class(" + element.getSimpleName() + ") with @Preferences must be an abstract class or interface");
@@ -39,26 +39,21 @@ public class PreferencesAttribute {
         this.elementUtils = elementUtils;
     }
 
-    @Nonnull
-    public TypeElement element() {
-        return element;
-    }
-
     public boolean isDefault() {
         return Strings.isNullOrEmpty(annotation.name());
     }
 
     @Nonnull
-    public String name() {
+    public String getName() {
         return annotation.name();
     }
 
-    public int mode() {
+    public int getMode() {
         return annotation.mode();
     }
 
     @Nonnull
-    public List<PropertyMetadata> properties() {
+    public List<PropertyMetadata> getProperties() {
         return element.getEnclosedElements()
                 .stream()
                 .filter(enclosed -> {

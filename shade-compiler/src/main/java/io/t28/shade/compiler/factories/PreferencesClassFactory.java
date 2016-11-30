@@ -24,14 +24,14 @@ import javax.inject.Named;
 import javax.lang.model.element.Modifier;
 
 import io.t28.shade.compiler.attributes.ConverterMetadata;
-import io.t28.shade.compiler.attributes.PreferencesAttribute;
+import io.t28.shade.compiler.attributes.PreferencesMetadata;
 import io.t28.shade.compiler.utils.SupportedType;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
 public class PreferencesClassFactory extends TypeFactory {
-    private final PreferencesAttribute preferences;
+    private final PreferencesMetadata preferences;
     private final ClassName editorClass;
     private final ClassName entityClass;
     private final ClassName entityImplClass;
@@ -39,7 +39,7 @@ public class PreferencesClassFactory extends TypeFactory {
     private final List<TypeFactory> innerClassFactories;
 
     @Inject
-    public PreferencesClassFactory(@Nonnull PreferencesAttribute preferences,
+    public PreferencesClassFactory(@Nonnull PreferencesMetadata preferences,
                                    @Nonnull @Named("Editor") ClassName editorClass,
                                    @Nonnull @Named("Entity") ClassName entityClass,
                                    @Nonnull @Named("EntityImpl") ClassName entityImplClass,
@@ -116,7 +116,7 @@ public class PreferencesClassFactory extends TypeFactory {
         } else {
             builder.addStatement(
                     "this.$N = $L.getApplicationContext().getSharedPreferences($S, $L)",
-                    "preferences", "context", preferences.name(), preferences.mode()
+                    "preferences", "context", preferences.getName(), preferences.getMode()
             );
         }
         return builder.build();
@@ -128,7 +128,7 @@ public class PreferencesClassFactory extends TypeFactory {
                 .addAnnotation(NonNull.class)
                 .returns(entityClass);
 
-        final String arguments = preferences.properties()
+        final String arguments = preferences.getProperties()
                 .stream()
                 .map(property -> {
                     final String methodName = "get" + property.getName(CaseFormat.UPPER_CAMEL);
@@ -140,7 +140,7 @@ public class PreferencesClassFactory extends TypeFactory {
     }
 
     private List<MethodSpec> buildGetMethodSpecs() {
-        return preferences.properties()
+        return preferences.getProperties()
                 .stream()
                 .map(property -> {
                     final String methodName = "get" + property.getName(CaseFormat.UPPER_CAMEL);
@@ -174,7 +174,7 @@ public class PreferencesClassFactory extends TypeFactory {
     }
 
     private List<MethodSpec> buildContainsMethodSpecs() {
-        return preferences.properties()
+        return preferences.getProperties()
                 .stream()
                 .map(property -> {
                     final String methodName = "contains" + property.getName(CaseFormat.UPPER_CAMEL);
