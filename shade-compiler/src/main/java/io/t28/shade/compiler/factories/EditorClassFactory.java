@@ -20,18 +20,18 @@ import javax.inject.Named;
 import javax.lang.model.element.Modifier;
 
 import io.t28.shade.compiler.attributes.ConverterAttribute;
-import io.t28.shade.compiler.attributes.PropertyAttribute;
+import io.t28.shade.compiler.attributes.PropertyMetadata;
 import io.t28.shade.compiler.utils.SupportedType;
 
 import static java.util.stream.Collectors.toList;
 
 public class EditorClassFactory extends TypeFactory {
     private final ClassName editorClass;
-    private final List<PropertyAttribute> properties;
+    private final List<PropertyMetadata> properties;
 
     @Inject
     public EditorClassFactory(@Nonnull @Named("Editor") ClassName editorClass,
-                              @Nonnull List<PropertyAttribute> properties) {
+                              @Nonnull List<PropertyMetadata> properties) {
         this.editorClass = editorClass;
         this.properties = ImmutableList.copyOf(properties);
     }
@@ -81,16 +81,15 @@ public class EditorClassFactory extends TypeFactory {
     }
 
     private List<MethodSpec> buildPutMethodSpecs() {
-        return properties
-                .stream()
+        return properties.stream()
                 .map(property -> {
-                    final String methodName = CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, property.methodName());
-                    final MethodSpec.Builder builder = MethodSpec.methodBuilder("put" + methodName)
+                    final String methodName = "put" + property.getName(CaseFormat.UPPER_CAMEL);
+                    final MethodSpec.Builder builder = MethodSpec.methodBuilder(methodName)
                             .addAnnotation(NonNull.class)
                             .addModifiers(Modifier.PUBLIC)
                             .returns(editorClass);
 
-                    final TypeName valueType = property.returnTypeName();
+                    final TypeName valueType = property.getValueTypeName();
                     if (valueType.isPrimitive()) {
                         builder.addParameter(ParameterSpec.builder(valueType, "newValue")
                                 .build());
@@ -100,10 +99,10 @@ public class EditorClassFactory extends TypeFactory {
                                 .build());
                     }
 
-                    final ConverterAttribute converter = property.converter();
+                    final ConverterAttribute converter = property.getConverter();
                     final TypeName storeType;
                     if (converter.isDefault()) {
-                        storeType = property.returnTypeName();
+                        storeType = property.getValueTypeName();
                     } else {
                         storeType = converter.supportedType();
                     }
@@ -121,11 +120,11 @@ public class EditorClassFactory extends TypeFactory {
         return properties
                 .stream()
                 .map(property -> {
-                    final String methodName = CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, property.methodName());
-                    return MethodSpec.methodBuilder("remove" + methodName)
+                    final String methodName = "remove" + property.getName(CaseFormat.UPPER_CAMEL);
+                    return MethodSpec.methodBuilder(methodName)
                             .addAnnotation(NonNull.class)
                             .addModifiers(Modifier.PUBLIC)
-                            .addStatement("$L.remove($S)", "editor", property.key())
+                            .addStatement("$L.remove($S)", "editor", property.getKey())
                             .addStatement("return this")
                             .returns(editorClass)
                             .build();
@@ -151,8 +150,8 @@ public class EditorClassFactory extends TypeFactory {
                 .build();
     }
 
-    private CodeBlock buildSaveStatement(PropertyAttribute property, SupportedType supported) {
-        final ConverterAttribute converter = property.converter();
+    private CodeBlock buildSaveStatement(PropertyMetadata property, SupportedType supported) {
+        final ConverterAttribute converter = property.getConverter();
         final CodeBlock statement;
         if (converter.isDefault()) {
             statement = CodeBlock.builder()
@@ -163,6 +162,6 @@ public class EditorClassFactory extends TypeFactory {
                     .add("new $T().toSupported($L)", converter.className(), "newValue")
                     .build();
         }
-        return supported.buildSaveStatement("editor", property.key(), statement);
+        return supported.buildSaveStatement("editor", property.getKey(), statement);
     }
 }
