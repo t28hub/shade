@@ -22,7 +22,7 @@ import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 
 import io.t28.shade.annotation.Preferences;
-import io.t28.shade.compiler.factories.TypeFactory;
+import io.t28.shade.compiler.factory.TypeFactory;
 import io.t28.shade.compiler.inject.EditorModule;
 import io.t28.shade.compiler.inject.EntityModule;
 import io.t28.shade.compiler.inject.PreferencesModule;

@@ -10,8 +10,8 @@ import javax.annotation.Nonnull;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import io.t28.shade.compiler.factories.TypeFactory;
-import io.t28.shade.compiler.factories.EditorClassFactory;
+import io.t28.shade.compiler.factory.TypeFactory;
+import io.t28.shade.compiler.factory.EditorClassFactory;
 
 @SuppressWarnings("unused")
 public class EditorModule implements Module {

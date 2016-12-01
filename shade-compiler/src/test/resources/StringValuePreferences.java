@@ -8,7 +8,7 @@ import com.google.common.base.Objects;
 import io.t28.shade.annotation.Property;
 
 @SuppressWarnings("all")
-public final class StringValuePreferences {
+public class StringValuePreferences {
     private final SharedPreferences preferences;
 
     public StringValuePreferences(@NonNull Context context) {
@@ -34,19 +34,16 @@ public final class StringValuePreferences {
         return new Editor(preferences);
     }
 
+    @NonNull
+    public SharedPreferences provideSharedPreferences() {
+        return preferences;
+    }
+
     public static class StringValue$$Impl implements StringValue {
         private final String value;
 
-        private StringValue$$Impl(String value) {
+        protected StringValue$$Impl(String value) {
             this.value = value;
-        }
-
-        @NonNull
-        @Override
-        public String toString() {
-            return MoreObjects.toStringHelper("StringValue")
-                    .add("value", value)
-                    .toString();
         }
 
         @Override
@@ -66,6 +63,14 @@ public final class StringValuePreferences {
             return Objects.hashCode(value);
         }
 
+        @NonNull
+        @Override
+        public String toString() {
+            return MoreObjects.toStringHelper("StringValue")
+                    .add("value", value)
+                    .toString();
+        }
+
         @Override
         @Property(
                 key = "key_string"
@@ -78,7 +83,7 @@ public final class StringValuePreferences {
     public static class Editor {
         private final SharedPreferences.Editor editor;
 
-        private Editor(@NonNull SharedPreferences preferences) {
+        protected Editor(@NonNull SharedPreferences preferences) {
             this.editor = preferences.edit();
         }
 

@@ -10,8 +10,8 @@ import javax.annotation.Nonnull;
 import javax.inject.Named;
 import javax.lang.model.element.TypeElement;
 
-import io.t28.shade.compiler.factories.TypeFactory;
-import io.t28.shade.compiler.factories.EntityClassFactory;
+import io.t28.shade.compiler.factory.TypeFactory;
+import io.t28.shade.compiler.factory.EntityClassFactory;
 
 @SuppressWarnings("unused")
 public class EntityModule implements Module {

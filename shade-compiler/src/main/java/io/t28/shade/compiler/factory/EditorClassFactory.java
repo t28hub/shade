@@ -1,4 +1,4 @@
-package io.t28.shade.compiler.factories;
+package io.t28.shade.compiler.factory;
 
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
@@ -19,13 +19,17 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.lang.model.element.Modifier;
 
-import io.t28.shade.compiler.attributes.ConverterMetadata;
-import io.t28.shade.compiler.attributes.PropertyMetadata;
+import io.t28.shade.compiler.metadata.ConverterMetadata;
+import io.t28.shade.compiler.metadata.PropertyMetadata;
 import io.t28.shade.compiler.utils.SupportedType;
 
 import static java.util.stream.Collectors.toList;
 
 public class EditorClassFactory extends TypeFactory {
+    private static final String FIELD_EDITOR = "editor";
+    private static final String METHOD_PREFIX_PUT = "put";
+    private static final String METHOD_PREFIX_REMOVE = "remove";
+
     private final ClassName editorClass;
     private final List<PropertyMetadata> properties;
 
@@ -38,28 +42,28 @@ public class EditorClassFactory extends TypeFactory {
 
     @Nonnull
     @Override
-    protected String name() {
+    protected String getName() {
         return editorClass.simpleName();
     }
 
     @Nonnull
     @Override
-    protected List<Modifier> modifiers() {
+    protected List<Modifier> getModifiers() {
         return ImmutableList.of(Modifier.PUBLIC, Modifier.STATIC);
     }
 
     @Nonnull
     @Override
-    protected List<FieldSpec> fields() {
+    protected List<FieldSpec> getFields() {
         return ImmutableList.of(
-                FieldSpec.builder(SharedPreferences.Editor.class, "editor")
+                FieldSpec.builder(SharedPreferences.Editor.class, FIELD_EDITOR)
                         .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
                         .build());
     }
 
     @Nonnull
     @Override
-    protected List<MethodSpec> methods() {
+    protected List<MethodSpec> getMethods() {
         return ImmutableList.<MethodSpec>builder()
                 .add(buildConstructorSpec())
                 .addAll(buildPutMethodSpecs())
@@ -71,19 +75,19 @@ public class EditorClassFactory extends TypeFactory {
 
     private MethodSpec buildConstructorSpec() {
         return MethodSpec.constructorBuilder()
-                .addModifiers(Modifier.PRIVATE)
+                .addModifiers(Modifier.PROTECTED)
                 .addParameter(ParameterSpec.builder(SharedPreferences.class, "preferences")
                         .addAnnotation(NonNull.class)
                         .build()
                 )
-                .addStatement("this.$L = $L", "editor", "preferences.edit()")
+                .addStatement("this.$L = $L", FIELD_EDITOR, "preferences.edit()")
                 .build();
     }
 
     private List<MethodSpec> buildPutMethodSpecs() {
         return properties.stream()
                 .map(property -> {
-                    final String methodName = "put" + property.getName(CaseFormat.UPPER_CAMEL);
+                    final String methodName = METHOD_PREFIX_PUT + property.getName(CaseFormat.UPPER_CAMEL);
                     final MethodSpec.Builder builder = MethodSpec.methodBuilder(methodName)
                             .addAnnotation(NonNull.class)
                             .addModifiers(Modifier.PUBLIC)
@@ -120,11 +124,11 @@ public class EditorClassFactory extends TypeFactory {
         return properties
                 .stream()
                 .map(property -> {
-                    final String methodName = "remove" + property.getName(CaseFormat.UPPER_CAMEL);
+                    final String methodName = METHOD_PREFIX_REMOVE + property.getName(CaseFormat.UPPER_CAMEL);
                     return MethodSpec.methodBuilder(methodName)
                             .addAnnotation(NonNull.class)
                             .addModifiers(Modifier.PUBLIC)
-                            .addStatement("$L.remove($S)", "editor", property.getKey())
+                            .addStatement("$L.remove($S)", FIELD_EDITOR, property.getKey())
                             .addStatement("return this")
                             .returns(editorClass)
                             .build();
@@ -137,7 +141,7 @@ public class EditorClassFactory extends TypeFactory {
         return MethodSpec.methodBuilder("clear")
                 .addAnnotation(NonNull.class)
                 .addModifiers(Modifier.PUBLIC)
-                .addStatement("$L.clear()", "editor")
+                .addStatement("$L.clear()", FIELD_EDITOR)
                 .addStatement("return this")
                 .returns(editorClass)
                 .build();
@@ -146,7 +150,7 @@ public class EditorClassFactory extends TypeFactory {
     private MethodSpec buildApplyMethodSpec() {
         return MethodSpec.methodBuilder("apply")
                 .addModifiers(Modifier.PUBLIC)
-                .addStatement("$L.apply()", "editor")
+                .addStatement("$L.apply()", FIELD_EDITOR)
                 .build();
     }
 
@@ -162,6 +166,6 @@ public class EditorClassFactory extends TypeFactory {
                     .add("new $T().toSupported($L)", converter.getClassName(), "newValue")
                     .build();
         }
-        return supported.buildSaveStatement("editor", property.getKey(), statement);
+        return supported.buildSaveStatement(FIELD_EDITOR, property.getKey(), statement);
     }
 }

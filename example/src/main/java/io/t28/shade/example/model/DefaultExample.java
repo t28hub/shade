@@ -6,8 +6,11 @@ import io.t28.shade.annotation.Property;
 @Preferences
 public interface DefaultExample {
     @Property(key = "user_name", defValue = "default")
-    String name();
+    String getName();
 
     @Property(key = "user_age", defValue = "20")
-    int age();
+    int getAge();
+
+    @Property(key = "is_updated")
+    boolean isUpdated();
 }

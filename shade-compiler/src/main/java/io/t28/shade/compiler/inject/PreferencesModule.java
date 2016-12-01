@@ -16,10 +16,10 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 
 import io.t28.shade.annotation.Preferences;
-import io.t28.shade.compiler.attributes.PreferencesMetadata;
-import io.t28.shade.compiler.attributes.PropertyMetadata;
-import io.t28.shade.compiler.factories.PreferencesClassFactory;
-import io.t28.shade.compiler.factories.TypeFactory;
+import io.t28.shade.compiler.metadata.PreferencesMetadata;
+import io.t28.shade.compiler.metadata.PropertyMetadata;
+import io.t28.shade.compiler.factory.PreferencesClassFactory;
+import io.t28.shade.compiler.factory.TypeFactory;
 
 @SuppressWarnings("unused")
 public class PreferencesModule implements Module {

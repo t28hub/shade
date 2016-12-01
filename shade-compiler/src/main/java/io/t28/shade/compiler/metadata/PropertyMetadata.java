@@ -1,4 +1,4 @@
-package io.t28.shade.compiler.attributes;
+package io.t28.shade.compiler.metadata;
 
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Strings;
