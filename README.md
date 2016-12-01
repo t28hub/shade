@@ -3,7 +3,19 @@
 [![Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/t28hub/shade/blob/feature-updating-readme/LICENSE)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/b4aad6ede42c43678389cb7a915dd1a7)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=t28hub/shade&amp;utm_campaign=Badge_Grade)
 
-Shade is a library makes SharedPreferences operation easy by using annotation processing.
+Shade is a library makes SharedPreferences operation easy.
+There are only 2 annotations you should know when you use this.
+
+## Table of Contents
+- [Background](#background)
+- [License](#license)
+
+## Background
+There might be a lot of boilerplate code for SharedPreferences operation in your android application.
+Generally speaking, the code needs to be tested and reviewed if it is written manually.
+However, the code does not need to be tested and reviewed if it is generated automatically.
+Shade generates a lot of boilerplate code for SharedPreferences automatically using annotation processing and not reflection.
+Therefore it has potential to make android application development efficiently.
 
 ## License
 ```
