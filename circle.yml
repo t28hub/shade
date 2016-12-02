@@ -23,6 +23,10 @@ dependencies:
     - echo ${ANDROID_SDK_PREVIEW_LICENSE} >> ${ANDROID_HOME}/licenses/android-sdk-preview-cicense
 
 test:
+  pre:
+    - curl -sL https://github.com/jpm4j/jpm4j.installers/raw/master/dist/biz.aQute.jpm.run.jar > jpm4j.jar
+    - java -jar jpm4j.jar -u init
+    - ~/jpm/bin/jpm install com.codacy:codacy-coverage-reporter:assembly
   override:
     - ./gradlew :shade:test :shade:jacoco --full-stacktrace
     - ./gradlew :shade-compiler:test :shade-compiler:jacoco --full-stacktrace
@@ -31,6 +35,8 @@ test:
     - find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ${CIRCLE_TEST_REPORTS}/junit/ \;
     - cp -r shade/build/reports ${CIRCLE_ARTIFACTS}/shade
     - cp -r shade-compiler/build/reports ${CIRCLE_ARTIFACTS}/shade-compiler
+    - ~/jpm/bin/codacy-coverage-reporter -l Java -r shade/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
+    - ~/jpm/bin/codacy-coverage-reporter -l Java -r shade-compiler/build/reports/jacoco/test/jacocoTestReport.xml
 
 deployment:
   master:
