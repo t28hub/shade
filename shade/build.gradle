@@ -48,7 +48,7 @@ task jacocoTestReport(type: JacocoReport, dependsOn: 'testDebugUnitTest') {
     description = 'Generate unit test coverage report'
 
     reports {
-        xml.enabled = false
+        xml.enabled = true
         csv.enabled = false
         html.enabled = true
     }
