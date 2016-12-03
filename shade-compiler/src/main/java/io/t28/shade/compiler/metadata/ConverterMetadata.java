@@ -51,7 +51,7 @@ public class ConverterMetadata {
         }
         checkConstructor(element);
 
-        final List<TypeName> typeNames = TypeNames.collectGenericTypes(element, Converter.class);
+        final List<TypeName> typeNames = TypeElements.collectGenericTypes(element, Converter.class);
         if (typeNames.size() != GENERICS_SIZE) {
             throw new IllegalArgumentException("Converter(" + className + ") must have 2 generic types");
         }
