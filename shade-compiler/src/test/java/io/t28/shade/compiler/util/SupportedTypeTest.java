@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.t28.shade.compiler.utils;
+package io.t28.shade.compiler.util;
 
 import com.google.common.base.MoreObjects;
 import com.squareup.javapoet.CodeBlock;
@@ -26,8 +26,6 @@ import org.junit.runner.RunWith;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
-import io.t28.shade.compiler.util.SupportedType;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -231,5 +229,4 @@ public class SupportedTypeTest {
             }
         }
     }
-
 }

@@ -16,8 +16,12 @@
 package io.t28.shade.compiler.util;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSet;
+import com.squareup.javapoet.TypeName;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 
 import javax.annotation.Nonnull;
@@ -36,17 +40,63 @@ public class TypeElements {
     }
 
     @Nonnull
-    public static TypeElement toTypeElement(@Nonnull TypeMirror type) {
-        if (type.getKind() != TypeKind.DECLARED) {
-            throw new IllegalArgumentException("Kind of type(" + type + ") must be " + TypeKind.DECLARED);
+    public static TypeElement toTypeElement(@Nonnull TypeMirror typeMirror) {
+        if (typeMirror.getKind() != TypeKind.DECLARED) {
+            throw new IllegalArgumentException("Kind of type(" + typeMirror + ") must be " + TypeKind.DECLARED);
         }
 
-        final DeclaredType declaredType = (DeclaredType) type;
+        final DeclaredType declaredType = (DeclaredType) typeMirror;
         final Element element = declaredType.asElement();
         if (!(element instanceof TypeElement)) {
             throw new IllegalArgumentException("Provided element(" + element + ") is not instance of TypeElement");
         }
         return (TypeElement) element;
+    }
+
+    @Nonnull
+    public static Set<TypeName> collectInterfaces(@Nonnull TypeElement typeElement) {
+        final ImmutableSet.Builder<TypeName> builder = ImmutableSet.builder();
+        TypeElement currentElement = typeElement;
+        while (currentElement != null) {
+            final List<TypeName> found = currentElement.getInterfaces()
+                    .stream()
+                    .map(TypeName::get)
+                    .collect(toList());
+            builder.addAll(found);
+
+            final TypeMirror superClassType = currentElement.getSuperclass();
+            if (superClassType.getKind() == TypeKind.DECLARED) {
+                currentElement = toTypeElement(superClassType);
+            } else {
+                currentElement = null;
+            }
+        }
+        return builder.build();
+    }
+
+    @Nonnull
+    public static List<TypeName> collectGenericTypes(@Nonnull TypeElement element, @Nonnull Class clazz) {
+        TypeElement currentElement = element;
+        while (currentElement != null) {
+            for (final TypeMirror interfaceType : currentElement.getInterfaces()) {
+                final DeclaredType declaredType = (DeclaredType) interfaceType;
+                final TypeElement interfaceElement = TypeElements.toTypeElement(declaredType);
+                if (interfaceElement.getSimpleName().toString().equals(clazz.getSimpleName())) {
+                    return declaredType.getTypeArguments()
+                            .stream()
+                            .map(TypeName::get)
+                            .collect(toList());
+                }
+            }
+
+            final TypeMirror superClassType = currentElement.getSuperclass();
+            if (superClassType.getKind() == TypeKind.DECLARED) {
+                currentElement = TypeElements.toTypeElement(superClassType);
+            } else {
+                currentElement = null;
+            }
+        }
+        return Collections.emptyList();
     }
 
     @Nonnull

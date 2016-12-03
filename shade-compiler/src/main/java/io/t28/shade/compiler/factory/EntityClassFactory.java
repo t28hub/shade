@@ -38,6 +38,7 @@ import javax.inject.Named;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeMirror;
 
 import io.t28.shade.compiler.metadata.PropertyMetadata;
 import io.t28.shade.compiler.util.CodeBlocks;
@@ -146,7 +147,7 @@ public class EntityClassFactory extends TypeFactory {
 
         // Statements
         properties.forEach(property -> {
-            final TypeName valueType = property.getValueTypeName();
+            final TypeMirror valueType = property.getValueType();
             final String fieldName = getFieldName(property);
             builder.addStatement("$L", CodeBlock.builder()
                     .add("this.$L = $L", fieldName, CodeBlocks.createUnmodifiableStatement(valueType, fieldName))
@@ -226,7 +227,7 @@ public class EntityClassFactory extends TypeFactory {
         return properties.stream()
                 .map(property -> {
                     final String fieldName = getFieldName(property);
-                    final TypeName valueType = property.getValueTypeName();
+                    final TypeMirror valueType = property.getValueType();
                     final CodeBlock statement = CodeBlocks.createUnmodifiableStatement(valueType, fieldName);
                     return MethodSpec.overriding(property.getMethod())
                             .addStatement("return $L", statement)
