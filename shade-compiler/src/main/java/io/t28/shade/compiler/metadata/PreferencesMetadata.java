@@ -30,7 +30,7 @@ import javax.lang.model.util.Elements;
 
 import io.t28.shade.annotation.Preferences;
 import io.t28.shade.annotation.Property;
-import io.t28.shade.compiler.utils.TypeElements;
+import io.t28.shade.compiler.util.TypeElements;
 
 import static java.util.stream.Collectors.toList;
 

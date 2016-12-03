@@ -16,17 +16,21 @@
 package io.t28.shade.compiler;
 
 import com.google.auto.service.AutoService;
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.name.Names;
+import com.squareup.javapoet.JavaFile;
 
+import java.io.IOException;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.annotation.processing.AbstractProcessor;
-import javax.annotation.processing.Messager;
+import javax.annotation.processing.Filer;
+import javax.annotation.processing.FilerException;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.Processor;
 import javax.annotation.processing.RoundEnvironment;
@@ -34,7 +38,6 @@ import javax.inject.Inject;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
-import javax.tools.Diagnostic;
 
 import io.t28.shade.annotation.Preferences;
 import io.t28.shade.compiler.factory.TypeFactory;
@@ -42,21 +45,22 @@ import io.t28.shade.compiler.inject.EditorModule;
 import io.t28.shade.compiler.inject.EntityModule;
 import io.t28.shade.compiler.inject.PreferencesModule;
 import io.t28.shade.compiler.inject.ShadeModule;
-import io.t28.shade.compiler.utils.Writer;
+import io.t28.shade.compiler.util.Logger;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 @AutoService(Processor.class)
 public class ShadeProcessor extends AbstractProcessor {
+    private static final String INDENT = "    ";
     private static final Key<String> PACKAGE_NAME_KEY = Key.get(String.class, Names.named("PackageName"));
     private static final Key<TypeFactory> TYPE_FACTORY_KEY = Key.get(TypeFactory.class, Names.named("Preferences"));
 
     private Injector injector;
 
     @Inject
-    private Messager messager;
+    private Logger logger;
 
     @Inject
-    private Writer writer;
+    private Filer filer;
 
     @Override
     public Set<String> getSupportedAnnotationTypes() {
@@ -85,7 +89,7 @@ public class ShadeProcessor extends AbstractProcessor {
                     if (kind == ElementKind.INTERFACE || kind == ElementKind.CLASS) {
                         return true;
                     }
-                    messager.printMessage(Diagnostic.Kind.ERROR, "@Preferences is not allowed to use for " + kind);
+                    logger.error("@Preferences is not allowed to use for %s", kind);
                     return false;
                 })
                 .forEach(element -> {
@@ -97,11 +101,19 @@ public class ShadeProcessor extends AbstractProcessor {
                         );
                         final String packageName = childInjector.getInstance(PACKAGE_NAME_KEY);
                         final TypeFactory factory = childInjector.getInstance(TYPE_FACTORY_KEY);
-                        writer.write(packageName, factory.create());
-                    } catch (Exception e) {
-                        messager.printMessage(Diagnostic.Kind.ERROR, e.getMessage());
+                        final JavaFile file = JavaFile.builder(packageName, factory.create())
+                                .indent(INDENT)
+                                .skipJavaLangImports(true)
+                                .build();
+                        file.writeTo(filer);
+                    } catch (FilerException e) {
+                        logger.warning("Unable to generate a source file: %s", e.getMessage());
+                    } catch (IOException e) {
+                        logger.error("I/O error occurred: %s", Throwables.getStackTraceAsString(e));
+                    } catch (RuntimeException e) {
+                        logger.error("Internal error occurred: %s", Throwables.getStackTraceAsString(e));
                     }
                 });
-        return true;
+        return false;
     }
 }

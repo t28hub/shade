@@ -36,7 +36,7 @@ import javax.lang.model.element.Modifier;
 
 import io.t28.shade.compiler.metadata.ConverterMetadata;
 import io.t28.shade.compiler.metadata.PropertyMetadata;
-import io.t28.shade.compiler.utils.SupportedType;
+import io.t28.shade.compiler.util.SupportedType;
 
 import static java.util.stream.Collectors.toList;
 

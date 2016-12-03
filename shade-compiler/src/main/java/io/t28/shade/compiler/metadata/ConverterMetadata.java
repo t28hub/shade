@@ -27,9 +27,9 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 
-import io.t28.shade.compiler.utils.SupportedType;
-import io.t28.shade.compiler.utils.TypeElements;
-import io.t28.shade.compiler.utils.TypeNames;
+import io.t28.shade.compiler.util.SupportedType;
+import io.t28.shade.compiler.util.TypeElements;
+import io.t28.shade.compiler.util.TypeNames;
 import io.t28.shade.converter.Converter;
 import io.t28.shade.converter.DefaultConverter;
 

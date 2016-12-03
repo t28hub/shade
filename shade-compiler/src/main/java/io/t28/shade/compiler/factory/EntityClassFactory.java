@@ -40,8 +40,8 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 
 import io.t28.shade.compiler.metadata.PropertyMetadata;
-import io.t28.shade.compiler.utils.CodeBlocks;
-import io.t28.shade.compiler.utils.TypeElements;
+import io.t28.shade.compiler.util.CodeBlocks;
+import io.t28.shade.compiler.util.TypeElements;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;

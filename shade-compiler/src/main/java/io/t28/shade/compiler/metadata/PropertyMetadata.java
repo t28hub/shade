@@ -36,7 +36,7 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 
 import io.t28.shade.annotation.Property;
-import io.t28.shade.compiler.utils.TypeElements;
+import io.t28.shade.compiler.util.TypeElements;
 
 public class PropertyMetadata {
     private static final Pattern GETTER_PATTERN = Pattern.compile("^(get|is|has|can)?([^a-z].+)");
