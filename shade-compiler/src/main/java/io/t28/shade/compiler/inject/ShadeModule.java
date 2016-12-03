@@ -23,11 +23,11 @@ import javax.annotation.Nonnull;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
+import javax.inject.Singleton;
 import javax.lang.model.util.Elements;
-import javax.lang.model.util.Types;
 
-import io.t28.shade.compiler.utils.ClassWriter;
-import io.t28.shade.compiler.utils.Writer;
+import io.t28.shade.compiler.util.Logger;
+import io.t28.shade.compiler.util.MessagerLogger;
 
 @SuppressWarnings("unused")
 public class ShadeModule implements Module {
@@ -39,17 +39,14 @@ public class ShadeModule implements Module {
 
     @Override
     public void configure(Binder binder) {
-        binder.bind(Writer.class).to(ClassWriter.class);
+        binder.bind(Logger.class)
+                .to(MessagerLogger.class)
+                .in(Singleton.class);
     }
 
     @Provides
     public Filer provideFiler() {
         return environment.getFiler();
-    }
-
-    @Provides
-    public Types provideTypes() {
-        return environment.getTypeUtils();
     }
 
     @Provides

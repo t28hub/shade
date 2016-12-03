@@ -27,6 +27,8 @@ import org.junit.runner.RunWith;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import io.t28.shade.compiler.util.SupportedType;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(Enclosed.class)

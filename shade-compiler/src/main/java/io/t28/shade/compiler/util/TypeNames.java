@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.t28.shade.compiler.utils;
+package io.t28.shade.compiler.util;
 
 import com.squareup.javapoet.TypeName;
 
