@@ -15,6 +15,7 @@
  */
 package io.t28.shade.compiler.factory;
 
+import android.annotation.SuppressLint;
 import android.support.annotation.NonNull;
 
 import com.google.common.base.CaseFormat;
@@ -47,6 +48,7 @@ import io.t28.shade.compiler.util.TypeElements;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
+@SuppressLint("NewApi")
 public class EntityClassFactory extends TypeFactory {
     private static final String METHOD_EQUALS = "equals";
     private static final String METHOD_HASH_CODE = "hashCode";

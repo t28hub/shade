@@ -31,6 +31,7 @@ public class MessagerLogger implements Logger {
     private final Locale locale;
 
     @Inject
+    @SuppressWarnings("unused")
     public MessagerLogger(@Nonnull Messager messager) {
         this(messager, Locale.getDefault());
     }
@@ -43,11 +44,15 @@ public class MessagerLogger implements Logger {
 
     @Override
     public void warning(@Nonnull String message, @Nullable Object... args) {
-        messager.printMessage(Diagnostic.Kind.WARNING, String.format(locale, message, args));
+        print(Diagnostic.Kind.WARNING, message, args);
     }
 
     @Override
     public void error(@Nonnull String message, @Nullable Object... args) {
-        messager.printMessage(Diagnostic.Kind.WARNING, String.format(locale, message, args));
+        print(Diagnostic.Kind.ERROR, message, args);
+    }
+
+    private void print(Diagnostic.Kind kind, String message, Object... args) {
+        messager.printMessage(kind, String.format(locale, message, args));
     }
 }
