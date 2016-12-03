@@ -51,17 +51,37 @@ public class ShadeProcessorTest {
     private ShadeProcessor mUnderTest;
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         mUnderTest = new ShadeProcessor();
     }
 
     @Test
-    public void stringValue() throws Exception {
-        final Compilation actual = javac()
+    public void processorShouldProcessIntValue() throws Exception {
+        // exercise
+        final Compilation compilation = javac()
+                .withProcessors(mUnderTest)
+                .compile(forName("IntValue.java"));
+
+        // verify
+        final Optional<JavaFileObject> generated = compilation.generatedSourceFile("io/t28/shade/testing/IntValuePreferences.java");
+        assertThat(generated)
+                .isNotEmpty();
+
+        final CharSequence actualContent = generated.get().getCharContent(false);
+        final CharSequence expectedContent = forName("IntValuePreferences.java").getCharContent(false);
+        assertThat(actualContent)
+                .isEqualTo(expectedContent);
+    }
+
+    @Test
+    public void processorShouldProcessStringValue() throws Exception {
+        // exercise
+        final Compilation compilation = javac()
                 .withProcessors(mUnderTest)
                 .compile(forName("StringValue.java"));
 
-        final Optional<JavaFileObject> generated = actual.generatedSourceFile("io/t28/shade/testing/StringValuePreferences.java");
+        // verify
+        final Optional<JavaFileObject> generated = compilation.generatedSourceFile("io/t28/shade/testing/StringValuePreferences.java");
         assertThat(generated)
                 .isNotEmpty();
 
