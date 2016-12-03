@@ -33,8 +33,6 @@ test:
   post:
     - mkdir -p ${CIRCLE_TEST_REPORTS}/junit/
     - find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ${CIRCLE_TEST_REPORTS}/junit/ \;
-    - cp -r shade/build/reports ${CIRCLE_ARTIFACTS}/shade
-    - cp -r shade-compiler/build/reports ${CIRCLE_ARTIFACTS}/shade-compiler
     - ~/jpm/bin/codacy-coverage-reporter -l Java -r shade/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
     - ~/jpm/bin/codacy-coverage-reporter -l Java -r shade-compiler/build/reports/jacoco/test/jacocoTestReport.xml
 
