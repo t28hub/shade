@@ -17,7 +17,7 @@ public class StringValuePreferences {
 
     @NonNull
     public StringValue get() {
-        return new StringValue$$Impl(getValue());
+        return new StringValueImpl(getValue());
     }
 
     @NonNull
@@ -39,10 +39,10 @@ public class StringValuePreferences {
         return preferences;
     }
 
-    public static class StringValue$$Impl implements StringValue {
+    public static class StringValueImpl implements StringValue {
         private final String value;
 
-        protected StringValue$$Impl(String value) {
+        protected StringValueImpl(String value) {
             this.value = value;
         }
 
