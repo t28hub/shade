@@ -30,7 +30,7 @@ import io.t28.shade.compiler.factory.EntityClassFactory;
 
 @SuppressWarnings("unused")
 public class EntityModule implements Module {
-    private static final String ENTITY_IMPL_SUFFIX = "$$Impl";
+    private static final String ENTITY_IMPL_SUFFIX = "Impl";
 
     @Override
     public void configure(Binder binder) {

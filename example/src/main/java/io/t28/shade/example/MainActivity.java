@@ -19,30 +19,32 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
-import io.t28.shade.example.model.Example;
-import io.t28.shade.example.model.ExamplePreferences;
+import io.t28.shade.example.preferences.User;
+import io.t28.shade.example.preferences.UserPreferences;
 
 public class MainActivity extends AppCompatActivity {
-    private ExamplePreferences preferences;
+    private static final String TAG = MainActivity.class.getSimpleName();
+
+    private UserPreferences preferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        preferences = new ExamplePreferences(this);
+        preferences = User.getPreferences(this);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        final Example oldValue = preferences.get();
-        Log.d(MainActivity.class.getSimpleName(), oldValue.toString());
+        final User oldUser = preferences.get();
+        Log.d(TAG, oldUser.toString());
         preferences.edit()
-                .putIntValue(100)
-                .putLongValue(200)
+                .putName("new name")
+                .putType(User.Type.ADMIN)
                 .apply();
-        final Example newValue = preferences.get();
-        Log.d(MainActivity.class.getSimpleName(), newValue.toString());
+        final User newUser = preferences.get();
+        Log.d(TAG, newUser.toString());
     }
 }

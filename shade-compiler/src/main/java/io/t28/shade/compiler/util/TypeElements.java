@@ -119,7 +119,7 @@ public class TypeElements {
     public static boolean isMethodDefined(@Nonnull TypeElement element, @Nonnull Predicate<? super ExecutableElement> matcher) {
         return element.getEnclosedElements()
                 .stream()
-                .filter(enclosed -> enclosed.getKind() != ElementKind.METHOD)
+                .filter(enclosed -> enclosed.getKind() == ElementKind.METHOD)
                 .map(ExecutableElement.class::cast)
                 .anyMatch(matcher);
     }
