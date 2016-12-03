@@ -15,10 +15,13 @@
  */
 package io.t28.shade.compiler;
 
+import android.annotation.SuppressLint;
+
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Closeables;
 import com.google.common.io.Files;
+import com.google.testing.compile.Compilation;
 import com.google.testing.compile.JavaFileObjects;
 
 import org.junit.Before;
@@ -29,18 +32,19 @@ import org.junit.runners.JUnit4;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
-import java.util.Collections;
+import java.util.Optional;
 
 import javax.annotation.Nonnull;
 import javax.tools.JavaFileObject;
 
-import static com.google.common.truth.Truth.assertAbout;
-import static com.google.testing.compile.JavaSourcesSubjectFactory.javaSources;
+import static com.google.testing.compile.Compiler.javac;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests the {@link ShadeProcessor}
  */
 @RunWith(JUnit4.class)
+@SuppressLint("NewApi")
 public class ShadeProcessorTest {
     private static final String RESOURCES_DIRECTORY = "src/test/resources";
 
@@ -53,12 +57,18 @@ public class ShadeProcessorTest {
 
     @Test
     public void stringValue() throws Exception {
-        assertAbout(javaSources())
-                .that(Collections.singletonList(forName("StringValue.java")))
-                .processedWith(mUnderTest)
-                .compilesWithoutError()
-                .and()
-                .generatesFiles(forName("StringValuePreferences.java"));
+        final Compilation actual = javac()
+                .withProcessors(mUnderTest)
+                .compile(forName("StringValue.java"));
+
+        final Optional<JavaFileObject> generated = actual.generatedSourceFile("io/t28/shade/testing/StringValuePreferences.java");
+        assertThat(generated)
+                .isNotEmpty();
+
+        final CharSequence actualContent = generated.get().getCharContent(false);
+        final CharSequence expectedContent = forName("StringValuePreferences.java").getCharContent(false);
+        assertThat(actualContent)
+                .isEqualTo(expectedContent);
     }
 
     @Nonnull
