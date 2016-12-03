@@ -8,25 +8,24 @@ import com.google.common.base.Objects;
 import io.t28.shade.annotation.Property;
 
 @SuppressWarnings("all")
-public class StringValuePreferences {
+public class IntValuePreferences {
     private final SharedPreferences preferences;
 
-    public StringValuePreferences(@NonNull Context context) {
+    public IntValuePreferences(@NonNull Context context) {
         this.preferences = context.getApplicationContext().getSharedPreferences("io.t28.shade.testing", 0);
     }
 
     @NonNull
-    public StringValue get() {
-        return new StringValueImpl(getValue());
+    public IntValue get() {
+        return new IntValueImpl(getValue());
     }
 
-    @NonNull
-    public String getValue() {
-        return preferences.getString("key_string", "");
+    public int getValue() {
+        return preferences.getInt("key_int", 0);
     }
 
     public boolean containsValue() {
-        return preferences.contains("key_string");
+        return preferences.contains("key_int");
     }
 
     @NonNull
@@ -39,10 +38,10 @@ public class StringValuePreferences {
         return preferences;
     }
 
-    public static class StringValueImpl implements StringValue {
-        private final String value;
+    public static class IntValueImpl implements IntValue {
+        private final int value;
 
-        protected StringValueImpl(String value) {
+        protected IntValueImpl(int value) {
             this.value = value;
         }
 
@@ -51,11 +50,11 @@ public class StringValuePreferences {
             if (this == object) {
                 return true;
             }
-            if (!(object instanceof StringValue)) {
+            if (!(object instanceof IntValue)) {
                 return false;
             }
-            final StringValue that = (StringValue) object;
-            return Objects.equal(value, that.value());
+            final IntValue that = (IntValue) object;
+            return value == that.value();
         }
 
         @Override
@@ -66,16 +65,16 @@ public class StringValuePreferences {
         @NonNull
         @Override
         public String toString() {
-            return MoreObjects.toStringHelper("StringValue")
+            return MoreObjects.toStringHelper("IntValue")
                     .add("value", value)
                     .toString();
         }
 
         @Override
         @Property(
-                key = "key_string"
+                key = "key_int"
         )
-        public String value() {
+        public int value() {
             return value;
         }
     }
@@ -88,14 +87,14 @@ public class StringValuePreferences {
         }
 
         @NonNull
-        public Editor putValue(@NonNull String newValue) {
-            editor.putString("key_string", newValue);
+        public Editor putValue(int newValue) {
+            editor.putInt("key_int", newValue);
             return this;
         }
 
         @NonNull
         public Editor removeValue() {
-            editor.remove("key_string");
+            editor.remove("key_int");
             return this;
         }
 
