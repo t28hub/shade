@@ -5,18 +5,55 @@
 [![Codacy Coverage](https://api.codacy.com/project/badge/Coverage/b4aad6ede42c43678389cb7a915dd1a7)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=t28hub/shade&amp;utm_campaign=Badge_Coverage)
 
 Shade is a library makes SharedPreferences operation easy.
-There are only 2 annotations you should know when you use this.
 
 ## Table of Contents
 - [Background](#background)
+- [Example](#example)
+- [Installation](#installation)
 - [License](#license)
 
 ## Background
-There might be a lot of boilerplate code for SharedPreferences operation in your android application.
-Generally speaking, the code needs to be tested and reviewed if it is written manually.
-However, the code does not need to be tested and reviewed if it is generated automatically.
-Shade generates a lot of boilerplate code for SharedPreferences operation automatically using annotation processing and not reflection.
-Therefore it has potential to make your android application development safe and efficient.
+There might be a lot of boilerplate code for SharedPreferences operation in your android application.  
+Generally speaking, the code needs to be tested and reviewed if it is written manually.  
+However, the code does not need to be tested and reviewed if it is generated automatically.  
+Shade generates a lot of boilerplate code for SharedPreferences operation automatically using annotation processing and not reflection.  
+Therefore it has potential to make your android application development safe and efficient.  
+
+## Example
+If you want to store user name and age to a SharedPreferences named `io.t28.shade.example`, you only need to define a following class.
+```java
+@Preferences(name = "io.t28.shade.example")
+public abstract class User {
+    @Property(name = "user_name", defValue = "guest")
+    String name();
+
+    @Property(name = "user_age", defValue = "18")
+    int age();
+
+    @NonNull
+    public static UserPreferences getPreferences(@NonNull Context context) {
+        return new UserPreferences(context);
+    }
+}
+```
+Shade will generate a `UserPreferences` and you can use it such as below.
+```java
+final UserPreferences preferences = User.getPreferences(context);
+final User user = preferences.get();
+final String name = preferences.getName();
+final int age = preferences.getAge();
+
+preferences.edit()
+        .putName("t28")
+        .removeAge()
+        .apply();
+```
+
+
+## Installation
+```
+To be announced
+```
 
 ## License
 ```
