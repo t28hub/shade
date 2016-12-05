@@ -31,13 +31,11 @@ import io.t28.shade.compiler.util.SupportedType;
 import io.t28.shade.compiler.util.TypeElements;
 import io.t28.shade.compiler.util.TypeNames;
 import io.t28.shade.converter.Converter;
-import io.t28.shade.converter.DefaultConverter;
 
 public class ConverterMetadata {
-    private static final int GENERICS_SIZE = 2;
     private static final int CONVERTED_TYPE_INDEX = 0;
     private static final int SUPPORTED_TYPE_INDEX = 1;
-    private static final ClassName DEFAULT_CLASS = ClassName.get(DefaultConverter.class);
+    private static final ClassName DEFAULT_CLASS = ClassName.get(Converter.class);
 
     private final ClassName className;
     private final TypeName supportedType;
@@ -51,19 +49,20 @@ public class ConverterMetadata {
         }
         checkConstructor(element);
 
-        final List<TypeName> typeNames = TypeElements.collectGenericTypes(element, Converter.class);
-        if (typeNames.size() != GENERICS_SIZE) {
-            throw new IllegalArgumentException("Converter(" + className + ") must have 2 generic types");
-        }
-
-        final TypeName supportedType = TypeNames.unbox(typeNames.get(SUPPORTED_TYPE_INDEX));
-        final TypeName convertedType = TypeNames.unbox(typeNames.get(CONVERTED_TYPE_INDEX));
-        if (!DEFAULT_CLASS.equals(className) && !SupportedType.contains(supportedType)) {
-            throw new IllegalArgumentException("SharedPreferences does not support saving specified type(" + supportedType + ")");
-        }
         this.className = className;
-        this.supportedType = supportedType;
-        this.convertedType = convertedType;
+        if (DEFAULT_CLASS.equals(className)) {
+            this.supportedType = TypeName.VOID;
+            this.convertedType = TypeName.VOID;
+        } else {
+            final List<TypeName> typeNames = TypeElements.collectGenericTypes(element, Converter.class);
+            final TypeName supportedType = TypeNames.unbox(typeNames.get(SUPPORTED_TYPE_INDEX));
+            final TypeName convertedType = TypeNames.unbox(typeNames.get(CONVERTED_TYPE_INDEX));
+            if (!SupportedType.contains(supportedType)) {
+                throw new IllegalArgumentException("SharedPreferences does not support to save " + supportedType);
+            }
+            this.supportedType = supportedType;
+            this.convertedType = convertedType;
+        }
     }
 
     public boolean isDefault() {

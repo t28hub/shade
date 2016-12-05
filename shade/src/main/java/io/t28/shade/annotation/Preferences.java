@@ -16,7 +16,9 @@
 package io.t28.shade.annotation;
 
 import android.content.Context;
+import android.os.Build;
 import android.support.annotation.IntDef;
+import android.support.annotation.RequiresApi;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -25,6 +27,7 @@ import java.lang.annotation.Target;
 
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.CLASS)
+@RequiresApi(Build.VERSION_CODES.HONEYCOMB)
 public @interface Preferences {
     String name() default "";
 
