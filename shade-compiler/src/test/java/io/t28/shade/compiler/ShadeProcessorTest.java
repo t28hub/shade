@@ -56,37 +56,37 @@ public class ShadeProcessorTest {
     }
 
     @Test
-    public void processorShouldProcessIntValue() throws Exception {
+    public void processorShouldProcessAnnotations() throws Exception {
         // exercise
         final Compilation compilation = javac()
                 .withProcessors(mUnderTest)
-                .compile(forName("IntValue.java"));
+                .compile(forName("Test.java"));
 
         // verify
-        final Optional<JavaFileObject> generated = compilation.generatedSourceFile("io/t28/shade/testing/IntValuePreferences.java");
+        final Optional<JavaFileObject> generated = compilation.generatedSourceFile("io/t28/shade/test/TestPreferences.java");
         assertThat(generated)
                 .isNotEmpty();
 
         final CharSequence actualContent = generated.get().getCharContent(false);
-        final CharSequence expectedContent = forName("IntValuePreferences.java").getCharContent(false);
+        final CharSequence expectedContent = forName("TestPreferences.java").getCharContent(false);
         assertThat(actualContent)
                 .isEqualTo(expectedContent);
     }
 
     @Test
-    public void processorShouldProcessStringValue() throws Exception {
+    public void processorShouldUseDefaultSharedPreferences() throws Exception {
         // exercise
         final Compilation compilation = javac()
                 .withProcessors(mUnderTest)
-                .compile(forName("StringValue.java"));
+                .compile(forName("DefaultTest.java"));
 
         // verify
-        final Optional<JavaFileObject> generated = compilation.generatedSourceFile("io/t28/shade/testing/StringValuePreferences.java");
+        final Optional<JavaFileObject> generated = compilation.generatedSourceFile("io/t28/shade/test/DefaultTestPreferences.java");
         assertThat(generated)
                 .isNotEmpty();
 
         final CharSequence actualContent = generated.get().getCharContent(false);
-        final CharSequence expectedContent = forName("StringValuePreferences.java").getCharContent(false);
+        final CharSequence expectedContent = forName("DefaultTestPreferences.java").getCharContent(false);
         assertThat(actualContent)
                 .isEqualTo(expectedContent);
     }
