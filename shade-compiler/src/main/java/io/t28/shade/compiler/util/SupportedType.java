@@ -57,7 +57,7 @@ public enum SupportedType {
         @Override
         public CodeBlock buildLoadStatement(@Nonnull String variable, @Nonnull String key, @Nullable String defValue) {
             return CodeBlock.builder()
-                    .add("$N.getFloat($S, $L)", variable, key, Optional.ofNullable(defValue).map(Float::valueOf).orElse(DEFAULT))
+                    .add("$N.getFloat($S, $Lf)", variable, key, Optional.ofNullable(defValue).map(Float::valueOf).orElse(DEFAULT))
                     .build();
         }
 

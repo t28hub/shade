@@ -65,19 +65,19 @@ public class SupportedTypeTest {
                         .variable("preferences")
                         .key("test_key")
                         .defValue(null)
-                        .expected("preferences.getFloat(\"test_key\", 0.0)")
+                        .expected("preferences.getFloat(\"test_key\", 0.0f)")
                         .build(),
                 Fixture.builder(SupportedType.FLOAT)
                         .variable("preferences")
                         .key("test_key")
                         .defValue("1.0")
-                        .expected("preferences.getFloat(\"test_key\", 1.0)")
+                        .expected("preferences.getFloat(\"test_key\", 1.0f)")
                         .build(),
                 Fixture.builder(SupportedType.FLOAT)
                         .variable("preferences")
                         .key("test_key")
                         .defValue("-1.0")
-                        .expected("preferences.getFloat(\"test_key\", -1.0)")
+                        .expected("preferences.getFloat(\"test_key\", -1.0f)")
                         .build(),
                 Fixture.builder(SupportedType.INT)
                         .variable("preferences")
