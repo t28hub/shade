@@ -35,7 +35,8 @@ public @interface Preferences {
     @IntDef({
             Context.MODE_PRIVATE,
             Context.MODE_WORLD_READABLE,
-            Context.MODE_WORLD_WRITEABLE
+            Context.MODE_WORLD_WRITEABLE,
+            Context.MODE_MULTI_PROCESS
     })
     @Retention(RetentionPolicy.SOURCE)
     @interface Mode {

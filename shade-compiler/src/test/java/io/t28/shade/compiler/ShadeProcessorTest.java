@@ -74,6 +74,24 @@ public class ShadeProcessorTest {
     }
 
     @Test
+    public void processorShouldProcessPreferencesAnnotationWithMode() throws Exception {
+        // exercise
+        final Compilation compilation = javac()
+                .withProcessors(mUnderTest)
+                .compile(forName("ModeTest.java"));
+
+        // verify
+        final Optional<JavaFileObject> generated = compilation.generatedSourceFile("io/t28/shade/test/ModeTestPreferences.java");
+        assertThat(generated)
+                .isNotEmpty();
+
+        final CharSequence actualContent = generated.get().getCharContent(false);
+        final CharSequence expectedContent = forName("ModeTestPreferences.java").getCharContent(false);
+        assertThat(actualContent)
+                .isEqualTo(expectedContent);
+    }
+
+    @Test
     public void processorShouldUseDefaultSharedPreferences() throws Exception {
         // exercise
         final Compilation compilation = javac()
