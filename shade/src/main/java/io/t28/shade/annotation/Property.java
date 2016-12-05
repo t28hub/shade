@@ -21,7 +21,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import io.t28.shade.converter.Converter;
-import io.t28.shade.converter.DefaultConverter;
 
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.CLASS)
@@ -30,5 +29,5 @@ public @interface Property {
 
     String defValue() default "";
 
-    Class<? extends Converter> converter() default DefaultConverter.class;
+    Class<? extends Converter> converter() default Converter.class;
 }
