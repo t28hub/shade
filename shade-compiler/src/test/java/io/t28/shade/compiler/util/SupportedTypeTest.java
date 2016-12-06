@@ -101,19 +101,19 @@ public class SupportedTypeTest {
                         .variable("preferences")
                         .key("test_key")
                         .defValue(null)
-                        .expected("preferences.getLong(\"test_key\", 0)")
+                        .expected("preferences.getLong(\"test_key\", 0L)")
                         .build(),
                 Fixture.builder(SupportedType.LONG)
                         .variable("preferences")
                         .key("test_key")
                         .defValue("2147483648")
-                        .expected("preferences.getLong(\"test_key\", 2147483648)")
+                        .expected("preferences.getLong(\"test_key\", 2147483648L)")
                         .build(),
                 Fixture.builder(SupportedType.LONG)
                         .variable("preferences")
                         .key("test_key")
                         .defValue("-2147483649")
-                        .expected("preferences.getLong(\"test_key\", -2147483649)")
+                        .expected("preferences.getLong(\"test_key\", -2147483649L)")
                         .build(),
                 Fixture.builder(SupportedType.STRING)
                         .variable("preferences")

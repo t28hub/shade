@@ -32,7 +32,7 @@ public class DefaultTestPreferences {
     }
 
     public long getValue3() {
-        return preferences.getLong("key_long", 0);
+        return preferences.getLong("key_long", 0L);
     }
 
     public float getValue4() {

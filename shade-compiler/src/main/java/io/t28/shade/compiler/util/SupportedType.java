@@ -95,7 +95,7 @@ public enum SupportedType {
         @Override
         public CodeBlock buildLoadStatement(@Nonnull String variable, @Nonnull String key, @Nullable String defValue) {
             return CodeBlock.builder()
-                    .add("$N.getLong($S, $L)", variable, key, Optional.ofNullable(defValue).map(Long::valueOf).orElse(DEFAULT))
+                    .add("$N.getLong($S, $LL)", variable, key, Optional.ofNullable(defValue).map(Long::valueOf).orElse(DEFAULT))
                     .build();
         }
 
