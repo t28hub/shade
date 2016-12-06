@@ -48,18 +48,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ShadeProcessorTest {
     private static final String RESOURCES_DIRECTORY = "src/test/resources";
 
-    private ShadeProcessor mUnderTest;
+    private ShadeProcessor underTest;
 
     @Before
     public void setUp() throws Exception {
-        mUnderTest = new ShadeProcessor();
+        underTest = new ShadeProcessor();
     }
 
     @Test
     public void processorShouldProcessAnnotations() throws Exception {
         // exercise
         final Compilation compilation = javac()
-                .withProcessors(mUnderTest)
+                .withProcessors(underTest)
                 .compile(forName("Test.java"));
 
         // verify
@@ -77,7 +77,7 @@ public class ShadeProcessorTest {
     public void processorShouldProcessPreferencesAnnotationWithMode() throws Exception {
         // exercise
         final Compilation compilation = javac()
-                .withProcessors(mUnderTest)
+                .withProcessors(underTest)
                 .compile(forName("ModeTest.java"));
 
         // verify
@@ -95,7 +95,7 @@ public class ShadeProcessorTest {
     public void processorShouldUseDefaultSharedPreferences() throws Exception {
         // exercise
         final Compilation compilation = javac()
-                .withProcessors(mUnderTest)
+                .withProcessors(underTest)
                 .compile(forName("DefaultTest.java"));
 
         // verify
@@ -105,6 +105,24 @@ public class ShadeProcessorTest {
 
         final CharSequence actualContent = generated.get().getCharContent(false);
         final CharSequence expectedContent = forName("DefaultTestPreferences.java").getCharContent(false);
+        assertThat(actualContent)
+                .isEqualTo(expectedContent);
+    }
+
+    @Test
+    public void processorShouldParseDefaultValue() throws Exception {
+        // exercise
+        final Compilation compilation = javac()
+                .withProcessors(underTest)
+                .compile(forName("DefaultValueTest.java"));
+
+        // verify
+        final Optional<JavaFileObject> generated = compilation.generatedSourceFile("io/t28/shade/test/DefaultValueTestPreferences.java");
+        assertThat(generated)
+                .isNotEmpty();
+
+        final CharSequence actualContent = generated.get().getCharContent(false);
+        final CharSequence expectedContent = forName("DefaultValueTestPreferences.java").getCharContent(false);
         assertThat(actualContent)
                 .isEqualTo(expectedContent);
     }

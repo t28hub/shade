@@ -10,37 +10,37 @@ import java.util.Collections;
 import java.util.Set;
 
 @SuppressWarnings("all")
-public class TestPreferences {
+public class DefaultValueTestPreferences {
     private final SharedPreferences preferences;
 
-    public TestPreferences(@NonNull Context context) {
+    public DefaultValueTestPreferences(@NonNull Context context) {
         this.preferences = context.getApplicationContext().getSharedPreferences("io.t28.shade.test", 0);
     }
 
     @NonNull
-    public Test get() {
-        return new TestImpl(getValue1(), getValue2(), getValue3(), getValue4(), getValue5(), getValue6());
+    public DefaultValueTest get() {
+        return new DefaultValueTestImpl(getValue1(), getValue2(), getValue3(), getValue4(), getValue5(), getValue6());
     }
 
     public boolean getValue1() {
-        return preferences.getBoolean("key_boolean", false);
+        return preferences.getBoolean("key_boolean", true);
     }
 
     public int getValue2() {
-        return preferences.getInt("key_int", 0);
+        return preferences.getInt("key_int", 1024);
     }
 
     public long getValue3() {
-        return preferences.getLong("key_long", 0L);
+        return preferences.getLong("key_long", 9223372036854775807L);
     }
 
     public float getValue4() {
-        return preferences.getFloat("key_float", 0.0f);
+        return preferences.getFloat("key_float", 1.5f);
     }
 
     @NonNull
     public String getValue5() {
-        return preferences.getString("key_string", "");
+        return preferences.getString("key_string", "default");
     }
 
     @NonNull
@@ -82,7 +82,7 @@ public class TestPreferences {
         return preferences;
     }
 
-    public static class TestImpl implements Test {
+    public static class DefaultValueTestImpl implements DefaultValueTest {
         private final boolean value1;
 
         private final int value2;
@@ -95,7 +95,7 @@ public class TestPreferences {
 
         private final Set<String> value6;
 
-        protected TestImpl(boolean value1, int value2, long value3, float value4, String value5, Set<String> value6) {
+        protected DefaultValueTestImpl(boolean value1, int value2, long value3, float value4, String value5, Set<String> value6) {
             this.value1 = value1;
             this.value2 = value2;
             this.value3 = value3;
@@ -109,10 +109,10 @@ public class TestPreferences {
             if (this == object) {
                 return true;
             }
-            if (!(object instanceof Test)) {
+            if (!(object instanceof DefaultValueTest)) {
                 return false;
             }
-            final Test that = (Test) object;
+            final DefaultValueTest that = (DefaultValueTest) object;
             return value1 == that.value1() &&
                     value2 == that.value2() &&
                     value3 == that.value3() &&
@@ -129,7 +129,7 @@ public class TestPreferences {
         @NonNull
         @Override
         public String toString() {
-            return MoreObjects.toStringHelper("Test")
+            return MoreObjects.toStringHelper("DefaultValueTest")
                     .add("value1", value1)
                     .add("value2", value2)
                     .add("value3", value3)
@@ -141,7 +141,8 @@ public class TestPreferences {
 
         @Override
         @Property(
-                key = "key_boolean"
+                key = "key_boolean",
+                defValue = "true"
         )
         public boolean value1() {
             return value1;
@@ -149,7 +150,8 @@ public class TestPreferences {
 
         @Override
         @Property(
-                key = "key_int"
+                key = "key_int",
+                defValue = "1024"
         )
         public int value2() {
             return value2;
@@ -157,7 +159,8 @@ public class TestPreferences {
 
         @Override
         @Property(
-                key = "key_long"
+                key = "key_long",
+                defValue = "9223372036854775807"
         )
         public long value3() {
             return value3;
@@ -165,7 +168,8 @@ public class TestPreferences {
 
         @Override
         @Property(
-                key = "key_float"
+                key = "key_float",
+                defValue = "1.5"
         )
         public float value4() {
             return value4;
@@ -173,7 +177,8 @@ public class TestPreferences {
 
         @Override
         @Property(
-                key = "key_string"
+                key = "key_string",
+                defValue = "default"
         )
         public String value5() {
             return value5;
@@ -181,7 +186,8 @@ public class TestPreferences {
 
         @Override
         @Property(
-                key = "key_string_set"
+                key = "key_string_set",
+                defValue = "default"
         )
         public Set<String> value6() {
             return value6;
