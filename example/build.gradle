@@ -32,7 +32,7 @@ android {
 
 dependencies {
     // Shade
-    annotationProcessor project(':shade-compiler')
+    annotationProcessor project(':shade-processor')
     compile project(':shade')
 
     // Support libraries

@@ -1,3 +1,3 @@
 include ':shade'
-include ':shade-compiler'
+include ':shade-processor'
 include ':example'
