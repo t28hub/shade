@@ -46,7 +46,7 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
 @SuppressWarnings("NewApi")
-public class PreferencesClassFactory extends TypeFactory {
+public class PreferenceClassFactory extends TypeFactory {
     private static final String PARAMETER_CONTEXT = "context";
     private static final String FIELD_PREFERENCES = "preferences";
     private static final String METHOD_PREFIX_GET = "get";
@@ -60,13 +60,13 @@ public class PreferencesClassFactory extends TypeFactory {
     private final List<TypeFactory> innerClassFactories;
 
     @Inject
-    public PreferencesClassFactory(@Nonnull PreferenceClassMetadata preference,
-                                   @Nonnull @Named("Editor") ClassName editorClass,
-                                   @Nonnull @Named("Entity") ClassName entityClass,
-                                   @Nonnull @Named("EntityImpl") ClassName entityImplClass,
-                                   @Nonnull @Named("Preferences") ClassName preferencesClass,
-                                   @Nonnull @Named("Entity") TypeFactory entityClassFactory,
-                                   @Nonnull @Named("Editor") TypeFactory editorClassFactory) {
+    public PreferenceClassFactory(@Nonnull PreferenceClassMetadata preference,
+                                  @Nonnull @Named("Editor") ClassName editorClass,
+                                  @Nonnull @Named("Entity") ClassName entityClass,
+                                  @Nonnull @Named("EntityImpl") ClassName entityImplClass,
+                                  @Nonnull @Named("Preferences") ClassName preferencesClass,
+                                  @Nonnull @Named("Entity") TypeFactory entityClassFactory,
+                                  @Nonnull @Named("Editor") TypeFactory editorClassFactory) {
         this.preference = preference;
         this.editorClass = editorClass;
         this.entityClass = entityClass;

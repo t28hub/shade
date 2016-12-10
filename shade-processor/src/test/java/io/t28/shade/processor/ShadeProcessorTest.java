@@ -124,7 +124,7 @@ public class ShadeProcessorTest {
                 final Diagnostic<? extends JavaFileObject> error = errors.get(0);
                 final String message = error.getMessage(Locale.ENGLISH);
                 assertThat(message)
-                        .isEqualTo("@Preferences is not allowed to use for ENUM");
+                        .isEqualTo("@Preferences must not be used for enum");
             }
 
         }

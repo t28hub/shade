@@ -133,10 +133,6 @@ public class EditorClassFactory extends TypeFactory {
                         storeType = converter.getSupportedType();
                     }
 
-                    if (!SupportedType.contains(storeType)) {
-                        throw new IllegalStateException("Type(" + storeType + ") is not allowed to save the SharedPreferences");
-                    }
-
                     final SupportedType supportedType = SupportedType.find(storeType);
                     return builder
                             .addStatement("$L", buildSaveStatement(property, supportedType))

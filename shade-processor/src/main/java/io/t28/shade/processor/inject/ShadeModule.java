@@ -38,7 +38,7 @@ public class ShadeModule implements Module {
     }
 
     @Override
-    public void configure(Binder binder) {
+    public void configure(@Nonnull Binder binder) {
         binder.bind(Logger.class)
                 .to(MessagerLogger.class)
                 .in(Singleton.class);
