@@ -96,13 +96,4 @@ public class TypeElements {
         }
         return Collections.emptyList();
     }
-
-    @Nonnull
-    public static List<ExecutableElement> findConstructors(@Nonnull TypeElement element) {
-        return element.getEnclosedElements()
-                .stream()
-                .filter(enclosed -> enclosed.getKind() == ElementKind.CONSTRUCTOR)
-                .map(ExecutableElement.class::cast)
-                .collect(toList());
-    }
 }
