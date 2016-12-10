@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.t28.shade.compiler.factory;
+package io.t28.shade.processor.factory;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -38,20 +38,21 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.lang.model.element.Modifier;
 
-import io.t28.shade.compiler.metadata.ConverterMetadata;
-import io.t28.shade.compiler.metadata.PreferencesMetadata;
-import io.t28.shade.compiler.util.SupportedType;
+import io.t28.shade.processor.metadata.ConverterClassMetadata;
+import io.t28.shade.processor.metadata.PreferenceClassMetadata;
+import io.t28.shade.processor.util.SupportedType;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
+@SuppressWarnings("NewApi")
 public class PreferencesClassFactory extends TypeFactory {
     private static final String PARAMETER_CONTEXT = "context";
     private static final String FIELD_PREFERENCES = "preferences";
     private static final String METHOD_PREFIX_GET = "get";
     private static final String METHOD_PREFIX_HAS = "contains";
 
-    private final PreferencesMetadata preferences;
+    private final PreferenceClassMetadata preference;
     private final ClassName editorClass;
     private final ClassName entityClass;
     private final ClassName entityImplClass;
@@ -59,14 +60,14 @@ public class PreferencesClassFactory extends TypeFactory {
     private final List<TypeFactory> innerClassFactories;
 
     @Inject
-    public PreferencesClassFactory(@Nonnull PreferencesMetadata preferences,
+    public PreferencesClassFactory(@Nonnull PreferenceClassMetadata preference,
                                    @Nonnull @Named("Editor") ClassName editorClass,
                                    @Nonnull @Named("Entity") ClassName entityClass,
                                    @Nonnull @Named("EntityImpl") ClassName entityImplClass,
                                    @Nonnull @Named("Preferences") ClassName preferencesClass,
                                    @Nonnull @Named("Entity") TypeFactory entityClassFactory,
                                    @Nonnull @Named("Editor") TypeFactory editorClassFactory) {
-        this.preferences = preferences;
+        this.preference = preference;
         this.editorClass = editorClass;
         this.entityClass = entityClass;
         this.entityImplClass = entityImplClass;
@@ -129,7 +130,7 @@ public class PreferencesClassFactory extends TypeFactory {
                 .addParameter(ParameterSpec.builder(Context.class, PARAMETER_CONTEXT)
                         .addAnnotation(NonNull.class)
                         .build());
-        if (preferences.isDefault()) {
+        if (preference.isDefault()) {
             builder.addStatement(
                     "this.$N = $T.getDefaultSharedPreferences($L.getApplicationContext())",
                     FIELD_PREFERENCES, PreferenceManager.class, PARAMETER_CONTEXT
@@ -137,7 +138,7 @@ public class PreferencesClassFactory extends TypeFactory {
         } else {
             builder.addStatement(
                     "this.$N = $L.getApplicationContext().getSharedPreferences($S, $L)",
-                    FIELD_PREFERENCES, PARAMETER_CONTEXT, preferences.getName(), preferences.getMode()
+                    FIELD_PREFERENCES, PARAMETER_CONTEXT, preference.getPreferenceName(), preference.getOperationMode()
             );
         }
         return builder.build();
@@ -149,32 +150,32 @@ public class PreferencesClassFactory extends TypeFactory {
                 .addAnnotation(NonNull.class)
                 .returns(entityClass);
 
-        final String arguments = preferences.getProperties()
+        final String arguments = preference.getPropertyMethods()
                 .stream()
-                .map(property -> METHOD_PREFIX_GET + property.getName(CaseFormat.UPPER_CAMEL) + "()")
+                .map(property -> METHOD_PREFIX_GET + property.getSimpleName(CaseFormat.UPPER_CAMEL) + "()")
                 .collect(joining(", "));
         builder.addStatement("return new $T($L)", entityImplClass, arguments);
         return builder.build();
     }
 
     private List<MethodSpec> buildGetMethodSpecs() {
-        return preferences.getProperties()
+        return preference.getPropertyMethods()
                 .stream()
                 .map(property -> {
-                    final String methodName = METHOD_PREFIX_GET + property.getName(CaseFormat.UPPER_CAMEL);
+                    final String methodName = METHOD_PREFIX_GET + property.getSimpleName(CaseFormat.UPPER_CAMEL);
                     final MethodSpec.Builder builder = MethodSpec.methodBuilder(methodName)
                             .addModifiers(Modifier.PUBLIC);
 
-                    final TypeName returnType = property.getValueTypeName();
+                    final TypeName returnType = property.getReturnTypeName();
                     if (!returnType.isPrimitive()) {
                         builder.addAnnotation(NonNull.class);
                     }
                     builder.returns(returnType);
 
-                    final ConverterMetadata converter = property.getConverter();
+                    final ConverterClassMetadata converter = property.getConverterClass();
                     final TypeName valueType;
                     if (converter.isDefault()) {
-                        valueType = property.getValueTypeName();
+                        valueType = property.getReturnTypeName();
                     } else {
                         valueType = converter.getSupportedType();
                     }
@@ -182,7 +183,7 @@ public class PreferencesClassFactory extends TypeFactory {
                     final SupportedType supported = SupportedType.find(valueType);
                     final CodeBlock statement = supported.buildLoadStatement(
                             FIELD_PREFERENCES,
-                            property.getKey(),
+                            property.getPreferenceKey(),
                             property.getDefaultValue().orElse(null)
                     );
                     if (converter.isDefault()) {
@@ -196,14 +197,14 @@ public class PreferencesClassFactory extends TypeFactory {
     }
 
     private List<MethodSpec> buildContainsMethodSpecs() {
-        return preferences.getProperties()
+        return preference.getPropertyMethods()
                 .stream()
                 .map(property -> {
-                    final String methodName = METHOD_PREFIX_HAS + property.getName(CaseFormat.UPPER_CAMEL);
+                    final String methodName = METHOD_PREFIX_HAS + property.getSimpleName(CaseFormat.UPPER_CAMEL);
                     return MethodSpec.methodBuilder(methodName)
                             .addModifiers(Modifier.PUBLIC)
                             .returns(TypeName.BOOLEAN)
-                            .addStatement("return $L.contains($S)", FIELD_PREFERENCES, property.getKey())
+                            .addStatement("return $L.contains($S)", FIELD_PREFERENCES, property.getPreferenceKey())
                             .build();
                 })
                 .collect(toList());

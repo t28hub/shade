@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.t28.shade.compiler;
+package io.t28.shade.processor;
 
 import android.annotation.SuppressLint;
 
@@ -106,7 +106,7 @@ public class ShadeProcessorTest {
                 final Diagnostic<? extends JavaFileObject> error = errors.get(0);
                 final String message = error.getMessage(Locale.ENGLISH);
                 assertThat(message)
-                        .contains("Annotated class(ConcreteClassTest) with @Preferences must be an abstract class or interface");
+                        .contains("Class(ConcreteClassTest) annotated with @Preferences must be an abstract class or interface");
             }
 
             @Test

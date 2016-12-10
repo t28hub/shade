@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.t28.shade.compiler.factory;
+package io.t28.shade.processor.factory;
 
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.FieldSpec;
@@ -28,6 +28,7 @@ import java.util.Optional;
 import javax.annotation.Nonnull;
 import javax.lang.model.element.Modifier;
 
+@SuppressWarnings("NewApi")
 public abstract class TypeFactory implements Factory<TypeSpec> {
     @Nonnull
     protected abstract String getName();

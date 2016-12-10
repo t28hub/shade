@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.t28.shade.compiler.factory;
+package io.t28.shade.processor.factory;
 
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
+import android.support.annotation.VisibleForTesting;
 
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableList;
@@ -34,25 +35,31 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.lang.model.element.Modifier;
 
-import io.t28.shade.compiler.metadata.ConverterMetadata;
-import io.t28.shade.compiler.metadata.PropertyMetadata;
-import io.t28.shade.compiler.util.SupportedType;
+import io.t28.shade.processor.metadata.ConverterClassMetadata;
+import io.t28.shade.processor.metadata.PreferenceClassMetadata;
+import io.t28.shade.processor.metadata.PropertyMethodMetadata;
+import io.t28.shade.processor.util.SupportedType;
 
 import static java.util.stream.Collectors.toList;
 
+@SuppressWarnings("NewApi")
 public class EditorClassFactory extends TypeFactory {
     private static final String FIELD_EDITOR = "editor";
     private static final String METHOD_PREFIX_PUT = "put";
     private static final String METHOD_PREFIX_REMOVE = "remove";
 
+    private final List<PropertyMethodMetadata> properties;
     private final ClassName editorClass;
-    private final List<PropertyMetadata> properties;
 
     @Inject
-    public EditorClassFactory(@Nonnull @Named("Editor") ClassName editorClass,
-                              @Nonnull List<PropertyMetadata> properties) {
+    public EditorClassFactory(@Nonnull PreferenceClassMetadata preference, @Nonnull @Named("Editor") ClassName editorClass) {
+        this(preference.getPropertyMethods(), editorClass);
+    }
+
+    @VisibleForTesting
+    EditorClassFactory(@Nonnull List<PropertyMethodMetadata> properties, @Nonnull ClassName editorClass) {
+        this.properties = properties;
         this.editorClass = editorClass;
-        this.properties = ImmutableList.copyOf(properties);
     }
 
     @Nonnull
@@ -102,13 +109,13 @@ public class EditorClassFactory extends TypeFactory {
     private List<MethodSpec> buildPutMethodSpecs() {
         return properties.stream()
                 .map(property -> {
-                    final String methodName = METHOD_PREFIX_PUT + property.getName(CaseFormat.UPPER_CAMEL);
+                    final String methodName = METHOD_PREFIX_PUT + property.getSimpleName(CaseFormat.UPPER_CAMEL);
                     final MethodSpec.Builder builder = MethodSpec.methodBuilder(methodName)
                             .addAnnotation(NonNull.class)
                             .addModifiers(Modifier.PUBLIC)
                             .returns(editorClass);
 
-                    final TypeName valueType = property.getValueTypeName();
+                    final TypeName valueType = property.getReturnTypeName();
                     if (valueType.isPrimitive()) {
                         builder.addParameter(ParameterSpec.builder(valueType, "newValue")
                                 .build());
@@ -118,12 +125,16 @@ public class EditorClassFactory extends TypeFactory {
                                 .build());
                     }
 
-                    final ConverterMetadata converter = property.getConverter();
+                    final ConverterClassMetadata converter = property.getConverterClass();
                     final TypeName storeType;
                     if (converter.isDefault()) {
-                        storeType = property.getValueTypeName();
+                        storeType = property.getReturnTypeName();
                     } else {
                         storeType = converter.getSupportedType();
+                    }
+
+                    if (!SupportedType.contains(storeType)) {
+                        throw new IllegalStateException("Type(" + storeType + ") is not allowed to save the SharedPreferences");
                     }
 
                     final SupportedType supportedType = SupportedType.find(storeType);
@@ -139,11 +150,11 @@ public class EditorClassFactory extends TypeFactory {
         return properties
                 .stream()
                 .map(property -> {
-                    final String methodName = METHOD_PREFIX_REMOVE + property.getName(CaseFormat.UPPER_CAMEL);
+                    final String methodName = METHOD_PREFIX_REMOVE + property.getSimpleName(CaseFormat.UPPER_CAMEL);
                     return MethodSpec.methodBuilder(methodName)
                             .addAnnotation(NonNull.class)
                             .addModifiers(Modifier.PUBLIC)
-                            .addStatement("$L.remove($S)", FIELD_EDITOR, property.getKey())
+                            .addStatement("$L.remove($S)", FIELD_EDITOR, property.getPreferenceKey())
                             .addStatement("return this")
                             .returns(editorClass)
                             .build();
@@ -169,8 +180,8 @@ public class EditorClassFactory extends TypeFactory {
                 .build();
     }
 
-    private CodeBlock buildSaveStatement(PropertyMetadata property, SupportedType supported) {
-        final ConverterMetadata converter = property.getConverter();
+    private CodeBlock buildSaveStatement(PropertyMethodMetadata property, SupportedType supported) {
+        final ConverterClassMetadata converter = property.getConverterClass();
         final CodeBlock statement;
         if (converter.isDefault()) {
             statement = CodeBlock.builder()
@@ -181,6 +192,6 @@ public class EditorClassFactory extends TypeFactory {
                     .add("new $T().toSupported($L)", converter.getClassName(), "newValue")
                     .build();
         }
-        return supported.buildSaveStatement(FIELD_EDITOR, property.getKey(), statement);
+        return supported.buildSaveStatement(FIELD_EDITOR, property.getPreferenceKey(), statement);
     }
 }

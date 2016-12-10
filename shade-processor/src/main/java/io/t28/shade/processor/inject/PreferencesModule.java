@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.t28.shade.compiler.inject;
+package io.t28.shade.processor.inject;
 
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Provides;
 import com.google.inject.name.Names;
 import com.squareup.javapoet.ClassName;
-
-import java.util.List;
 
 import javax.annotation.Nonnull;
 import javax.inject.Named;
@@ -30,11 +28,8 @@ import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 
-import io.t28.shade.annotation.Preferences;
-import io.t28.shade.compiler.factory.PreferencesClassFactory;
-import io.t28.shade.compiler.factory.TypeFactory;
-import io.t28.shade.compiler.metadata.PreferencesMetadata;
-import io.t28.shade.compiler.metadata.PropertyMetadata;
+import io.t28.shade.processor.factory.PreferencesClassFactory;
+import io.t28.shade.processor.factory.TypeFactory;
 
 @SuppressWarnings("unused")
 public class PreferencesModule implements Module {
@@ -62,16 +57,6 @@ public class PreferencesModule implements Module {
 
     @Nonnull
     @Provides
-    public Preferences provideAnnotation(@Nonnull TypeElement element) {
-        final Preferences annotation = element.getAnnotation(Preferences.class);
-        if (annotation == null) {
-            throw new IllegalStateException("Type(" + element.getSimpleName() + ") must be annotated with @Preferences");
-        }
-        return annotation;
-    }
-
-    @Nonnull
-    @Provides
     @Named("PackageName")
     public String providePackageName(@Nonnull Elements elements) {
         final PackageElement packageElement = elements.getPackageOf(element);
@@ -83,12 +68,5 @@ public class PreferencesModule implements Module {
     @Named("Preferences")
     public ClassName provideClassName(@Nonnull @Named("PackageName") String packageName) {
         return ClassName.get(packageName, element.getSimpleName() + SUFFIX);
-    }
-
-    @Nonnull
-    @Provides
-    @Singleton
-    public List<PropertyMetadata> providePropertyAttributes(@Nonnull PreferencesMetadata attribute) {
-        return attribute.getProperties();
     }
 }

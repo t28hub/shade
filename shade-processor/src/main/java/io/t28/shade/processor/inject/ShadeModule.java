@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.t28.shade.compiler.inject;
+package io.t28.shade.processor.inject;
 
 import com.google.inject.Binder;
 import com.google.inject.Module;
@@ -26,8 +26,8 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.inject.Singleton;
 import javax.lang.model.util.Elements;
 
-import io.t28.shade.compiler.util.Logger;
-import io.t28.shade.compiler.util.MessagerLogger;
+import io.t28.shade.processor.util.Logger;
+import io.t28.shade.processor.util.MessagerLogger;
 
 @SuppressWarnings("unused")
 public class ShadeModule implements Module {
