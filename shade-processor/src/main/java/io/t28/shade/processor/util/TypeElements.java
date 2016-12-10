@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.t28.shade.compiler.util;
+package io.t28.shade.processor.util;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.squareup.javapoet.TypeName;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
 
 import javax.annotation.Nonnull;
 import javax.lang.model.element.Element;
@@ -106,21 +104,5 @@ public class TypeElements {
                 .filter(enclosed -> enclosed.getKind() == ElementKind.CONSTRUCTOR)
                 .map(ExecutableElement.class::cast)
                 .collect(toList());
-    }
-
-    public static boolean isMethodDefined(@Nonnull TypeElement element, @Nonnull String name) {
-        return isMethodDefined(element, method -> {
-            return name.equals(method.getSimpleName().toString());
-        });
-    }
-
-    @VisibleForTesting
-    @SuppressWarnings("WeakerAccess")
-    public static boolean isMethodDefined(@Nonnull TypeElement element, @Nonnull Predicate<? super ExecutableElement> matcher) {
-        return element.getEnclosedElements()
-                .stream()
-                .filter(enclosed -> enclosed.getKind() == ElementKind.METHOD)
-                .map(ExecutableElement.class::cast)
-                .anyMatch(matcher);
     }
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.t28.shade.compiler;
+package io.t28.shade.processor;
 
 import com.google.auto.service.AutoService;
 import com.google.common.base.Throwables;
@@ -40,12 +40,12 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 
 import io.t28.shade.annotation.Preferences;
-import io.t28.shade.compiler.factory.TypeFactory;
-import io.t28.shade.compiler.inject.EditorModule;
-import io.t28.shade.compiler.inject.EntityModule;
-import io.t28.shade.compiler.inject.PreferencesModule;
-import io.t28.shade.compiler.inject.ShadeModule;
-import io.t28.shade.compiler.util.Logger;
+import io.t28.shade.processor.factory.TypeFactory;
+import io.t28.shade.processor.inject.EditorModule;
+import io.t28.shade.processor.inject.EntityModule;
+import io.t28.shade.processor.inject.PreferencesModule;
+import io.t28.shade.processor.inject.ShadeModule;
+import io.t28.shade.processor.util.Logger;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 @AutoService(Processor.class)

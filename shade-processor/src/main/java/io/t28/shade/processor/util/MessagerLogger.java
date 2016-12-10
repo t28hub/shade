@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.t28.shade.compiler.util;
+package io.t28.shade.processor.util;
 
 import com.google.common.annotations.VisibleForTesting;
 

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.t28.shade.compiler.inject;
+package io.t28.shade.processor.inject;
 
 import com.google.inject.Binder;
 import com.google.inject.Module;
@@ -25,8 +25,8 @@ import javax.annotation.Nonnull;
 import javax.inject.Named;
 import javax.lang.model.element.TypeElement;
 
-import io.t28.shade.compiler.factory.TypeFactory;
-import io.t28.shade.compiler.factory.EntityClassFactory;
+import io.t28.shade.processor.factory.TypeFactory;
+import io.t28.shade.processor.factory.EntityClassFactory;
 
 @SuppressWarnings("unused")
 public class EntityModule implements Module {

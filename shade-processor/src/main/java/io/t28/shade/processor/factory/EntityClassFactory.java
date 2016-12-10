@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.t28.shade.compiler.factory;
+package io.t28.shade.processor.factory;
 
 import android.annotation.SuppressLint;
 import android.support.annotation.NonNull;
@@ -21,6 +21,7 @@ import android.support.annotation.NonNull;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -36,36 +37,61 @@ import java.util.Optional;
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Modifier;
-import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 
-import io.t28.shade.compiler.metadata.PropertyMetadata;
-import io.t28.shade.compiler.util.CodeBlocks;
-import io.t28.shade.compiler.util.TypeElements;
+import io.t28.shade.processor.metadata.PreferenceClassMetadata;
+import io.t28.shade.processor.metadata.PropertyMethodMetadata;
+import io.t28.shade.processor.util.CodeBlocks;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
 @SuppressLint("NewApi")
 public class EntityClassFactory extends TypeFactory {
-    private static final String METHOD_EQUALS = "equals";
-    private static final String METHOD_HASH_CODE = "hashCode";
-    private static final String METHOD_TO_STRING = "toString";
+    private static final String METHOD_NAME_EQUALS = "equals";
+    private static final String METHOD_NAME_HASH_CODE = "hashCode";
+    private static final String METHOD_NAME_TO_STRING = "toString";
 
-    private final TypeElement element;
-    private final List<PropertyMetadata> properties;
+    private final PreferenceClassMetadata preference;
+    private final List<PropertyMethodMetadata> properties;
     private final ClassName entityClass;
     private final ClassName entityImplClass;
 
     @Inject
-    public EntityClassFactory(@Nonnull TypeElement element,
-                              @Nonnull List<PropertyMetadata> properties,
+    public EntityClassFactory(@Nonnull PreferenceClassMetadata preference,
                               @Nonnull @Named("Entity") ClassName entityClass,
                               @Nonnull @Named("EntityImpl") ClassName entityImplClass) {
-        this.element = element;
-        this.properties = ImmutableList.copyOf(properties);
+        if (!preference.isAbstract()) {
+            throw new IllegalArgumentException("Class(" + preference.getSimpleName() + ") annotated with @Preferences must be an abstract class or interface");
+        }
+        if (!preference.hasDefaultConstructor()) {
+            throw new IllegalArgumentException("Class(" + preference.getSimpleName() + ") annotated with @Preferences must provide a default constructor");
+        }
+
+        this.preference = preference;
+        this.properties = preference.getPropertyMethods()
+                .stream()
+                .filter(property -> {
+                    final String methodName = property.getSimpleName();
+                    if (!property.isAbstract()) {
+                        throw new IllegalArgumentException("Method(" + methodName + ") annotated with @Property must be an abstract method");
+                    }
+                    if (property.hasParameters()) {
+                        throw new IllegalArgumentException("Method(" + methodName + ") annotated with @Property must not receive any parameters");
+                    }
+
+                    final TypeName returnType = property.getReturnTypeName();
+                    if (returnType.equals(TypeName.VOID)) {
+                        throw new IllegalArgumentException("Method(" + methodName + ") annotated with @Property must not return void");
+                    }
+
+                    if (Strings.isNullOrEmpty(property.getPreferenceKey())) {
+                        throw new IllegalArgumentException("Method(" + methodName + ") annotated with @Property must not be specified an empty key");
+                    }
+                    return true;
+                })
+                .collect(toList());
         this.entityClass = entityClass;
         this.entityImplClass = entityImplClass;
     }
@@ -85,7 +111,7 @@ public class EntityClassFactory extends TypeFactory {
     @Nonnull
     @Override
     protected Optional<TypeName> getSuperClass() {
-        if (element.getKind() == ElementKind.CLASS) {
+        if (preference.isClass()) {
             return Optional.of(entityClass);
         }
         return Optional.empty();
@@ -94,7 +120,7 @@ public class EntityClassFactory extends TypeFactory {
     @Nonnull
     @Override
     protected List<TypeName> getInterfaces() {
-        if (element.getKind() == ElementKind.INTERFACE) {
+        if (preference.isInterface()) {
             return Collections.singletonList(entityClass);
         }
         return Collections.emptyList();
@@ -103,16 +129,13 @@ public class EntityClassFactory extends TypeFactory {
     @Nonnull
     @Override
     protected List<FieldSpec> getFields() {
-        final List<FieldSpec> fieldSpecs = properties.stream()
+        return ImmutableList.copyOf(properties.stream()
                 .map(property -> {
-                    final String fieldName = getFieldName(property);
-                    final TypeName valueType = property.getValueTypeName();
-                    return FieldSpec.builder(valueType, fieldName)
-                        .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
-                        .build();
+                    final String fieldName = property.getSimpleName(CaseFormat.LOWER_CAMEL);
+                    final TypeName valueType = property.getReturnTypeName();
+                    return FieldSpec.builder(valueType, fieldName, Modifier.PRIVATE, Modifier.FINAL).build();
                 })
-                .collect(toList());
-        return ImmutableList.copyOf(fieldSpecs);
+                .collect(toList()));
     }
 
     @Nonnull
@@ -121,15 +144,15 @@ public class EntityClassFactory extends TypeFactory {
         final ImmutableList.Builder<MethodSpec> builder = ImmutableList.builder();
         builder.add(buildConstructorSpec());
 
-        if (!TypeElements.isMethodDefined(element, METHOD_EQUALS)) {
+        if (!preference.hasEqualsMethod()) {
             builder.add(buildEqualsMethodSpec());
         }
 
-        if (!TypeElements.isMethodDefined(element, METHOD_HASH_CODE)) {
+        if (!preference.hasHashCodeMethod()) {
             builder.add(buildHashCodeMethodSpec());
         }
 
-        if (!TypeElements.isMethodDefined(element, METHOD_TO_STRING)) {
+        if (!preference.hasToStringMethod()) {
             builder.add(buildToStringMethodSpec());
         }
         builder.addAll(buildGetMethodSpecs());
@@ -142,15 +165,15 @@ public class EntityClassFactory extends TypeFactory {
 
         // Parameters
         properties.forEach(property -> {
-            final TypeName valueType = property.getValueTypeName();
-            final String fieldName = getFieldName(property);
+            final TypeName valueType = property.getReturnTypeName();
+            final String fieldName = property.getSimpleName(CaseFormat.LOWER_CAMEL);
             builder.addParameter(ParameterSpec.builder(valueType, fieldName).build());
         });
 
         // Statements
         properties.forEach(property -> {
-            final TypeMirror valueType = property.getValueType();
-            final String fieldName = getFieldName(property);
+            final TypeMirror valueType = property.getReturnType();
+            final String fieldName = property.getSimpleName(CaseFormat.LOWER_CAMEL);
             builder.addStatement("$L", CodeBlock.builder()
                     .add("this.$L = $L", fieldName, CodeBlocks.createUnmodifiableStatement(valueType, fieldName))
                     .build());
@@ -159,7 +182,7 @@ public class EntityClassFactory extends TypeFactory {
     }
 
     private MethodSpec buildToStringMethodSpec() {
-        final MethodSpec.Builder builder = MethodSpec.methodBuilder(METHOD_TO_STRING)
+        final MethodSpec.Builder builder = MethodSpec.methodBuilder(METHOD_NAME_TO_STRING)
                 .addAnnotation(NonNull.class)
                 .addAnnotation(Override.class)
                 .addModifiers(Modifier.PUBLIC)
@@ -167,8 +190,8 @@ public class EntityClassFactory extends TypeFactory {
 
         final CodeBlock.Builder statementBuilder = CodeBlock.builder();
         statementBuilder.add("return $T.toStringHelper($S)\n", MoreObjects.class, entityClass.simpleName());
-        properties.forEach(property -> {
-            final String fieldName = getFieldName(property);
+        preference.getPropertyMethods().forEach(property -> {
+            final String fieldName = property.getSimpleName(CaseFormat.LOWER_CAMEL);
             statementBuilder.add(".add($S, $L)\n", fieldName, fieldName);
         });
         statementBuilder.add(".toString()");
@@ -177,7 +200,7 @@ public class EntityClassFactory extends TypeFactory {
     }
 
     private MethodSpec buildEqualsMethodSpec() {
-        final MethodSpec.Builder builder = MethodSpec.methodBuilder(METHOD_EQUALS)
+        final MethodSpec.Builder builder = MethodSpec.methodBuilder(METHOD_NAME_EQUALS)
                 .addAnnotation(Override.class)
                 .addModifiers(Modifier.PUBLIC)
                 .returns(boolean.class)
@@ -195,9 +218,9 @@ public class EntityClassFactory extends TypeFactory {
 
         final CodeBlock.Builder statementBuilder = CodeBlock.builder();
         properties.forEach(property -> {
-            final String fieldName = getFieldName(property);
-            final String methodName = property.getMethodName();
-            final TypeName valueType = property.getValueTypeName();
+            final String fieldName = property.getSimpleName(CaseFormat.LOWER_CAMEL);
+            final String methodName = property.getSimpleName();
+            final TypeName valueType = property.getReturnTypeName();
             if (valueType.isPrimitive()) {
                 statementBuilder.add("$L == that.$L()", fieldName, methodName);
             } else {
@@ -213,13 +236,13 @@ public class EntityClassFactory extends TypeFactory {
     }
 
     private MethodSpec buildHashCodeMethodSpec() {
-        final MethodSpec.Builder builder = MethodSpec.methodBuilder(METHOD_HASH_CODE)
+        final MethodSpec.Builder builder = MethodSpec.methodBuilder(METHOD_NAME_HASH_CODE)
                 .addAnnotation(Override.class)
                 .addModifiers(Modifier.PUBLIC)
                 .returns(int.class);
 
         final String arguments = properties.stream()
-                .map(EntityClassFactory::getFieldName)
+                .map(property -> property.getSimpleName(CaseFormat.LOWER_CAMEL))
                 .collect(joining(", "));
         builder.addStatement("return $T.hashCode($L)", Objects.class, arguments);
         return builder.build();
@@ -228,17 +251,13 @@ public class EntityClassFactory extends TypeFactory {
     private List<MethodSpec> buildGetMethodSpecs() {
         return properties.stream()
                 .map(property -> {
-                    final String fieldName = getFieldName(property);
-                    final TypeMirror valueType = property.getValueType();
+                    final String fieldName = property.getSimpleName(CaseFormat.LOWER_CAMEL);
+                    final TypeMirror valueType = property.getReturnType();
                     final CodeBlock statement = CodeBlocks.createUnmodifiableStatement(valueType, fieldName);
                     return MethodSpec.overriding(property.getMethod())
                             .addStatement("return $L", statement)
                             .build();
                 })
                 .collect(toList());
-    }
-
-    private static String getFieldName(@Nonnull PropertyMetadata property) {
-        return property.getName(CaseFormat.LOWER_CAMEL);
     }
 }
