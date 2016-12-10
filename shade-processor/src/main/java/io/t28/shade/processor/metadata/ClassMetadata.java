@@ -29,7 +29,6 @@ import javax.annotation.Nonnull;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
-import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 
@@ -37,6 +36,10 @@ import static java.util.stream.Collectors.toList;
 
 @SuppressLint("NewApi")
 public class ClassMetadata {
+    private static final String METHOD_NAME_EQUALS = "equals";
+    private static final String METHOD_NAME_HASH_CODE = "hashCode";
+    private static final String METHOD_NAME_TO_STRING = "toString";
+
     private final TypeElement element;
     private final List<ExecutableElement> constructors;
     private final List<ExecutableElement> methods;
@@ -61,8 +64,8 @@ public class ClassMetadata {
     }
 
     @Nonnull
-    public Name getSimpleName() {
-        return element.getSimpleName();
+    public String getSimpleName() {
+        return element.getSimpleName().toString();
     }
 
     @Nonnull
@@ -105,7 +108,7 @@ public class ClassMetadata {
     public boolean hasEqualsMethod() {
         return hasMethod(method -> {
             final String name = method.getSimpleName().toString();
-            if (!name.equals("equals")) {
+            if (!name.equals(METHOD_NAME_EQUALS)) {
                 return false;
             }
 
@@ -122,7 +125,7 @@ public class ClassMetadata {
     public boolean hasHashCodeMethod() {
         return hasMethod(method -> {
             final String name = method.getSimpleName().toString();
-            if (!name.equals("hashCode")) {
+            if (!name.equals(METHOD_NAME_HASH_CODE)) {
                 return false;
             }
 
@@ -139,7 +142,7 @@ public class ClassMetadata {
     public boolean hasToStringMethod() {
         return hasMethod(method -> {
             final String name = method.getSimpleName().toString();
-            if (!name.equals("toString")) {
+            if (!name.equals(METHOD_NAME_TO_STRING)) {
                 return false;
             }
 

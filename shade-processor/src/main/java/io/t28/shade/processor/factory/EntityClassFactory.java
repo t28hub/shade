@@ -21,7 +21,6 @@ import android.support.annotation.NonNull;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -62,36 +61,9 @@ public class EntityClassFactory extends TypeFactory {
     public EntityClassFactory(@Nonnull PreferenceClassMetadata preference,
                               @Nonnull @Named("Entity") ClassName entityClass,
                               @Nonnull @Named("EntityImpl") ClassName entityImplClass) {
-        if (!preference.isAbstract()) {
-            throw new IllegalArgumentException("Class(" + preference.getSimpleName() + ") annotated with @Preferences must be an abstract class or interface");
-        }
-        if (!preference.hasDefaultConstructor()) {
-            throw new IllegalArgumentException("Class(" + preference.getSimpleName() + ") annotated with @Preferences must provide a default constructor");
-        }
 
         this.preference = preference;
-        this.properties = preference.getPropertyMethods()
-                .stream()
-                .filter(property -> {
-                    final String methodName = property.getSimpleName();
-                    if (!property.isAbstract()) {
-                        throw new IllegalArgumentException("Method(" + methodName + ") annotated with @Property must be an abstract method");
-                    }
-                    if (property.hasParameters()) {
-                        throw new IllegalArgumentException("Method(" + methodName + ") annotated with @Property must not receive any parameters");
-                    }
-
-                    final TypeName returnType = property.getReturnTypeName();
-                    if (returnType.equals(TypeName.VOID)) {
-                        throw new IllegalArgumentException("Method(" + methodName + ") annotated with @Property must not return void");
-                    }
-
-                    if (Strings.isNullOrEmpty(property.getPreferenceKey())) {
-                        throw new IllegalArgumentException("Method(" + methodName + ") annotated with @Property must not be specified an empty key");
-                    }
-                    return true;
-                })
-                .collect(toList());
+        this.properties = preference.getPropertyMethods();
         this.entityClass = entityClass;
         this.entityImplClass = entityImplClass;
     }
