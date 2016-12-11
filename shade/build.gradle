@@ -1,5 +1,6 @@
 apply plugin: 'com.android.library'
 apply plugin: 'jacoco'
+apply plugin: 'com.novoda.bintray-release'
 
 android {
     def androidVersions = rootProject.ext.androidVersions
@@ -65,4 +66,37 @@ task jacocoTestReport(type: JacocoReport, dependsOn: 'testDebugUnitTest') {
             ]
     )
     executionData = files("${project.buildDir}/jacoco/testDebugUnitTest.exec")
+}
+
+task javadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.source
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    classpath += configurations.compile
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from android.sourceSets.main.java.srcDirs
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
+
+publish {
+    def metadata = rootProject.ext.metadata
+    userOrg = metadata.userOrg
+    repoName = metadata.repoName
+    groupId = metadata.groupId
+    artifactId = 'shade'
+    description = 'Automatic code generation for the SharedPreferences operation'
+    version = metadata.version
+    website = metadata.website
+    licences = metadata.licenses
 }
