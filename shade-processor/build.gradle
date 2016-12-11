@@ -1,5 +1,6 @@
 apply plugin: 'java'
 apply plugin: 'jacoco'
+apply plugin: 'com.novoda.bintray-release'
 
 import com.android.build.gradle.internal.LoggerWrapper
 import com.android.build.gradle.internal.SdkHandler
@@ -55,4 +56,31 @@ jacocoTestReport {
         csv.enabled = false
         html.enabled = true
     }
+}
+
+task javadocJar(type: Jar, dependsOn:javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.java.srcDirs
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
+
+publish {
+    def metadata = rootProject.ext.metadata
+    userOrg = metadata.userOrg
+    repoName = metadata.repoName
+    groupId = metadata.groupId
+    artifactId = 'shade-processor'
+    description = 'Automatic code generation for the SharedPreferences operation'
+    version = metadata.version
+    website = metadata.website
+    licences = metadata.licenses
 }

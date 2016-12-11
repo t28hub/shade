@@ -1,14 +1,58 @@
-apply from: 'gradle/versions.gradle'
-
 buildscript {
     repositories {
         jcenter()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:2.2.2'
+        classpath 'com.novoda:bintray-release:0.4.0'
+    }
+}
+
+allprojects {
+    repositories {
+        jcenter()
     }
 }
 
 task clean(type: Delete) {
     delete rootProject.buildDir
+}
+
+ext {
+    def majorVersion = 0
+    def minorVersion = 1
+    def patchVersion = 0
+    versionCode = majorVersion * 10000 + minorVersion * 100 + patchVersion
+    versionName = "${majorVersion}.${minorVersion}.${patchVersion}"
+
+    exampleJavaVersions = [
+            sourceCompatibility: JavaVersion.VERSION_1_7,
+            targetCompatibility: JavaVersion.VERSION_1_7,
+    ]
+
+    libraryJavaVersions = [
+            sourceCompatibility: JavaVersion.VERSION_1_7,
+            targetCompatibility: JavaVersion.VERSION_1_7,
+    ]
+
+    compilerJavaVersions = [
+            sourceCompatibility: JavaVersion.VERSION_1_8,
+            targetCompatibility: JavaVersion.VERSION_1_8,
+    ]
+
+    androidVersions = [
+            minSdk    : 16,
+            targetSdk : 25,
+            compileSdk: 25,
+            buildTools: '25.0.1',
+    ]
+
+    metadata = [
+            userOrg : 't28',
+            repoName: 'maven',
+            groupId : 'io.t28',
+            version : versionName,
+            website : 'https://github.com/t28hub/shade',
+            licences: ['Apache-2.0'],
+    ]
 }
