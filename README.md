@@ -5,6 +5,7 @@
 [![Codacy Grade](https://api.codacy.com/project/badge/Grade/b4aad6ede42c43678389cb7a915dd1a7)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=t28hub/shade&amp;utm_campaign=Badge_Grade)
 [![Codacy Coverage](https://api.codacy.com/project/badge/Coverage/b4aad6ede42c43678389cb7a915dd1a7)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=t28hub/shade&amp;utm_campaign=Badge_Coverage)
 
+![Shade](logo.png)  
 Shade is a library makes SharedPreferences operation easy.
 
 ## Table of Contents
