@@ -27,7 +27,6 @@ import javax.annotation.Nonnull;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.MirroredTypeException;
-import javax.lang.model.util.Elements;
 
 import io.t28.shade.annotation.Property;
 import io.t28.shade.processor.util.TypeElements;
@@ -37,9 +36,9 @@ public class PropertyMethodMetadata extends MethodMetadata {
     private static final Pattern GETTER_PATTERN = Pattern.compile("^(get|is|has|can)?([^a-z].+)");
 
     private final Property annotation;
-    private final Elements elementUtils;
+    private final javax.lang.model.util.Elements elementUtils;
 
-    PropertyMethodMetadata(@Nonnull ExecutableElement element, @Nonnull Property annotation, @Nonnull Elements elementUtils) {
+    PropertyMethodMetadata(@Nonnull ExecutableElement element, @Nonnull Property annotation, @Nonnull javax.lang.model.util.Elements elementUtils) {
         super(element);
         this.annotation = annotation;
         this.elementUtils = elementUtils;
@@ -73,7 +72,7 @@ public class PropertyMethodMetadata extends MethodMetadata {
             final TypeElement element = elementUtils.getTypeElement(canonicalName);
             return new ConverterClassMetadata(element);
         } catch (MirroredTypeException e) {
-            final TypeElement element = TypeElements.toTypeElement(e.getTypeMirror());
+            final TypeElement element = TypeElements.toElement(e.getTypeMirror());
             return new ConverterClassMetadata(element);
         }
     }
