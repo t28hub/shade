@@ -25,9 +25,34 @@ import io.t28.shade.converter.Converter;
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.CLASS)
 public @interface Property {
-    String key();
+    /**
+     * The name of the preference key
+     * <p>
+     * Alias for {@link #key()} which allows to ignore {@code key=} part.
+     * </p>
+     *
+     * @return The key of the preference value
+     */
+    String value() default "";
 
+    /**
+     * The key of the preference value
+     *
+     * @return The key of the preference value
+     */
+    String key() default "";
+
+    /**
+     * The default value for the key
+     *
+     * @return The default value
+     */
     String defValue() default "";
 
+    /**
+     * The converter that converts any value to supported value
+     *
+     * @return The custom converter class
+     */
     Class<? extends Converter> converter() default Converter.class;
 }

@@ -29,8 +29,32 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.CLASS)
 @RequiresApi(Build.VERSION_CODES.HONEYCOMB)
 public @interface Preferences {
+    /**
+     * The name of SharedPreferences
+     * <p>
+     * Alias for {@link #name()} which allows to ignore {@code name=} part.
+     * </p>
+     *
+     * @return The name of SharedPreferences
+     */
+    String value() default "";
+
+    /**
+     * The name of SharedPreferences
+     *
+     * @return The name of SharedPreferences
+     */
     String name() default "";
 
+    /**
+     * The operating mode of SharedPreferences
+     *
+     * @return Operating mode
+     * @see Context#MODE_PRIVATE
+     * @see Context#MODE_WORLD_READABLE
+     * @see Context#MODE_WORLD_WRITEABLE
+     * @see Context#MODE_MULTI_PROCESS
+     */
     @Mode
     int mode() default Context.MODE_PRIVATE;
 
@@ -41,7 +65,7 @@ public @interface Preferences {
             Context.MODE_WORLD_WRITEABLE,
             Context.MODE_MULTI_PROCESS
     })
-    @Retention(RetentionPolicy.SOURCE)
+    @Retention(RetentionPolicy.CLASS)
     @interface Mode {
     }
 }

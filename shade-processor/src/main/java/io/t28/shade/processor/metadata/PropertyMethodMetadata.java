@@ -18,6 +18,7 @@ package io.t28.shade.processor.metadata;
 import android.annotation.SuppressLint;
 
 import com.google.common.base.CaseFormat;
+import com.google.common.base.Strings;
 
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -56,7 +57,10 @@ public class PropertyMethodMetadata extends MethodMetadata {
 
     @Nonnull
     public String getPreferenceKey() {
-        return annotation.key();
+        if (Strings.isNullOrEmpty(annotation.value())) {
+            return annotation.key();
+        }
+        return annotation.value();
     }
 
     @Nonnull
