@@ -6,6 +6,7 @@ import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableSet;
 import io.t28.shade.annotation.Property;
 import java.util.Collections;
 import java.util.Set;
@@ -102,7 +103,7 @@ public class DefaultTestPreferences {
             this.value3 = value3;
             this.value4 = value4;
             this.value5 = value5;
-            this.value6 = value6;
+            this.value6 = ImmutableSet.copyOf(value6);
         }
 
         @Override
@@ -185,7 +186,7 @@ public class DefaultTestPreferences {
                 key = "key_string_set"
         )
         public Set<String> value6() {
-            return value6;
+            return ImmutableSet.copyOf(value6);
         }
     }
 

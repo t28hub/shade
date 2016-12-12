@@ -15,45 +15,37 @@
  */
 package io.t28.shade.processor.util;
 
-import com.squareup.javapoet.ClassName;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.squareup.javapoet.CodeBlock;
-import com.squareup.javapoet.TypeName;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.Arrays;
 
 import javax.annotation.Nonnull;
-import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 
 @SuppressWarnings("WeakerAccess")
 public class CodeBlocks {
-    private static final ClassName CLASS_LIST = ClassName.get(List.class);
-    private static final ClassName CLASS_SET = ClassName.get(Set.class);
-    private static final ClassName CLASS_MAP = ClassName.get(Map.class);
-
     private CodeBlocks() {
     }
 
     @Nonnull
-    public static CodeBlock createUnmodifiableStatement(@Nonnull TypeMirror typeMirror, @Nonnull String variable) {
-        if (typeMirror.getKind() != TypeKind.DECLARED) {
-            return CodeBlock.of("$N", variable);
+    public static CodeBlock createUnmodifiableStatement(@Nonnull TypeMirror type, @Nonnull String variable) {
+        if (TypeMirrors.isArray(type)) {
+            return CodeBlock.of("$T.copyOf($N, $N.length)", Arrays.class, variable, variable);
         }
 
-        final Set<TypeName> interfaces = TypeElements.collectInterfaces(TypeElements.toTypeElement(typeMirror));
-        if (interfaces.contains(CLASS_LIST)) {
-            return CodeBlock.of("$T.unmodifiableList($N)", Collections.class, variable);
+        if (TypeMirrors.isList(type)) {
+            return CodeBlock.of("$T.copyOf($N)", ImmutableList.class, variable);
         }
 
-        if (interfaces.contains(CLASS_SET)) {
-            return CodeBlock.of("$T.unmodifiableSet($N)", Collections.class, variable);
+        if (TypeMirrors.isSet(type)) {
+            return CodeBlock.of("$T.copyOf($N)", ImmutableSet.class, variable);
         }
 
-        if (interfaces.contains(CLASS_MAP)) {
-            return CodeBlock.of("$T.unmodifiableMap($N)", Collections.class, variable);
+        if (TypeMirrors.isMap(type)) {
+            return CodeBlock.of("$T.copyOf($N)", ImmutableMap.class, variable);
         }
         return CodeBlock.of("$N", variable);
     }
