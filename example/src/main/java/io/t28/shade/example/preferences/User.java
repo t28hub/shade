@@ -26,15 +26,15 @@ import io.t28.shade.annotation.Property;
 import io.t28.shade.converter.DateConverter;
 import io.t28.shade.example.preferences.converter.UserTypeConverter;
 
-@Preferences(name = "io.t28.shade.example.user")
+@Preferences("io.t28.shade.example.user")
 public abstract class User {
-    @Property(key = "user_id")
+    @Property("user_id")
     public abstract long id();
 
-    @Property(key = "user_name")
+    @Property("user_name")
     public abstract String name();
 
-    @Property(key = "user_tags")
+    @Property("user_tags")
     public abstract Set<String> tags();
 
     @Property(key = "user_type", converter = UserTypeConverter.class)

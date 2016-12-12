@@ -51,12 +51,15 @@ public class PreferenceClassMetadata extends ClassMetadata {
     }
 
     public boolean isDefault() {
-        return Strings.isNullOrEmpty(annotation.name());
+        return Strings.isNullOrEmpty(annotation.value()) && Strings.isNullOrEmpty(annotation.name());
     }
 
     @Nonnull
     public String getPreferenceName() {
-        return annotation.name();
+        if (Strings.isNullOrEmpty(annotation.value())) {
+            return annotation.name();
+        }
+        return annotation.value();
     }
 
     public int getOperationMode() {

@@ -21,7 +21,7 @@ import android.support.annotation.Nullable;
 import java.util.Date;
 
 public class DateConverter implements Converter<Date, Long> {
-    private final long DEFAULT_TIMESTAMP = 0;
+    private static final long DEFAULT_TIMESTAMP = 0;
 
     @NonNull
     @Override
