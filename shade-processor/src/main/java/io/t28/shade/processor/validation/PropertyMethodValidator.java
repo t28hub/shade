@@ -42,7 +42,7 @@ public class PropertyMethodValidator implements Validator<PropertyMethodMetadata
         }
 
         if (Strings.isNullOrEmpty(property.getPreferenceKey())) {
-            throw new ValidationException("Method(%s) annotated with @%s must not be specified an empty key", methodName, ANNOTATION_NAME);
+            throw new ValidationException("Method(%s) annotated with @%s can not allow to use an empty key", methodName, ANNOTATION_NAME);
         }
     }
 }

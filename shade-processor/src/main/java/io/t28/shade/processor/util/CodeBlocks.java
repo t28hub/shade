@@ -15,14 +15,19 @@
  */
 package io.t28.shade.processor.util;
 
+import com.google.auto.common.MoreTypes;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.squareup.javapoet.CodeBlock;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 
 @SuppressWarnings("WeakerAccess")
@@ -32,19 +37,19 @@ public class CodeBlocks {
 
     @Nonnull
     public static CodeBlock createUnmodifiableStatement(@Nonnull TypeMirror type, @Nonnull String variable) {
-        if (TypeMirrors.isArray(type)) {
+        if (type.getKind() == TypeKind.ARRAY) {
             return CodeBlock.of("$T.copyOf($N, $N.length)", Arrays.class, variable, variable);
         }
 
-        if (TypeMirrors.isList(type)) {
+        if (MoreTypes.isTypeOf(List.class, type)) {
             return CodeBlock.of("$T.copyOf($N)", ImmutableList.class, variable);
         }
 
-        if (TypeMirrors.isSet(type)) {
+        if (MoreTypes.isTypeOf(Set.class, type)) {
             return CodeBlock.of("$T.copyOf($N)", ImmutableSet.class, variable);
         }
 
-        if (TypeMirrors.isMap(type)) {
+        if (MoreTypes.isTypeOf(Map.class, type)) {
             return CodeBlock.of("$T.copyOf($N)", ImmutableMap.class, variable);
         }
         return CodeBlock.of("$N", variable);

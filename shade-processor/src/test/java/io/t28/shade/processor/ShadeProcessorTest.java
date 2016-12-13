@@ -91,7 +91,7 @@ public class ShadeProcessorTest {
                     .hasNoNotes()
                     .hasNoWarnings()
                     .hasError()
-                    .containsErrorMessage("Class(ConcreteClassTest) annotated with @Preferences must be an abstract class or interface");
+                    .hasErrorMessage("Class(ConcreteClassTest) annotated with @Preferences must be an abstract class or interface");
         }
 
         @Test
@@ -106,7 +106,7 @@ public class ShadeProcessorTest {
                     .hasNoNotes()
                     .hasNoWarnings()
                     .hasError()
-                    .containsErrorMessage("@Preferences must not be used for enum");
+                    .hasErrorMessage("@Preferences must not be used for enum");
         }
 
         @Test
@@ -157,6 +157,66 @@ public class ShadeProcessorTest {
                     .hasNoErrors()
                     .hasGeneratedSourceFile("io.t28.shade.test.TestPreferences")
                     .isGeneratedSourceFileEqualTo("io.t28.shade.test.TestPreferences", forName("TestPreferences.java"));
+        }
+
+        @Test
+        public void shouldNotProcessWhenKeyIsMissing() throws Exception {
+            // exercise
+            final Compilation actual = javac()
+                    .withProcessors(new ShadeProcessor())
+                    .compile(forName("property/MissingKey.java"));
+
+            // verify
+            assertThat(actual)
+                    .hasNoNotes()
+                    .hasNoWarnings()
+                    .hasError()
+                    .hasErrorMessage("Method(name) annotated with @Property can not allow to use an empty");
+        }
+
+        @Test
+        public void shouldNotProcessWithConcreteMethod() throws Exception {
+            // exercise
+            final Compilation actual = javac()
+                    .withProcessors(new ShadeProcessor())
+                    .compile(forName("property/ConcreteMethod.java"));
+
+            // verify
+            assertThat(actual)
+                    .hasNoNotes()
+                    .hasNoWarnings()
+                    .hasError()
+                    .hasErrorMessage("Method(name) annotated with @Property must be an abstract method");
+        }
+
+        @Test
+        public void shouldNotProcessWithParameterMethod() throws Exception {
+            // exercise
+            final Compilation actual = javac()
+                    .withProcessors(new ShadeProcessor())
+                    .compile(forName("property/ParameterMethod.java"));
+
+            // verify
+            assertThat(actual)
+                    .hasNoNotes()
+                    .hasNoWarnings()
+                    .hasError()
+                    .hasErrorMessage("Method(name) annotated with @Property must not receive any parameters");
+        }
+
+        @Test
+        public void shouldNotProcessWithVoidMethod() throws Exception {
+            // exercise
+            final Compilation actual = javac()
+                    .withProcessors(new ShadeProcessor())
+                    .compile(forName("property/VoidMethod.java"));
+
+            // verify
+            assertThat(actual)
+                    .hasNoNotes()
+                    .hasNoWarnings()
+                    .hasError()
+                    .hasErrorMessage("Method(name) annotated with @Property must not return void");
         }
 
         @Test
