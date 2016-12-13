@@ -5,7 +5,7 @@ apply plugin: 'com.novoda.bintray-release'
 import com.android.build.gradle.internal.LoggerWrapper
 import com.android.build.gradle.internal.SdkHandler
 
-def javaVersions = rootProject.ext.compilerJavaVersions
+def javaVersions = rootProject.ext.processorJavaVersions
 sourceCompatibility = javaVersions.sourceCompatibility
 targetCompatibility = javaVersions.targetCompatibility
 
@@ -18,17 +18,17 @@ handler.sdkLoader.repositories.forEach { repository ->
 }
 
 dependencies {
-    compile 'com.squareup:javapoet:1.7.0'
-    compile 'com.google.inject:guice:4.1.0'
-    compile 'com.google.auto.service:auto-service:1.0-rc2'
-    compile 'com.google.code.findbugs:jsr305:3.0.1'
-    compile 'com.google.android:android:4.1.1.4'
-    compile 'com.android.support:support-annotations:24.2.1'
+    compile dependency.javapoet
+    compile dependency.guice
+    compile dependency.autoService
+    compile dependency.jsr305
+    compile dependency.android
+    compile dependency.supportAnnotations
 
-    testCompile 'junit:junit:4.12'
-    testCompile 'org.assertj:assertj-core:3.5.2'
-    testCompile 'org.mockito:mockito-all:2.0.2-beta'
-    testCompile 'com.google.testing.compile:compile-testing:0.10'
+    testCompile dependency.junit
+    testCompile dependency.assertjCore3
+    testCompile dependency.mockitoAll
+    testCompile dependency.compileTesting
 }
 
 sourceSets {
@@ -42,7 +42,7 @@ sourceSets {
 }
 
 jacoco {
-    toolVersion = '0.7.7.201606060606'
+    toolVersion = jacocoVersion
     reportsDir = file("${project.buildDir}/reports/jacoco")
 }
 
@@ -74,7 +74,6 @@ artifacts {
 }
 
 publish {
-    def metadata = rootProject.ext.metadata
     userOrg = metadata.userOrg
     repoName = metadata.repoName
     groupId = metadata.groupId

@@ -65,7 +65,7 @@ public @interface Preferences {
             Context.MODE_WORLD_WRITEABLE,
             Context.MODE_MULTI_PROCESS
     })
-    @Retention(RetentionPolicy.CLASS)
+    @Retention(RetentionPolicy.SOURCE)
     @interface Mode {
     }
 }
