@@ -35,17 +35,20 @@ ext {
             targetCompatibility: JavaVersion.VERSION_1_7,
     ]
 
-    compilerJavaVersions = [
+    processorJavaVersions = [
             sourceCompatibility: JavaVersion.VERSION_1_8,
             targetCompatibility: JavaVersion.VERSION_1_8,
     ]
 
     androidVersions = [
-            minSdk    : 16,
-            targetSdk : 25,
-            compileSdk: 25,
-            buildTools: '25.0.1',
+            minSdk        : 16,
+            targetSdk     : 25,
+            compileSdk    : 25,
+            buildTools    : '25.0.1',
+            supportLibrary: '24.2.1'
     ]
+
+    jacocoVersion = '0.7.7.201606060606'
 
     metadata = [
             userOrg : 't28',
@@ -54,5 +57,24 @@ ext {
             version : versionName,
             website : 'https://github.com/t28hub/shade',
             licences: ['Apache-2.0'],
+    ]
+
+    dependency = [
+            android           : 'com.google.android:android:4.1.1.4',
+            appcompat         : "com.android.support:appcompat-v7:${androidVersions.supportLibrary}",
+            supportAnnotations: "com.android.support:support-annotations:${androidVersions.supportLibrary}",
+            javapoet          : 'com.squareup:javapoet:1.7.0',
+            guice             : 'com.google.inject:guice:4.1.0',
+            guava             : 'com.google.guava:guava:20.0',
+            autoService       : 'com.google.auto.service:auto-service:1.0-rc2',
+            jsr305            : 'com.google.code.findbugs:jsr305:3.0.1',
+
+            junit             : 'junit:junit:4.12',
+            assertjCore1      : 'org.assertj:assertj-core:1.7.1',
+            assertjCore3      : 'org.assertj:assertj-core:3.5.2',
+            assertjAndroid    : 'com.squareup.assertj:assertj-android:1.1.1',
+            mockitoAll        : 'org.mockito:mockito-all:2.0.2-beta',
+            compileTesting    : 'com.google.testing.compile:compile-testing:0.10',
+            robolectric       : 'org.robolectric:robolectric:3.1.4',
     ]
 }

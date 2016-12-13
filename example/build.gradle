@@ -1,7 +1,6 @@
 apply plugin: 'com.android.application'
 
 android {
-    def androidVersions = rootProject.ext.androidVersions
     compileSdkVersion androidVersions.compileSdk
     buildToolsVersion androidVersions.buildTools
 
@@ -32,12 +31,12 @@ android {
 
 dependencies {
     // Shade
-    annotationProcessor project(':shade-processor')
     compile project(':shade')
+    annotationProcessor project(':shade-processor')
 
     // Support libraries
-    compile 'com.android.support:appcompat-v7:24.2.1'
-    compile 'com.android.support:support-annotations:24.2.1'
+    compile dependency.appcompat
+    compile dependency.supportAnnotations
 
-    testCompile 'junit:junit:4.12'
+    testCompile dependency.junit
 }

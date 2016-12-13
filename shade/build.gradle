@@ -3,7 +3,6 @@ apply plugin: 'jacoco'
 apply plugin: 'com.novoda.bintray-release'
 
 android {
-    def androidVersions = rootProject.ext.androidVersions
     compileSdkVersion androidVersions.compileSdk
     buildToolsVersion androidVersions.buildTools
 
@@ -27,20 +26,19 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:support-annotations:24.2.1'
+    compile dependency.supportAnnotations
 
-    compile 'com.google.guava:guava:20.0'
-    provided 'com.google.guava:guava:20.0'
+    compile dependency.guava
 
-    testCompile 'junit:junit:4.12'
-    testCompile 'org.robolectric:robolectric:3.1.4'
-    testCompile 'org.assertj:assertj-core:1.7.1'
-    testCompile 'com.squareup.assertj:assertj-android:1.1.1'
-    testCompile 'org.mockito:mockito-all:2.0.2-beta'
+    testCompile dependency.junit
+    testCompile dependency.robolectric
+    testCompile dependency.assertjCore1
+    testCompile dependency.assertjAndroid
+    testCompile dependency.mockitoAll
 }
 
 jacoco {
-    toolVersion = '0.7.7.201606060606'
+    toolVersion = jacocoVersion
     reportsDir = file("${project.buildDir}/reports/jacoco")
 }
 
@@ -90,7 +88,6 @@ artifacts {
 }
 
 publish {
-    def metadata = rootProject.ext.metadata
     userOrg = metadata.userOrg
     repoName = metadata.repoName
     groupId = metadata.groupId
