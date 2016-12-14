@@ -91,7 +91,7 @@ public class CompilationAssert extends AbstractAssert<CompilationAssert, Compila
     }
 
     @Nonnull
-    public CompilationAssert containsErrorMessage(@Nonnull String expected) {
+    public CompilationAssert hasErrorMessage(@Nonnull String expected) {
         isNotNull();
 
         final List<Diagnostic<? extends JavaFileObject>> errors = this.actual.errors();
