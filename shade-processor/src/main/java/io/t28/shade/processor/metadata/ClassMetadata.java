@@ -59,11 +59,6 @@ public class ClassMetadata {
     }
 
     @Nonnull
-    public TypeElement getType() {
-        return element;
-    }
-
-    @Nonnull
     public String getSimpleName() {
         return element.getSimpleName().toString();
     }
@@ -157,7 +152,6 @@ public class ClassMetadata {
     }
 
     private boolean hasMethod(@Nonnull Predicate<? super ExecutableElement> filter) {
-        return methods.stream()
-                .anyMatch(filter);
+        return methods.stream().anyMatch(filter);
     }
 }

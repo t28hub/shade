@@ -48,7 +48,7 @@ public class ShadeProcessorTest {
 
     public static class Preferences {
         @Test
-        public void shouldProcessInterface() throws Exception {
+        public void shouldCompileWhenAnnotationIsUsedForInterface() throws Exception {
             // exercise
             final Compilation actual = javac()
                     .withProcessors(new ShadeProcessor())
@@ -56,15 +56,15 @@ public class ShadeProcessorTest {
 
             // verify
             assertThat(actual)
-                    .hasNoNotes()
-                    .hasNoWarnings()
-                    .hasNoErrors()
+                    .hasNoNote()
+                    .hasNoWarning()
+                    .hasNoError()
                     .hasGeneratedSourceFile("io.t28.shade.test.type.InterfaceTestPreferences")
                     .isGeneratedSourceFileEqualTo("io.t28.shade.test.type.InterfaceTestPreferences", forName("type/InterfaceTestPreferences.java"));
         }
 
         @Test
-        public void shouldProcessAbstractClass() throws Exception {
+        public void shouldCompileWhenAnnotationIsUsedForAbstractClass() throws Exception {
             // exercise
             final Compilation actual = javac()
                     .withProcessors(new ShadeProcessor())
@@ -72,15 +72,15 @@ public class ShadeProcessorTest {
 
             // verify
             assertThat(actual)
-                    .hasNoNotes()
-                    .hasNoWarnings()
-                    .hasNoErrors()
+                    .hasNoNote()
+                    .hasNoWarning()
+                    .hasNoError()
                     .hasGeneratedSourceFile("io.t28.shade.test.type.AbstractClassTestPreferences")
                     .isGeneratedSourceFileEqualTo("io.t28.shade.test.type.AbstractClassTestPreferences", forName("type/AbstractClassTestPreferences.java"));
         }
 
         @Test
-        public void shouldNotProcessConcreteClass() throws Exception {
+        public void shouldCompileWithErrorWhenAnnotationIsUsedForConcreteClass() throws Exception {
             // exercise
             final Compilation actual = javac()
                     .withProcessors(new ShadeProcessor())
@@ -88,14 +88,13 @@ public class ShadeProcessorTest {
 
             // verify
             assertThat(actual)
-                    .hasNoNotes()
-                    .hasNoWarnings()
-                    .hasError()
-                    .hasErrorMessage("Class(ConcreteClassTest) annotated with @Preferences must be an abstract class or interface");
+                    .hasNoNote()
+                    .hasNoWarning()
+                    .hasError();
         }
 
         @Test
-        public void shouldNotProcessEnum() throws Exception {
+        public void shouldCompileWithErrorWhenAnnotationIsUsedForEnum() throws Exception {
             // exercise
             final Compilation actual = javac()
                     .withProcessors(new ShadeProcessor())
@@ -103,14 +102,13 @@ public class ShadeProcessorTest {
 
             // verify
             assertThat(actual)
-                    .hasNoNotes()
-                    .hasNoWarnings()
-                    .hasError()
-                    .hasErrorMessage("@Preferences must not be used for enum");
+                    .hasNoNote()
+                    .hasNoWarning()
+                    .hasError();
         }
 
         @Test
-        public void shouldProcessWithMode() throws Exception {
+        public void shouldCompileWhenModeIsGiven() throws Exception {
             // exercise
             final Compilation actual = javac()
                     .withProcessors(new ShadeProcessor())
@@ -118,15 +116,15 @@ public class ShadeProcessorTest {
 
             // verify
             assertThat(actual)
-                    .hasNoNotes()
-                    .hasNoWarnings()
-                    .hasNoErrors()
+                    .hasNoNote()
+                    .hasNoWarning()
+                    .hasNoError()
                     .hasGeneratedSourceFile("io.t28.shade.test.ModeTestPreferences")
                     .isGeneratedSourceFileEqualTo("io.t28.shade.test.ModeTestPreferences", forName("ModeTestPreferences.java"));
         }
 
         @Test
-        public void shouldProcessWithoutName() throws Exception {
+        public void shouldCompileWhenNameIsGiven() throws Exception {
             // exercise
             final Compilation actual = javac()
                     .withProcessors(new ShadeProcessor())
@@ -134,9 +132,9 @@ public class ShadeProcessorTest {
 
             // verify
             assertThat(actual)
-                    .hasNoNotes()
-                    .hasNoWarnings()
-                    .hasNoErrors()
+                    .hasNoNote()
+                    .hasNoWarning()
+                    .hasNoError()
                     .hasGeneratedSourceFile("io.t28.shade.test.DefaultTestPreferences")
                     .isGeneratedSourceFileEqualTo("io.t28.shade.test.DefaultTestPreferences", forName("DefaultTestPreferences.java"));
         }
@@ -144,7 +142,7 @@ public class ShadeProcessorTest {
 
     public static class Property {
         @Test
-        public void shouldProcessAllTypes() throws Exception {
+        public void shouldCompileWithoutError() throws Exception {
             // exercise
             final Compilation actual = javac()
                     .withProcessors(new ShadeProcessor())
@@ -152,15 +150,15 @@ public class ShadeProcessorTest {
 
             // verify
             assertThat(actual)
-                    .hasNoNotes()
-                    .hasNoWarnings()
-                    .hasNoErrors()
+                    .hasNoNote()
+                    .hasNoWarning()
+                    .hasNoError()
                     .hasGeneratedSourceFile("io.t28.shade.test.TestPreferences")
                     .isGeneratedSourceFileEqualTo("io.t28.shade.test.TestPreferences", forName("TestPreferences.java"));
         }
 
         @Test
-        public void shouldNotProcessWhenKeyIsMissing() throws Exception {
+        public void shouldCompileWithErrorWhenKeyIsMissing() throws Exception {
             // exercise
             final Compilation actual = javac()
                     .withProcessors(new ShadeProcessor())
@@ -168,14 +166,13 @@ public class ShadeProcessorTest {
 
             // verify
             assertThat(actual)
-                    .hasNoNotes()
-                    .hasNoWarnings()
-                    .hasError()
-                    .hasErrorMessage("Method(name) annotated with @Property can not allow to use an empty");
+                    .hasNoNote()
+                    .hasNoWarning()
+                    .hasError();
         }
 
         @Test
-        public void shouldNotProcessWithConcreteMethod() throws Exception {
+        public void shouldCompileWithErrorWhenAnnotationIsUsedForConcreteMethod() throws Exception {
             // exercise
             final Compilation actual = javac()
                     .withProcessors(new ShadeProcessor())
@@ -183,14 +180,13 @@ public class ShadeProcessorTest {
 
             // verify
             assertThat(actual)
-                    .hasNoNotes()
-                    .hasNoWarnings()
-                    .hasError()
-                    .hasErrorMessage("Method(name) annotated with @Property must be an abstract method");
+                    .hasNoNote()
+                    .hasNoWarning()
+                    .hasError();
         }
 
         @Test
-        public void shouldNotProcessWithParameterMethod() throws Exception {
+        public void shouldCompileWithErrorWhenAnnotationIsUsedForParameterMethod() throws Exception {
             // exercise
             final Compilation actual = javac()
                     .withProcessors(new ShadeProcessor())
@@ -198,14 +194,13 @@ public class ShadeProcessorTest {
 
             // verify
             assertThat(actual)
-                    .hasNoNotes()
-                    .hasNoWarnings()
-                    .hasError()
-                    .hasErrorMessage("Method(name) annotated with @Property must not receive any parameters");
+                    .hasNoNote()
+                    .hasNoWarning()
+                    .hasError();
         }
 
         @Test
-        public void shouldNotProcessWithVoidMethod() throws Exception {
+        public void shouldCompileWithErrorWhenAnnotationIsUsedForVoidMethod() throws Exception {
             // exercise
             final Compilation actual = javac()
                     .withProcessors(new ShadeProcessor())
@@ -213,46 +208,87 @@ public class ShadeProcessorTest {
 
             // verify
             assertThat(actual)
-                    .hasNoNotes()
-                    .hasNoWarnings()
-                    .hasError()
-                    .hasErrorMessage("Method(name) annotated with @Property must not return void");
+                    .hasNoNote()
+                    .hasNoWarning()
+                    .hasError();
         }
 
         @Test
-        public void shouldProcessWithConverter() throws Exception {
+        public void shouldCompileWhenPreparedConverterIsGiven() throws Exception {
             // exercise
             final Compilation actual = javac()
                     .withProcessors(new ShadeProcessor())
-                    .compile(forName("PreparedConverter.java"));
+                    .compile(forName("property/PreparedConverter.java"));
 
             // verify
             assertThat(actual)
-                    .hasNoNotes()
-                    .hasNoWarnings()
-                    .hasNoErrors()
+                    .hasNoNote()
+                    .hasNoWarning()
+                    .hasNoError()
                     .hasGeneratedSourceFile("io.t28.shade.test.PreparedConverterPreferences")
-                    .isGeneratedSourceFileEqualTo("io.t28.shade.test.PreparedConverterPreferences", forName("PreparedConverterPreferences.java"));
+                    .isGeneratedSourceFileEqualTo("io.t28.shade.test.PreparedConverterPreferences", forName("property/PreparedConverterPreferences.java"));
         }
 
         @Test
-        public void shouldProcessWithConverterAndDefaultValue() throws Exception {
+        public void shouldCompileWhenPreparedConverterAndDefaltValueAreGiven() throws Exception {
             // exercise
             final Compilation actual = javac()
                     .withProcessors(new ShadeProcessor())
-                    .compile(forName("PreparedConverterWithDefault.java"));
+                    .compile(forName("property/PreparedConverterWithDefault.java"));
 
             // verify
             assertThat(actual)
-                    .hasNoNotes()
-                    .hasNoWarnings()
-                    .hasNoErrors()
+                    .hasNoNote()
+                    .hasNoWarning()
+                    .hasNoError()
                     .hasGeneratedSourceFile("io.t28.shade.test.PreparedConverterWithDefaultPreferences")
-                    .isGeneratedSourceFileEqualTo("io.t28.shade.test.PreparedConverterWithDefaultPreferences", forName("PreparedConverterWithDefaultPreferences.java"));
+                    .isGeneratedSourceFileEqualTo("io.t28.shade.test.PreparedConverterWithDefaultPreferences", forName("property/PreparedConverterWithDefaultPreferences.java"));
         }
 
         @Test
-        public void shouldParseDefaultValue() throws Exception {
+        public void shouldCompileWithErrorWhenConverterIsAbstract() throws Exception {
+            // exercise
+            final Compilation actual = javac()
+                    .withProcessors(new ShadeProcessor())
+                    .compile(forName("property/AbstractPropertyConverter.java"));
+
+            // verify
+            assertThat(actual)
+                    .hasNoNote()
+                    .hasNoWarning()
+                    .hasError();
+        }
+
+        @Test
+        public void shouldCompileWithErrorWhenConverterIsInterface() throws Exception {
+            // exercise
+            final Compilation actual = javac()
+                    .withProcessors(new ShadeProcessor())
+                    .compile(forName("property/InterfacePropertyConverter.java"));
+
+            // verify
+            assertThat(actual)
+                    .hasNoNote()
+                    .hasNoWarning()
+                    .hasError();
+        }
+
+        @Test
+        public void shouldCompileWithErrorWhenUnsupportedReturnTypeConverter() throws Exception {
+            // exercise
+            final Compilation actual = javac()
+                    .withProcessors(new ShadeProcessor())
+                    .compile(forName("property/UnsupportedTypePropertyConverter.java"));
+
+            // verify
+            assertThat(actual)
+                    .hasNoNote()
+                    .hasNoWarning()
+                    .hasError();
+        }
+
+        @Test
+        public void shouldCompileWhenDefaultValueIsGiven() throws Exception {
             // exercise
             final Compilation actual = javac()
                     .withProcessors(new ShadeProcessor())
@@ -260,9 +296,9 @@ public class ShadeProcessorTest {
 
             // verify
             assertThat(actual)
-                    .hasNoNotes()
-                    .hasNoWarnings()
-                    .hasNoErrors()
+                    .hasNoNote()
+                    .hasNoWarning()
+                    .hasNoError()
                     .hasGeneratedSourceFile("io.t28.shade.test.DefaultValueTestPreferences")
                     .isGeneratedSourceFileEqualTo("io.t28.shade.test.DefaultValueTestPreferences", forName("DefaultValueTestPreferences.java"));
         }

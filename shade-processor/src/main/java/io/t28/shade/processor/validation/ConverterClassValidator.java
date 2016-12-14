@@ -24,18 +24,22 @@ import io.t28.shade.processor.util.SupportedType;
 
 public class ConverterClassValidator implements Validator<ConverterClassMetadata> {
     @Override
-    public void validate(@Nonnull ConverterClassMetadata value) throws ValidationException {
-        if (value.isDefault()) {
+    public void validate(@Nonnull ConverterClassMetadata metadata) throws ValidationException {
+        if (metadata.isDefault()) {
             return;
         }
 
-        if (value.isAbstract()) {
-            throw new ValidationException("Converter class(%s) must not be an abstract class", value.getSimpleName());
+        if (metadata.isAbstract()) {
+            throw new ValidationException("Converter class(%s) must not be an abstract class or interface", metadata.getSimpleName());
         }
 
-        final TypeName storeType = value.getSupportedType();
+        if (!metadata.hasDefaultConstructor()) {
+            throw new ValidationException("Converter class(%s) must provide a default constructor", metadata.getSimpleName());
+        }
+
+        final TypeName storeType = metadata.getSupportedType();
         if (!SupportedType.contains(storeType)) {
-            throw new ValidationException("Type(%s) is not allowed to save the SharedPreferences", storeType);
+            throw new ValidationException("Type(%s) is not allowed to store the SharedPreferences", storeType);
         }
     }
 }
