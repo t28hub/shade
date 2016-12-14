@@ -48,7 +48,7 @@ public class PreparedConverterWithDefaultPreferences {
     }
 
     @NonNull
-    public SharedPreferences provideSharedPreferences() {
+    public SharedPreferences getSharedPreferences() {
         return preferences;
     }
 
@@ -57,7 +57,7 @@ public class PreparedConverterWithDefaultPreferences {
 
         private final Uri website;
 
-        protected PreparedConverterWithDefaultImpl(Date published, Uri website) {
+        public PreparedConverterWithDefaultImpl(@NonNull Date published, @NonNull Uri website) {
             this.published = published;
             this.website = website;
         }
@@ -118,14 +118,21 @@ public class PreparedConverterWithDefaultPreferences {
         }
 
         @NonNull
-        public Editor putPublished(@NonNull Date newValue) {
-            editor.putLong("published", new DateConverter().toSupported(newValue));
+        public Editor put(@NonNull PreparedConverterWithDefault preparedConverterWithDefault) {
+            putPublished(preparedConverterWithDefault.published());
+            putWebsite(preparedConverterWithDefault.website());
             return this;
         }
 
         @NonNull
-        public Editor putWebsite(@NonNull Uri newValue) {
-            editor.putString("website", new UriConverter().toSupported(newValue));
+        public Editor putPublished(@NonNull Date published) {
+            editor.putLong("published", new DateConverter().toSupported(published));
+            return this;
+        }
+
+        @NonNull
+        public Editor putWebsite(@NonNull Uri website) {
+            editor.putString("website", new UriConverter().toSupported(website));
             return this;
         }
 

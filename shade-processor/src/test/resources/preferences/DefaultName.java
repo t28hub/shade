@@ -13,18 +13,16 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package io.t28.shade.processor.test;
 
-import com.google.testing.compile.Compilation;
+package io.t28.shade.test;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import java.util.Set;
 
-public class Assertions extends org.assertj.core.api.Assertions {
-    private Assertions() {}
+import io.t28.shade.annotation.Preferences;
+import io.t28.shade.annotation.Property;
 
-    @Nonnull
-    public static CompilationAssert assertThat(@Nullable Compilation actual) {
-        return new CompilationAssert(actual);
-    }
+@Preferences
+public interface DefaultName {
+    @Property(key = "key_boolean")
+    boolean value1();
 }

@@ -8,16 +8,16 @@ import com.google.common.base.Objects;
 import io.t28.shade.annotation.Property;
 
 @SuppressWarnings("all")
-public class InterfaceTestPreferences {
+public class AbstractClassPreferences {
     private final SharedPreferences preferences;
 
-    public InterfaceTestPreferences(@NonNull Context context) {
+    public AbstractClassPreferences(@NonNull Context context) {
         this.preferences = context.getApplicationContext().getSharedPreferences("io.t28.shade.test", 0);
     }
 
     @NonNull
-    public InterfaceTest get() {
-        return new InterfaceTestImpl(getValue());
+    public AbstractClass get() {
+        return new AbstractClassImpl(getValue());
     }
 
     @NonNull
@@ -35,14 +35,14 @@ public class InterfaceTestPreferences {
     }
 
     @NonNull
-    public SharedPreferences provideSharedPreferences() {
+    public SharedPreferences getSharedPreferences() {
         return preferences;
     }
 
-    public static class InterfaceTestImpl implements InterfaceTest {
+    public static class AbstractClassImpl extends AbstractClass {
         private final String value;
 
-        protected InterfaceTestImpl(String value) {
+        public AbstractClassImpl(@NonNull String value) {
             this.value = value;
         }
 
@@ -51,10 +51,10 @@ public class InterfaceTestPreferences {
             if (this == object) {
                 return true;
             }
-            if (!(object instanceof InterfaceTest)) {
+            if (!(object instanceof AbstractClass)) {
                 return false;
             }
-            final InterfaceTest that = (InterfaceTest) object;
+            final AbstractClass that = (AbstractClass) object;
             return Objects.equal(value, that.value());
         }
 
@@ -66,7 +66,7 @@ public class InterfaceTestPreferences {
         @NonNull
         @Override
         public String toString() {
-            return MoreObjects.toStringHelper("InterfaceTest")
+            return MoreObjects.toStringHelper("AbstractClass")
                     .add("value", value)
                     .toString();
         }
@@ -88,8 +88,14 @@ public class InterfaceTestPreferences {
         }
 
         @NonNull
-        public Editor putValue(@NonNull String newValue) {
-            editor.putString("test_value", newValue);
+        public Editor put(@NonNull AbstractClass abstractClass) {
+            putValue(abstractClass.value());
+            return this;
+        }
+
+        @NonNull
+        public Editor putValue(@NonNull String value) {
+            editor.putString("test_value", value);
             return this;
         }
 

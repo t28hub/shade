@@ -103,7 +103,7 @@ public class EntityClassFactory extends TypeFactory {
     protected List<FieldSpec> getFields() {
         return ImmutableList.copyOf(properties.stream()
                 .map(property -> {
-                    final String fieldName = property.getSimpleName(CaseFormat.LOWER_CAMEL);
+                    final String fieldName = property.getSimpleNameWithoutPrefix(CaseFormat.LOWER_CAMEL);
                     final TypeName valueType = property.getReturnTypeName();
                     return FieldSpec.builder(valueType, fieldName, Modifier.PRIVATE, Modifier.FINAL).build();
                 })
@@ -133,19 +133,25 @@ public class EntityClassFactory extends TypeFactory {
 
     private MethodSpec buildConstructorSpec() {
         final MethodSpec.Builder builder = MethodSpec.constructorBuilder();
-        builder.addModifiers(Modifier.PROTECTED);
+        builder.addModifiers(Modifier.PUBLIC);
 
         // Parameters
         properties.forEach(property -> {
             final TypeName valueType = property.getReturnTypeName();
-            final String fieldName = property.getSimpleName(CaseFormat.LOWER_CAMEL);
-            builder.addParameter(ParameterSpec.builder(valueType, fieldName).build());
+            final String fieldName = property.getSimpleNameWithoutPrefix(CaseFormat.LOWER_CAMEL);
+            final ParameterSpec parameter;
+            if (valueType.isPrimitive()) {
+                parameter = ParameterSpec.builder(valueType, fieldName).build();
+            } else {
+                parameter = ParameterSpec.builder(valueType, fieldName).addAnnotation(NonNull.class).build();
+            }
+            builder.addParameter(parameter);
         });
 
         // Statements
         properties.forEach(property -> {
             final TypeMirror valueType = property.getReturnType();
-            final String fieldName = property.getSimpleName(CaseFormat.LOWER_CAMEL);
+            final String fieldName = property.getSimpleNameWithoutPrefix(CaseFormat.LOWER_CAMEL);
             builder.addStatement("$L", CodeBlock.builder()
                     .add("this.$L = $L", fieldName, CodeBlocks.createUnmodifiableStatement(valueType, fieldName))
                     .build());
@@ -163,7 +169,7 @@ public class EntityClassFactory extends TypeFactory {
         final CodeBlock.Builder statementBuilder = CodeBlock.builder();
         statementBuilder.add("return $T.toStringHelper($S)\n", MoreObjects.class, entityClass.simpleName());
         preference.getPropertyMethods().forEach(property -> {
-            final String fieldName = property.getSimpleName(CaseFormat.LOWER_CAMEL);
+            final String fieldName = property.getSimpleNameWithoutPrefix(CaseFormat.LOWER_CAMEL);
             statementBuilder.add(".add($S, $L)\n", fieldName, fieldName);
         });
         statementBuilder.add(".toString()");
@@ -190,7 +196,7 @@ public class EntityClassFactory extends TypeFactory {
 
         final CodeBlock.Builder statementBuilder = CodeBlock.builder();
         properties.forEach(property -> {
-            final String fieldName = property.getSimpleName(CaseFormat.LOWER_CAMEL);
+            final String fieldName = property.getSimpleNameWithoutPrefix(CaseFormat.LOWER_CAMEL);
             final String methodName = property.getSimpleName();
             final TypeName valueType = property.getReturnTypeName();
             if (valueType.isPrimitive()) {
@@ -214,7 +220,7 @@ public class EntityClassFactory extends TypeFactory {
                 .returns(int.class);
 
         final String arguments = properties.stream()
-                .map(property -> property.getSimpleName(CaseFormat.LOWER_CAMEL))
+                .map(property -> property.getSimpleNameWithoutPrefix(CaseFormat.LOWER_CAMEL))
                 .collect(joining(", "));
         builder.addStatement("return $T.hashCode($L)", Objects.class, arguments);
         return builder.build();
@@ -223,7 +229,7 @@ public class EntityClassFactory extends TypeFactory {
     private List<MethodSpec> buildGetMethodSpecs() {
         return properties.stream()
                 .map(property -> {
-                    final String fieldName = property.getSimpleName(CaseFormat.LOWER_CAMEL);
+                    final String fieldName = property.getSimpleNameWithoutPrefix(CaseFormat.LOWER_CAMEL);
                     final TypeMirror valueType = property.getReturnType();
                     final CodeBlock statement = CodeBlocks.createUnmodifiableStatement(valueType, fieldName);
                     return MethodSpec.overriding(property.getMethod())

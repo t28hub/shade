@@ -112,7 +112,7 @@ public class PreferenceClassFactory extends TypeFactory {
                 .addAll(buildGetMethodSpecs())
                 .addAll(buildContainsMethodSpecs())
                 .add(buildEditMethodSpec())
-                .add(buildProvideSharedPreferencesMethodSpec())
+                .add(buildGetSharedPreferencesMethodSpec())
                 .build();
     }
 
@@ -152,7 +152,7 @@ public class PreferenceClassFactory extends TypeFactory {
 
         final String arguments = preference.getPropertyMethods()
                 .stream()
-                .map(property -> METHOD_PREFIX_GET + property.getSimpleName(CaseFormat.UPPER_CAMEL) + "()")
+                .map(property -> METHOD_PREFIX_GET + property.getSimpleNameWithoutPrefix(CaseFormat.UPPER_CAMEL) + "()")
                 .collect(joining(", "));
         builder.addStatement("return new $T($L)", entityImplClass, arguments);
         return builder.build();
@@ -162,7 +162,7 @@ public class PreferenceClassFactory extends TypeFactory {
         return preference.getPropertyMethods()
                 .stream()
                 .map(property -> {
-                    final String methodName = METHOD_PREFIX_GET + property.getSimpleName(CaseFormat.UPPER_CAMEL);
+                    final String methodName = METHOD_PREFIX_GET + property.getSimpleNameWithoutPrefix(CaseFormat.UPPER_CAMEL);
                     final MethodSpec.Builder builder = MethodSpec.methodBuilder(methodName)
                             .addModifiers(Modifier.PUBLIC);
 
@@ -200,7 +200,7 @@ public class PreferenceClassFactory extends TypeFactory {
         return preference.getPropertyMethods()
                 .stream()
                 .map(property -> {
-                    final String methodName = METHOD_PREFIX_HAS + property.getSimpleName(CaseFormat.UPPER_CAMEL);
+                    final String methodName = METHOD_PREFIX_HAS + property.getSimpleNameWithoutPrefix(CaseFormat.UPPER_CAMEL);
                     return MethodSpec.methodBuilder(methodName)
                             .addModifiers(Modifier.PUBLIC)
                             .returns(TypeName.BOOLEAN)
@@ -219,8 +219,8 @@ public class PreferenceClassFactory extends TypeFactory {
                 .build();
     }
 
-    private MethodSpec buildProvideSharedPreferencesMethodSpec() {
-        return MethodSpec.methodBuilder("provideSharedPreferences")
+    private MethodSpec buildGetSharedPreferencesMethodSpec() {
+        return MethodSpec.methodBuilder("getSharedPreferences")
                 .addAnnotation(NonNull.class)
                 .addModifiers(Modifier.PUBLIC)
                 .returns(SharedPreferences.class)
