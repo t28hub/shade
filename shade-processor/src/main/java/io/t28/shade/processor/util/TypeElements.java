@@ -51,17 +51,22 @@ public class TypeElements {
     }
 
     @Nonnull
-    public static List<TypeName> collectGenericTypes(@Nonnull TypeElement element, @Nonnull Class clazz) {
+    public static List<TypeName> findGenericTypes(@Nonnull TypeElement element, @Nonnull String className) {
         TypeElement currentElement = element;
         while (currentElement != null) {
             for (final TypeMirror interfaceType : currentElement.getInterfaces()) {
                 final DeclaredType declaredType = (DeclaredType) interfaceType;
                 final TypeElement interfaceElement = TypeElements.toElement(declaredType);
-                if (interfaceElement.getSimpleName().toString().equals(clazz.getSimpleName())) {
+                if (interfaceElement.getSimpleName().toString().equals(className)) {
                     return declaredType.getTypeArguments()
                             .stream()
                             .map(TypeName::get)
                             .collect(toList());
+                }
+
+                final List<TypeName> found = findGenericTypes(interfaceElement, className);
+                if (!found.isEmpty()) {
+                    return found;
                 }
             }
 

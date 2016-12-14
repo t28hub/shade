@@ -45,7 +45,7 @@ public class ConverterClassMetadata extends ClassMetadata {
             this.convertedType = TypeName.VOID;
             return;
         }
-        final List<TypeName> typeNames = TypeElements.collectGenericTypes(element, Converter.class);
+        final List<TypeName> typeNames = TypeElements.findGenericTypes(element, Converter.class.getSimpleName());
         this.supportedType = TypeNames.unbox(typeNames.get(SUPPORTED_TYPE_INDEX));
         this.convertedType = TypeNames.unbox(typeNames.get(CONVERTED_TYPE_INDEX));
     }

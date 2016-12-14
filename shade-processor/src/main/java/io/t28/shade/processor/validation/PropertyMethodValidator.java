@@ -27,21 +27,21 @@ public class PropertyMethodValidator implements Validator<PropertyMethodMetadata
     private static final String ANNOTATION_NAME = Property.class.getSimpleName();
 
     @Override
-    public void validate(@Nonnull PropertyMethodMetadata property) throws ValidationException {
-        final String methodName = property.getSimpleName();
-        if (!property.isAbstract()) {
+    public void validate(@Nonnull PropertyMethodMetadata metadata) throws ValidationException {
+        final String methodName = metadata.getSimpleName();
+        if (!metadata.isAbstract()) {
             throw new ValidationException("Method(%s) annotated with @%s must be an abstract method", methodName, ANNOTATION_NAME);
         }
-        if (property.hasParameters()) {
+        if (metadata.hasParameters()) {
             throw new ValidationException("Method(%s) annotated with @%s must not receive any parameters", methodName, ANNOTATION_NAME);
         }
 
-        final TypeName returnType = property.getReturnTypeName();
+        final TypeName returnType = metadata.getReturnTypeName();
         if (returnType.equals(TypeName.VOID)) {
             throw new ValidationException("Method(%s) annotated with @%s must not return void", methodName, ANNOTATION_NAME);
         }
 
-        if (Strings.isNullOrEmpty(property.getPreferenceKey())) {
+        if (Strings.isNullOrEmpty(metadata.getPreferenceKey())) {
             throw new ValidationException("Method(%s) annotated with @%s can not allow to use an empty key", methodName, ANNOTATION_NAME);
         }
     }

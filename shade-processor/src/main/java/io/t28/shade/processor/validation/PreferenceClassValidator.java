@@ -40,20 +40,20 @@ public class PreferenceClassValidator implements Validator<PreferenceClassMetada
     }
 
     @Override
-    public void validate(@Nonnull PreferenceClassMetadata value) throws ValidationException {
-        if (!value.isClass() && !value.isInterface()) {
+    public void validate(@Nonnull PreferenceClassMetadata metadata) throws ValidationException {
+        if (!metadata.isClass() && !metadata.isInterface()) {
             throw new ValidationException("@%s must not be used for enum", ANNOTATION_NAME);
         }
 
-        final String className = value.getSimpleName();
-        if (!value.isAbstract()) {
+        final String className = metadata.getSimpleName();
+        if (!metadata.isAbstract()) {
             throw new ValidationException("Class(%s) annotated with @%s must be an abstract class or interface", className, ANNOTATION_NAME);
         }
-        if (!value.hasDefaultConstructor()) {
+        if (!metadata.hasDefaultConstructor()) {
             throw new ValidationException("Class(%s) annotated with @%s must provide a default constructor", className, ANNOTATION_NAME);
         }
 
-        value.getPropertyMethods().forEach(property -> {
+        metadata.getPropertyMethods().forEach(property -> {
             propertyMethodValidator.validate(property);
             converterClassValidator.validate(property.getConverterClass());
         });
