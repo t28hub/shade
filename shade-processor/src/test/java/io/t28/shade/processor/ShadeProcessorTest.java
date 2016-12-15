@@ -56,9 +56,7 @@ public class ShadeProcessorTest {
 
             // verify
             assertThat(actual)
-                    .hasNoNote()
-                    .hasNoWarning()
-                    .hasNoError()
+                    .isSucceeded()
                     .hasGeneratedSourceFile("io.t28.shade.test.type.InterfaceTypePreferences")
                     .isGeneratedSourceFileEqualTo("io.t28.shade.test.type.InterfaceTypePreferences", forName("InterfaceTypePreferences.java"));
         }
@@ -72,9 +70,7 @@ public class ShadeProcessorTest {
 
             // verify
             assertThat(actual)
-                    .hasNoNote()
-                    .hasNoWarning()
-                    .hasNoError()
+                    .isSucceeded()
                     .hasGeneratedSourceFile("io.t28.shade.test.type.AbstractClassPreferences")
                     .isGeneratedSourceFileEqualTo("io.t28.shade.test.type.AbstractClassPreferences", forName("AbstractClassPreferences.java"));
         }
@@ -88,9 +84,7 @@ public class ShadeProcessorTest {
 
             // verify
             assertThat(actual)
-                    .hasNoNote()
-                    .hasNoWarning()
-                    .hasError();
+                    .isFailed();
         }
 
         @Test
@@ -102,9 +96,7 @@ public class ShadeProcessorTest {
 
             // verify
             assertThat(actual)
-                    .hasNoNote()
-                    .hasNoWarning()
-                    .hasError();
+                    .isFailed();
         }
 
         @Test
@@ -116,9 +108,7 @@ public class ShadeProcessorTest {
 
             // verify
             assertThat(actual)
-                    .hasNoNote()
-                    .hasNoWarning()
-                    .hasNoError()
+                    .isSucceeded()
                     .hasGeneratedSourceFile("io.t28.shade.test.DefaultNamePreferences")
                     .isGeneratedSourceFileEqualTo("io.t28.shade.test.DefaultNamePreferences", forName("DefaultNamePreferences.java"));
         }
@@ -132,9 +122,7 @@ public class ShadeProcessorTest {
 
             // verify
             assertThat(actual)
-                    .hasNoNote()
-                    .hasNoWarning()
-                    .hasNoError()
+                    .isSucceeded()
                     .hasGeneratedSourceFile("io.t28.shade.test.DefaultModePreferences")
                     .isGeneratedSourceFileEqualTo("io.t28.shade.test.DefaultModePreferences", forName("DefaultModePreferences.java"));
         }
@@ -148,9 +136,7 @@ public class ShadeProcessorTest {
 
             // verify
             assertThat(actual)
-                    .hasNoNote()
-                    .hasNoWarning()
-                    .hasNoError()
+                    .isSucceeded()
                     .hasGeneratedSourceFile("io.t28.shade.test.WorldReadableModePreferences")
                     .isGeneratedSourceFileEqualTo("io.t28.shade.test.WorldReadableModePreferences", forName("WorldReadableModePreferences.java"));
         }
@@ -171,9 +157,7 @@ public class ShadeProcessorTest {
 
             // verify
             assertThat(actual)
-                    .hasNoNote()
-                    .hasNoWarning()
-                    .hasNoError()
+                    .isSucceeded()
                     .hasGeneratedSourceFile("io.t28.shade.test.AllTypesPreferences")
                     .isGeneratedSourceFileEqualTo("io.t28.shade.test.AllTypesPreferences", forName("AllTypesPreferences.java"));
         }
@@ -187,9 +171,7 @@ public class ShadeProcessorTest {
 
             // verify
             assertThat(actual)
-                    .hasNoNote()
-                    .hasNoWarning()
-                    .hasNoError()
+                    .isSucceeded()
                     .hasGeneratedSourceFile("io.t28.shade.test.AllTypesWithDefaultPreferences")
                     .isGeneratedSourceFileEqualTo("io.t28.shade.test.AllTypesWithDefaultPreferences", forName("AllTypesWithDefaultPreferences.java"));
         }
@@ -203,9 +185,7 @@ public class ShadeProcessorTest {
 
             // verify
             assertThat(actual)
-                    .hasNoNote()
-                    .hasNoWarning()
-                    .hasError();
+                    .isFailed();
         }
 
         @Test
@@ -217,9 +197,7 @@ public class ShadeProcessorTest {
 
             // verify
             assertThat(actual)
-                    .hasNoNote()
-                    .hasNoWarning()
-                    .hasError();
+                    .isFailed();
         }
 
         @Test
@@ -231,9 +209,7 @@ public class ShadeProcessorTest {
 
             // verify
             assertThat(actual)
-                    .hasNoNote()
-                    .hasNoWarning()
-                    .hasError();
+                    .isFailed();
         }
 
         @Test
@@ -245,9 +221,7 @@ public class ShadeProcessorTest {
 
             // verify
             assertThat(actual)
-                    .hasNoNote()
-                    .hasNoWarning()
-                    .hasError();
+                    .isFailed();
         }
 
         @Test
@@ -259,9 +233,7 @@ public class ShadeProcessorTest {
 
             // verify
             assertThat(actual)
-                    .hasNoNote()
-                    .hasNoWarning()
-                    .hasNoError()
+                    .isSucceeded()
                     .hasGeneratedSourceFile("io.t28.shade.test.PreparedConverterPreferences")
                     .isGeneratedSourceFileEqualTo("io.t28.shade.test.PreparedConverterPreferences", forName("PreparedConverterPreferences.java"));
         }
@@ -275,9 +247,7 @@ public class ShadeProcessorTest {
 
             // verify
             assertThat(actual)
-                    .hasNoNote()
-                    .hasNoWarning()
-                    .hasNoError()
+                    .isSucceeded()
                     .hasGeneratedSourceFile("io.t28.shade.test.PreparedConverterWithDefaultPreferences")
                     .isGeneratedSourceFileEqualTo("io.t28.shade.test.PreparedConverterWithDefaultPreferences", forName("PreparedConverterWithDefaultPreferences.java"));
         }
@@ -291,9 +261,7 @@ public class ShadeProcessorTest {
 
             // verify
             assertThat(actual)
-                    .hasNoNote()
-                    .hasNoWarning()
-                    .hasError();
+                    .isFailed();
         }
 
         @Test
@@ -305,9 +273,7 @@ public class ShadeProcessorTest {
 
             // verify
             assertThat(actual)
-                    .hasNoNote()
-                    .hasNoWarning()
-                    .hasError();
+                    .isFailed();
         }
 
         @Test
@@ -319,9 +285,7 @@ public class ShadeProcessorTest {
 
             // verify
             assertThat(actual)
-                    .hasNoNote()
-                    .hasNoWarning()
-                    .hasError();
+                    .isFailed();
         }
 
         @Nonnull
