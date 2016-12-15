@@ -20,13 +20,11 @@ import android.annotation.SuppressLint;
 import org.assertj.core.api.AbstractAssert;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 
 import static java.util.stream.Collectors.joining;
@@ -40,49 +38,25 @@ public class CompilationAssert extends AbstractAssert<CompilationAssert, Compila
     }
 
     @Nonnull
-    public CompilationAssert hasNoNote() {
+    public CompilationAssert isSucceeded() {
         isNotNull();
 
-        final List<Diagnostic<? extends JavaFileObject>> actual = this.actual.notes();
+        final Compilation.Status actual = this.actual.status();
         assertThat(actual)
-                .overridingErrorMessage("Some notes were found:<%s>", actual)
-                .isEmpty();
+                .overridingErrorMessage("Compilation was expected to succeed, but was failed")
+                .isEqualTo(Compilation.Status.SUCCESS);
 
         return this;
     }
 
     @Nonnull
-    public CompilationAssert hasNoWarning() {
+    public CompilationAssert isFailed() {
         isNotNull();
 
-        final List<Diagnostic<? extends JavaFileObject>> actual = this.actual.warnings();
+        final Compilation.Status actual = this.actual.status();
         assertThat(actual)
-                .overridingErrorMessage("Some warnings were found")
-                .isEmpty();
-
-        return this;
-    }
-
-    @Nonnull
-    public CompilationAssert hasNoError() {
-        isNotNull();
-
-        final List<Diagnostic<? extends JavaFileObject>> actual = this.actual.errors();
-        assertThat(actual)
-                .overridingErrorMessage("Some errors were found")
-                .isEmpty();
-
-        return this;
-    }
-
-    @Nonnull
-    public CompilationAssert hasError() {
-        isNotNull();
-
-        final List<Diagnostic<? extends JavaFileObject>> actual = this.actual.errors();
-        assertThat(actual)
-                .overridingErrorMessage("Errors were not found")
-                .isNotEmpty();
+                .overridingErrorMessage("Compilation was expected to fail, but was succeeded")
+                .isEqualTo(Compilation.Status.FAILURE);
 
         return this;
     }
