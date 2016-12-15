@@ -41,7 +41,7 @@ public abstract class User {
     public abstract Type type();
 
     @Property(key = "user_created", converter = DateConverter.class)
-    public abstract Date createdAt();
+    public abstract Date created();
 
     @Property(key = "is_private", defValue = "false")
     public abstract boolean isPrivateUser();

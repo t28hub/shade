@@ -49,16 +49,22 @@ public class EditorClassFactory extends TypeFactory {
     private static final String METHOD_PREFIX_REMOVE = "remove";
 
     private final List<PropertyMethodMetadata> properties;
+    private final ClassName entityClass;
     private final ClassName editorClass;
 
     @Inject
-    public EditorClassFactory(@Nonnull PreferenceClassMetadata preference, @Nonnull @Named("Editor") ClassName editorClass) {
-        this(preference.getPropertyMethods(), editorClass);
+    public EditorClassFactory(@Nonnull PreferenceClassMetadata preference,
+                              @Nonnull @Named("Entity") ClassName entityClass,
+                              @Nonnull @Named("Editor") ClassName editorClass) {
+        this(preference.getPropertyMethods(), entityClass, editorClass);
     }
 
     @VisibleForTesting
-    EditorClassFactory(@Nonnull List<PropertyMethodMetadata> properties, @Nonnull ClassName editorClass) {
+    EditorClassFactory(@Nonnull List<PropertyMethodMetadata> properties,
+                       @NonNull ClassName entityClass,
+                       @Nonnull ClassName editorClass) {
         this.properties = properties;
+        this.entityClass = entityClass;
         this.editorClass = editorClass;
     }
 
@@ -88,7 +94,8 @@ public class EditorClassFactory extends TypeFactory {
     protected List<MethodSpec> getMethods() {
         return ImmutableList.<MethodSpec>builder()
                 .add(buildConstructorSpec())
-                .addAll(buildPutMethodSpecs())
+                .add(buildPutEntityMethodSpec())
+                .addAll(buildPutPropertyMethodSpecs())
                 .addAll(buildRemoveMethodSpecs())
                 .add(buildClearMethodSpec())
                 .add(buildApplyMethodSpec())
@@ -106,21 +113,44 @@ public class EditorClassFactory extends TypeFactory {
                 .build();
     }
 
-    private List<MethodSpec> buildPutMethodSpecs() {
+    private MethodSpec buildPutEntityMethodSpec() {
+        final String parameterName = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, entityClass.simpleName());
+        final MethodSpec.Builder builder = MethodSpec.methodBuilder(METHOD_PREFIX_PUT)
+                .addAnnotation(NonNull.class)
+                .addModifiers(Modifier.PUBLIC)
+                .returns(editorClass)
+                .addParameter(ParameterSpec.builder(entityClass, parameterName)
+                        .addAnnotation(NonNull.class)
+                        .build()
+                );
+
+        properties.forEach(property -> builder.addStatement(
+                "$N$N($N.$N())",
+                METHOD_PREFIX_PUT,
+                property.getSimpleNameWithoutPrefix(CaseFormat.UPPER_CAMEL),
+                parameterName,
+                property.getSimpleName()
+        ));
+        builder.addStatement("return this");
+        return builder.build();
+    }
+
+    private List<MethodSpec> buildPutPropertyMethodSpecs() {
         return properties.stream()
                 .map(property -> {
-                    final String methodName = METHOD_PREFIX_PUT + property.getSimpleName(CaseFormat.UPPER_CAMEL);
+                    final String methodName = METHOD_PREFIX_PUT + property.getSimpleNameWithoutPrefix(CaseFormat.UPPER_CAMEL);
                     final MethodSpec.Builder builder = MethodSpec.methodBuilder(methodName)
                             .addAnnotation(NonNull.class)
                             .addModifiers(Modifier.PUBLIC)
                             .returns(editorClass);
 
+                    final String parameterName = property.getSimpleNameWithoutPrefix(CaseFormat.LOWER_CAMEL);
                     final TypeName valueType = property.getReturnTypeName();
                     if (valueType.isPrimitive()) {
-                        builder.addParameter(ParameterSpec.builder(valueType, "newValue")
+                        builder.addParameter(ParameterSpec.builder(valueType, parameterName)
                                 .build());
                     } else {
-                        builder.addParameter(ParameterSpec.builder(valueType, "newValue")
+                        builder.addParameter(ParameterSpec.builder(valueType, parameterName)
                                 .addAnnotation(NonNull.class)
                                 .build());
                     }
@@ -135,7 +165,7 @@ public class EditorClassFactory extends TypeFactory {
 
                     final SupportedType supportedType = SupportedType.find(storeType);
                     return builder
-                            .addStatement("$L", buildSaveStatement(property, supportedType))
+                            .addStatement("$L", buildSaveStatement(property, supportedType, parameterName))
                             .addStatement("return this")
                             .build();
                 })
@@ -146,7 +176,7 @@ public class EditorClassFactory extends TypeFactory {
         return properties
                 .stream()
                 .map(property -> {
-                    final String methodName = METHOD_PREFIX_REMOVE + property.getSimpleName(CaseFormat.UPPER_CAMEL);
+                    final String methodName = METHOD_PREFIX_REMOVE + property.getSimpleNameWithoutPrefix(CaseFormat.UPPER_CAMEL);
                     return MethodSpec.methodBuilder(methodName)
                             .addAnnotation(NonNull.class)
                             .addModifiers(Modifier.PUBLIC)
@@ -176,16 +206,16 @@ public class EditorClassFactory extends TypeFactory {
                 .build();
     }
 
-    private CodeBlock buildSaveStatement(PropertyMethodMetadata property, SupportedType supported) {
+    private CodeBlock buildSaveStatement(PropertyMethodMetadata property, SupportedType supported, String parameterName) {
         final ConverterClassMetadata converter = property.getConverterClass();
         final CodeBlock statement;
         if (converter.isDefault()) {
             statement = CodeBlock.builder()
-                    .add("newValue")
+                    .add(parameterName)
                     .build();
         } else {
             statement = CodeBlock.builder()
-                    .add("new $T().toSupported($L)", converter.getClassName(), "newValue")
+                    .add("new $T().toSupported($L)", converter.getClassName(), parameterName)
                     .build();
         }
         return supported.buildSaveStatement(FIELD_EDITOR, property.getPreferenceKey(), statement);

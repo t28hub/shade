@@ -13,11 +13,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package io.t28.shade.processor.test;
+package com.google.testing.compile;
 
 import android.annotation.SuppressLint;
-
-import com.google.testing.compile.Compilation;
 
 import org.assertj.core.api.AbstractAssert;
 

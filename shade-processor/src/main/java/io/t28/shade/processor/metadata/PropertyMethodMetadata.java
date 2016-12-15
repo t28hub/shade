@@ -28,31 +28,33 @@ import javax.annotation.Nonnull;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.MirroredTypeException;
+import javax.lang.model.util.Elements;
 
 import io.t28.shade.annotation.Property;
 import io.t28.shade.processor.util.TypeElements;
 
 @SuppressLint("NewApi")
 public class PropertyMethodMetadata extends MethodMetadata {
-    private static final Pattern GETTER_PATTERN = Pattern.compile("^(get|is|has|can)?([^a-z].+)");
+    private static final int SIMPLE_NAME_GROUP = 2;
+    private static final Pattern GETTER_PATTERN = Pattern.compile("^(get|is|has)?([^a-z].+)");
 
     private final Property annotation;
-    private final javax.lang.model.util.Elements elementUtils;
+    private final Elements elementUtils;
 
-    PropertyMethodMetadata(@Nonnull ExecutableElement element, @Nonnull Property annotation, @Nonnull javax.lang.model.util.Elements elementUtils) {
+    PropertyMethodMetadata(@Nonnull ExecutableElement element, @Nonnull Property annotation, @Nonnull Elements elementUtils) {
         super(element);
         this.annotation = annotation;
         this.elementUtils = elementUtils;
     }
 
     @Nonnull
-    public String getSimpleName(@Nonnull CaseFormat format) {
+    public String getSimpleNameWithoutPrefix(@Nonnull CaseFormat format) {
         final String name = getSimpleName();
         final Matcher matcher = GETTER_PATTERN.matcher(name);
         if (matcher.matches()) {
-            return CaseFormat.UPPER_CAMEL.to(format, matcher.group(2));
+            return CaseFormat.UPPER_CAMEL.to(format, matcher.group(SIMPLE_NAME_GROUP));
         }
-        return CaseFormat.LOWER_CAMEL.to(format, name);
+        return CaseFormat.LOWER_CAMEL.to(format, getSimpleName());
     }
 
     @Nonnull

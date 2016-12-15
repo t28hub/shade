@@ -5,8 +5,8 @@ import java.util.Set;
 import io.t28.shade.annotation.Preferences;
 import io.t28.shade.annotation.Property;
 
-@Preferences
-public interface DefaultTest {
+@Preferences(name = "io.t28.shade.test")
+public interface AllTypes {
     @Property(key = "key_boolean")
     boolean value1();
 

@@ -8,25 +8,24 @@ import com.google.common.base.Objects;
 import io.t28.shade.annotation.Property;
 
 @SuppressWarnings("all")
-public class ModeTestPreferences {
+public class DefaultModePreferences {
     private final SharedPreferences preferences;
 
-    public ModeTestPreferences(@NonNull Context context) {
-        this.preferences = context.getApplicationContext().getSharedPreferences("io.t28.shade.test", 4);
+    public DefaultModePreferences(@NonNull Context context) {
+        this.preferences = context.getApplicationContext().getSharedPreferences("io.t28.shade.test.default_mode", 0);
     }
 
     @NonNull
-    public ModeTest get() {
-        return new ModeTestImpl(getValue());
+    public DefaultMode get() {
+        return new DefaultModeImpl(getValue1());
     }
 
-    @NonNull
-    public String getValue() {
-        return preferences.getString("test_value", "");
+    public boolean getValue1() {
+        return preferences.getBoolean("key_boolean", false);
     }
 
-    public boolean containsValue() {
-        return preferences.contains("test_value");
+    public boolean containsValue1() {
+        return preferences.contains("key_boolean");
     }
 
     @NonNull
@@ -35,15 +34,15 @@ public class ModeTestPreferences {
     }
 
     @NonNull
-    public SharedPreferences provideSharedPreferences() {
+    public SharedPreferences getSharedPreferences() {
         return preferences;
     }
 
-    public static class ModeTestImpl implements ModeTest {
-        private final String value;
+    public static class DefaultModeImpl implements DefaultMode {
+        private final boolean value1;
 
-        protected ModeTestImpl(String value) {
-            this.value = value;
+        public DefaultModeImpl(boolean value1) {
+            this.value1 = value1;
         }
 
         @Override
@@ -51,32 +50,32 @@ public class ModeTestPreferences {
             if (this == object) {
                 return true;
             }
-            if (!(object instanceof ModeTest)) {
+            if (!(object instanceof DefaultMode)) {
                 return false;
             }
-            final ModeTest that = (ModeTest) object;
-            return Objects.equal(value, that.value());
+            final DefaultMode that = (DefaultMode) object;
+            return value1 == that.value1();
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(value);
+            return Objects.hashCode(value1);
         }
 
         @NonNull
         @Override
         public String toString() {
-            return MoreObjects.toStringHelper("ModeTest")
-                    .add("value", value)
+            return MoreObjects.toStringHelper("DefaultMode")
+                    .add("value1", value1)
                     .toString();
         }
 
         @Override
         @Property(
-                key = "test_value"
+                key = "key_boolean"
         )
-        public String value() {
-            return value;
+        public boolean value1() {
+            return value1;
         }
     }
 
@@ -88,14 +87,20 @@ public class ModeTestPreferences {
         }
 
         @NonNull
-        public Editor putValue(@NonNull String newValue) {
-            editor.putString("test_value", newValue);
+        public Editor put(@NonNull DefaultMode defaultMode) {
+            putValue1(defaultMode.value1());
             return this;
         }
 
         @NonNull
-        public Editor removeValue() {
-            editor.remove("test_value");
+        public Editor putValue1(boolean value1) {
+            editor.putBoolean("key_boolean", value1);
+            return this;
+        }
+
+        @NonNull
+        public Editor removeValue1() {
+            editor.remove("key_boolean");
             return this;
         }
 

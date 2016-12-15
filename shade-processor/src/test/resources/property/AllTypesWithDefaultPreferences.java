@@ -2,7 +2,6 @@ package io.t28.shade.test;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
@@ -12,37 +11,37 @@ import java.util.Collections;
 import java.util.Set;
 
 @SuppressWarnings("all")
-public class DefaultTestPreferences {
+public class AllTypesWithDefaultPreferences {
     private final SharedPreferences preferences;
 
-    public DefaultTestPreferences(@NonNull Context context) {
-        this.preferences = PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
+    public AllTypesWithDefaultPreferences(@NonNull Context context) {
+        this.preferences = context.getApplicationContext().getSharedPreferences("io.t28.shade.test", 0);
     }
 
     @NonNull
-    public DefaultTest get() {
-        return new DefaultTestImpl(getValue1(), getValue2(), getValue3(), getValue4(), getValue5(), getValue6());
+    public AllTypesWithDefault get() {
+        return new AllTypesWithDefaultImpl(getValue1(), getValue2(), getValue3(), getValue4(), getValue5(), getValue6());
     }
 
     public boolean getValue1() {
-        return preferences.getBoolean("key_boolean", false);
+        return preferences.getBoolean("key_boolean", true);
     }
 
     public int getValue2() {
-        return preferences.getInt("key_int", 0);
+        return preferences.getInt("key_int", 1024);
     }
 
     public long getValue3() {
-        return preferences.getLong("key_long", 0L);
+        return preferences.getLong("key_long", 9223372036854775807L);
     }
 
     public float getValue4() {
-        return preferences.getFloat("key_float", 0.0f);
+        return preferences.getFloat("key_float", 1.5f);
     }
 
     @NonNull
     public String getValue5() {
-        return preferences.getString("key_string", "");
+        return preferences.getString("key_string", "default");
     }
 
     @NonNull
@@ -80,11 +79,11 @@ public class DefaultTestPreferences {
     }
 
     @NonNull
-    public SharedPreferences provideSharedPreferences() {
+    public SharedPreferences getSharedPreferences() {
         return preferences;
     }
 
-    public static class DefaultTestImpl implements DefaultTest {
+    public static class AllTypesWithDefaultImpl implements AllTypesWithDefault {
         private final boolean value1;
 
         private final int value2;
@@ -97,7 +96,7 @@ public class DefaultTestPreferences {
 
         private final Set<String> value6;
 
-        protected DefaultTestImpl(boolean value1, int value2, long value3, float value4, String value5, Set<String> value6) {
+        public AllTypesWithDefaultImpl(boolean value1, int value2, long value3, float value4, @NonNull String value5, @NonNull Set<String> value6) {
             this.value1 = value1;
             this.value2 = value2;
             this.value3 = value3;
@@ -111,10 +110,10 @@ public class DefaultTestPreferences {
             if (this == object) {
                 return true;
             }
-            if (!(object instanceof DefaultTest)) {
+            if (!(object instanceof AllTypesWithDefault)) {
                 return false;
             }
-            final DefaultTest that = (DefaultTest) object;
+            final AllTypesWithDefault that = (AllTypesWithDefault) object;
             return value1 == that.value1() &&
                     value2 == that.value2() &&
                     value3 == that.value3() &&
@@ -131,7 +130,7 @@ public class DefaultTestPreferences {
         @NonNull
         @Override
         public String toString() {
-            return MoreObjects.toStringHelper("DefaultTest")
+            return MoreObjects.toStringHelper("AllTypesWithDefault")
                     .add("value1", value1)
                     .add("value2", value2)
                     .add("value3", value3)
@@ -143,7 +142,8 @@ public class DefaultTestPreferences {
 
         @Override
         @Property(
-                key = "key_boolean"
+                key = "key_boolean",
+                defValue = "true"
         )
         public boolean value1() {
             return value1;
@@ -151,7 +151,8 @@ public class DefaultTestPreferences {
 
         @Override
         @Property(
-                key = "key_int"
+                key = "key_int",
+                defValue = "1024"
         )
         public int value2() {
             return value2;
@@ -159,7 +160,8 @@ public class DefaultTestPreferences {
 
         @Override
         @Property(
-                key = "key_long"
+                key = "key_long",
+                defValue = "9223372036854775807"
         )
         public long value3() {
             return value3;
@@ -167,7 +169,8 @@ public class DefaultTestPreferences {
 
         @Override
         @Property(
-                key = "key_float"
+                key = "key_float",
+                defValue = "1.5"
         )
         public float value4() {
             return value4;
@@ -175,7 +178,8 @@ public class DefaultTestPreferences {
 
         @Override
         @Property(
-                key = "key_string"
+                key = "key_string",
+                defValue = "default"
         )
         public String value5() {
             return value5;
@@ -183,7 +187,8 @@ public class DefaultTestPreferences {
 
         @Override
         @Property(
-                key = "key_string_set"
+                key = "key_string_set",
+                defValue = "default"
         )
         public Set<String> value6() {
             return ImmutableSet.copyOf(value6);
@@ -198,38 +203,49 @@ public class DefaultTestPreferences {
         }
 
         @NonNull
-        public Editor putValue1(boolean newValue) {
-            editor.putBoolean("key_boolean", newValue);
+        public Editor put(@NonNull AllTypesWithDefault allTypesWithDefault) {
+            putValue1(allTypesWithDefault.value1());
+            putValue2(allTypesWithDefault.value2());
+            putValue3(allTypesWithDefault.value3());
+            putValue4(allTypesWithDefault.value4());
+            putValue5(allTypesWithDefault.value5());
+            putValue6(allTypesWithDefault.value6());
             return this;
         }
 
         @NonNull
-        public Editor putValue2(int newValue) {
-            editor.putInt("key_int", newValue);
+        public Editor putValue1(boolean value1) {
+            editor.putBoolean("key_boolean", value1);
             return this;
         }
 
         @NonNull
-        public Editor putValue3(long newValue) {
-            editor.putLong("key_long", newValue);
+        public Editor putValue2(int value2) {
+            editor.putInt("key_int", value2);
             return this;
         }
 
         @NonNull
-        public Editor putValue4(float newValue) {
-            editor.putFloat("key_float", newValue);
+        public Editor putValue3(long value3) {
+            editor.putLong("key_long", value3);
             return this;
         }
 
         @NonNull
-        public Editor putValue5(@NonNull String newValue) {
-            editor.putString("key_string", newValue);
+        public Editor putValue4(float value4) {
+            editor.putFloat("key_float", value4);
             return this;
         }
 
         @NonNull
-        public Editor putValue6(@NonNull Set<String> newValue) {
-            editor.putStringSet("key_string_set", newValue);
+        public Editor putValue5(@NonNull String value5) {
+            editor.putString("key_string", value5);
+            return this;
+        }
+
+        @NonNull
+        public Editor putValue6(@NonNull Set<String> value6) {
+            editor.putStringSet("key_string_set", value6);
             return this;
         }
 
