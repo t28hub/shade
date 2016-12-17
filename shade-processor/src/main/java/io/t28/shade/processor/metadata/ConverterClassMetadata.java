@@ -15,7 +15,6 @@
  */
 package io.t28.shade.processor.metadata;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
 
@@ -48,13 +47,6 @@ public class ConverterClassMetadata extends ClassMetadata {
         final List<TypeName> typeNames = TypeElements.findGenericTypes(element, Converter.class.getSimpleName());
         this.supportedType = TypeNames.unbox(typeNames.get(SUPPORTED_TYPE_INDEX));
         this.convertedType = TypeNames.unbox(typeNames.get(CONVERTED_TYPE_INDEX));
-    }
-
-    @VisibleForTesting
-    ConverterClassMetadata(@Nonnull TypeElement element, @Nonnull TypeName supportedType, @Nonnull TypeName convertedType) {
-        super(element);
-        this.supportedType = supportedType;
-        this.convertedType = convertedType;
     }
 
     public boolean isDefault() {
