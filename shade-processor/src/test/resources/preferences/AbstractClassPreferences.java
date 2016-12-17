@@ -3,9 +3,10 @@ package io.t28.shade.test.type;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 import io.t28.shade.annotation.Property;
+import io.t28.shade.internal.EqualsBuilder;
+import io.t28.shade.internal.HashCodeBuilder;
+import io.t28.shade.internal.ToStringBuilder;
 
 @SuppressWarnings("all")
 public class AbstractClassPreferences {
@@ -55,20 +56,24 @@ public class AbstractClassPreferences {
                 return false;
             }
             final AbstractClass that = (AbstractClass) object;
-            return Objects.equal(value, that.value());
+            final EqualsBuilder builder = new EqualsBuilder();
+            builder.append(value, that.value());
+            return builder.build();
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(value);
+            final HashCodeBuilder builder = new HashCodeBuilder();
+            builder.append(value);
+            return builder.build();
         }
 
         @NonNull
         @Override
         public String toString() {
-            return MoreObjects.toStringHelper("AbstractClass")
-                    .add("value", value)
-                    .toString();
+            final ToStringBuilder builder = new ToStringBuilder(this);
+            builder.append("value", value);
+            return builder.toString();
         }
 
         @Override

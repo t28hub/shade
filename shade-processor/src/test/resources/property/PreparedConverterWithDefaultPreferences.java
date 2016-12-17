@@ -4,11 +4,12 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.support.annotation.NonNull;
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 import io.t28.shade.annotation.Property;
 import io.t28.shade.converter.DateConverter;
 import io.t28.shade.converter.UriConverter;
+import io.t28.shade.internal.EqualsBuilder;
+import io.t28.shade.internal.HashCodeBuilder;
+import io.t28.shade.internal.ToStringBuilder;
 import java.util.Date;
 
 @SuppressWarnings("all")
@@ -71,22 +72,27 @@ public class PreparedConverterWithDefaultPreferences {
                 return false;
             }
             final PreparedConverterWithDefault that = (PreparedConverterWithDefault) object;
-            return Objects.equal(published, that.published()) &&
-                    Objects.equal(website, that.website());
+            final EqualsBuilder builder = new EqualsBuilder();
+            builder.append(published, that.published());
+            builder.append(website, that.website());
+            return builder.build();
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(published, website);
+            final HashCodeBuilder builder = new HashCodeBuilder();
+            builder.append(published);
+            builder.append(website);
+            return builder.build();
         }
 
         @NonNull
         @Override
         public String toString() {
-            return MoreObjects.toStringHelper("PreparedConverterWithDefault")
-                    .add("published", published)
-                    .add("website", website)
-                    .toString();
+            final ToStringBuilder builder = new ToStringBuilder(this);
+            builder.append("published", published);
+            builder.append("website", website);
+            return builder.toString();
         }
 
         @Override
