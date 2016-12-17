@@ -49,22 +49,22 @@ public class EditorClassFactory extends TypeFactory {
     private static final String METHOD_PREFIX_REMOVE = "remove";
 
     private final List<PropertyMethodMetadata> properties;
-    private final ClassName entityClass;
+    private final ClassName modelClass;
     private final ClassName editorClass;
 
     @Inject
     public EditorClassFactory(@Nonnull PreferenceClassMetadata preference,
-                              @Nonnull @Named("Entity") ClassName entityClass,
+                              @Nonnull @Named("Model") ClassName modelClass,
                               @Nonnull @Named("Editor") ClassName editorClass) {
-        this(preference.getPropertyMethods(), entityClass, editorClass);
+        this(preference.getPropertyMethods(), modelClass, editorClass);
     }
 
     @VisibleForTesting
     EditorClassFactory(@Nonnull List<PropertyMethodMetadata> properties,
-                       @NonNull ClassName entityClass,
+                       @NonNull ClassName modelClass,
                        @Nonnull ClassName editorClass) {
         this.properties = properties;
-        this.entityClass = entityClass;
+        this.modelClass = modelClass;
         this.editorClass = editorClass;
     }
 
@@ -94,7 +94,7 @@ public class EditorClassFactory extends TypeFactory {
     protected List<MethodSpec> getMethods() {
         return ImmutableList.<MethodSpec>builder()
                 .add(buildConstructorSpec())
-                .add(buildPutEntityMethodSpec())
+                .add(buildPutModelMethodSpec())
                 .addAll(buildPutPropertyMethodSpecs())
                 .addAll(buildRemoveMethodSpecs())
                 .add(buildClearMethodSpec())
@@ -113,13 +113,13 @@ public class EditorClassFactory extends TypeFactory {
                 .build();
     }
 
-    private MethodSpec buildPutEntityMethodSpec() {
-        final String parameterName = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, entityClass.simpleName());
+    private MethodSpec buildPutModelMethodSpec() {
+        final String parameterName = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, modelClass.simpleName());
         final MethodSpec.Builder builder = MethodSpec.methodBuilder(METHOD_PREFIX_PUT)
                 .addAnnotation(NonNull.class)
                 .addModifiers(Modifier.PUBLIC)
                 .returns(editorClass)
-                .addParameter(ParameterSpec.builder(entityClass, parameterName)
+                .addParameter(ParameterSpec.builder(modelClass, parameterName)
                         .addAnnotation(NonNull.class)
                         .build()
                 );

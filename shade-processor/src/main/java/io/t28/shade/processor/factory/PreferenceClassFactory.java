@@ -53,26 +53,26 @@ public class PreferenceClassFactory extends TypeFactory {
     private static final String METHOD_PREFIX_HAS = "contains";
 
     private final PreferenceClassMetadata preference;
+    private final ClassName modelClass;
+    private final ClassName modelImplClass;
     private final ClassName editorClass;
-    private final ClassName entityClass;
-    private final ClassName entityImplClass;
     private final ClassName preferencesClass;
-    private final List<TypeFactory> innerClassFactories;
+    private final List<TypeFactory> enclosedClassFactories;
 
     @Inject
     public PreferenceClassFactory(@Nonnull PreferenceClassMetadata preference,
+                                  @Nonnull @Named("Model") ClassName modelClass,
+                                  @Nonnull @Named("ModelImpl") ClassName modelImplClass,
                                   @Nonnull @Named("Editor") ClassName editorClass,
-                                  @Nonnull @Named("Entity") ClassName entityClass,
-                                  @Nonnull @Named("EntityImpl") ClassName entityImplClass,
                                   @Nonnull @Named("Preferences") ClassName preferencesClass,
-                                  @Nonnull @Named("Entity") TypeFactory entityClassFactory,
+                                  @Nonnull @Named("Model") TypeFactory modelClassFactory,
                                   @Nonnull @Named("Editor") TypeFactory editorClassFactory) {
         this.preference = preference;
+        this.modelClass = modelClass;
+        this.modelImplClass = modelImplClass;
         this.editorClass = editorClass;
-        this.entityClass = entityClass;
-        this.entityImplClass = entityImplClass;
         this.preferencesClass = preferencesClass;
-        this.innerClassFactories = ImmutableList.of(entityClassFactory, editorClassFactory);
+        this.enclosedClassFactories = ImmutableList.of(modelClassFactory, editorClassFactory);
     }
 
     @Nonnull
@@ -119,7 +119,7 @@ public class PreferenceClassFactory extends TypeFactory {
     @Nonnull
     @Override
     protected List<TypeSpec> getEnclosedTypes() {
-        return innerClassFactories.stream()
+        return enclosedClassFactories.stream()
                 .map(TypeFactory::create)
                 .collect(toList());
     }
@@ -148,13 +148,13 @@ public class PreferenceClassFactory extends TypeFactory {
         final MethodSpec.Builder builder = MethodSpec.methodBuilder(METHOD_PREFIX_GET)
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(NonNull.class)
-                .returns(entityClass);
+                .returns(modelClass);
 
         final String arguments = preference.getPropertyMethods()
                 .stream()
                 .map(property -> METHOD_PREFIX_GET + property.getSimpleNameWithoutPrefix(CaseFormat.UPPER_CAMEL) + "()")
                 .collect(joining(", "));
-        builder.addStatement("return new $T($L)", entityImplClass, arguments);
+        builder.addStatement("return new $T($L)", modelImplClass, arguments);
         return builder.build();
     }
 
