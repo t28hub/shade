@@ -124,9 +124,7 @@ public class EntityClassFactory extends TypeFactory {
             builder.add(buildHashCodeMethodSpec());
         }
 
-        if (!preference.hasToStringMethod()) {
-            builder.add(buildToStringMethodSpec());
-        }
+        builder.add(buildToStringMethodSpec());
         builder.addAll(buildGetMethodSpecs());
         return builder.build();
     }

@@ -134,23 +134,6 @@ public class ClassMetadata {
         });
     }
 
-    public boolean hasToStringMethod() {
-        return hasMethod(method -> {
-            final String name = method.getSimpleName().toString();
-            if (!name.equals(METHOD_NAME_TO_STRING)) {
-                return false;
-            }
-
-            final List<? extends VariableElement> parameters = method.getParameters();
-            if (!parameters.isEmpty()) {
-                return false;
-            }
-
-            final TypeName returnType = TypeName.get(method.getReturnType());
-            return returnType.equals(ClassName.get(String.class));
-        });
-    }
-
     private boolean hasMethod(@Nonnull Predicate<? super ExecutableElement> filter) {
         return methods.stream().anyMatch(filter);
     }
