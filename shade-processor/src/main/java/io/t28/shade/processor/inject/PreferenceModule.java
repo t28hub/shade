@@ -29,7 +29,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 
 import io.t28.shade.processor.factory.EditorClassFactory;
-import io.t28.shade.processor.factory.EntityClassFactory;
+import io.t28.shade.processor.factory.ModelClassFactory;
 import io.t28.shade.processor.factory.PreferenceClassFactory;
 import io.t28.shade.processor.factory.TypeFactory;
 import io.t28.shade.processor.metadata.ConverterClassMetadata;
@@ -43,7 +43,7 @@ import io.t28.shade.processor.validation.Validator;
 @SuppressWarnings("unused")
 public class PreferenceModule implements Module {
     private static final String PREFERENCE_SUFFIX = "Preferences";
-    private static final String ENTITY_IMPL_SUFFIX = "Impl";
+    private static final String MODEL_IMPL_SUFFIX = "Impl";
     private static final String EDITOR_CLASS_NAME = "Editor";
 
     private final TypeElement element;
@@ -59,8 +59,8 @@ public class PreferenceModule implements Module {
                 .annotatedWith(Names.named("Preferences"))
                 .to(PreferenceClassFactory.class);
         binder.bind(TypeFactory.class)
-                .annotatedWith(Names.named("Entity"))
-                .to(EntityClassFactory.class);
+                .annotatedWith(Names.named("Model"))
+                .to(ModelClassFactory.class);
         binder.bind(TypeFactory.class)
                 .annotatedWith(Names.named("Editor"))
                 .to(EditorClassFactory.class);
@@ -97,16 +97,16 @@ public class PreferenceModule implements Module {
 
     @Nonnull
     @Provides
-    @Named("Entity")
-    public ClassName provideEntityClass(@Nonnull TypeElement element, @Nonnull @Named("PackageName") String packageName) {
+    @Named("Model")
+    public ClassName provideModelClass(@Nonnull TypeElement element, @Nonnull @Named("PackageName") String packageName) {
         return ClassName.get(packageName, element.getSimpleName().toString());
     }
 
     @Nonnull
     @Provides
-    @Named("EntityImpl")
-    public ClassName provideEntityImplClass(@Nonnull TypeElement element) {
-        return ClassName.bestGuess(element.getSimpleName().toString() + ENTITY_IMPL_SUFFIX);
+    @Named("ModelImpl")
+    public ClassName provideModelImplClass(@Nonnull TypeElement element) {
+        return ClassName.bestGuess(element.getSimpleName().toString() + MODEL_IMPL_SUFFIX);
     }
 
     @Nonnull

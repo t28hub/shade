@@ -47,31 +47,31 @@ import io.t28.shade.processor.util.CodeBlocks;
 import static java.util.stream.Collectors.toList;
 
 @SuppressLint("NewApi")
-public class EntityClassFactory extends TypeFactory {
+public class ModelClassFactory extends TypeFactory {
     private static final String METHOD_NAME_EQUALS = "equals";
     private static final String METHOD_NAME_HASH_CODE = "hashCode";
     private static final String METHOD_NAME_TO_STRING = "toString";
 
     private final PreferenceClassMetadata preference;
     private final List<PropertyMethodMetadata> properties;
-    private final ClassName entityClass;
-    private final ClassName entityImplClass;
+    private final ClassName modelClass;
+    private final ClassName modelImplClass;
 
     @Inject
-    public EntityClassFactory(@Nonnull PreferenceClassMetadata preference,
-                              @Nonnull @Named("Entity") ClassName entityClass,
-                              @Nonnull @Named("EntityImpl") ClassName entityImplClass) {
+    public ModelClassFactory(@Nonnull PreferenceClassMetadata preference,
+                             @Nonnull @Named("Model") ClassName modelClass,
+                             @Nonnull @Named("ModelImpl") ClassName modelImplClass) {
 
         this.preference = preference;
         this.properties = preference.getPropertyMethods();
-        this.entityClass = entityClass;
-        this.entityImplClass = entityImplClass;
+        this.modelClass = modelClass;
+        this.modelImplClass = modelImplClass;
     }
 
     @Nonnull
     @Override
     protected String getName() {
-        return entityImplClass.simpleName();
+        return modelImplClass.simpleName();
     }
 
     @Nonnull
@@ -84,7 +84,7 @@ public class EntityClassFactory extends TypeFactory {
     @Override
     protected Optional<TypeName> getSuperClass() {
         if (preference.isClass()) {
-            return Optional.of(entityClass);
+            return Optional.of(modelClass);
         }
         return Optional.empty();
     }
@@ -93,7 +93,7 @@ public class EntityClassFactory extends TypeFactory {
     @Override
     protected List<TypeName> getInterfaces() {
         if (preference.isInterface()) {
-            return Collections.singletonList(entityClass);
+            return Collections.singletonList(modelClass);
         }
         return Collections.emptyList();
     }
@@ -177,11 +177,11 @@ public class EntityClassFactory extends TypeFactory {
                 .addStatement("return true")
                 .endControlFlow();
 
-        builder.beginControlFlow("if (!(object instanceof $T))", entityClass)
+        builder.beginControlFlow("if (!(object instanceof $T))", modelClass)
                 .addStatement("return false")
                 .endControlFlow();
 
-        builder.addStatement("final $T that = ($T) object", entityClass, entityClass);
+        builder.addStatement("final $T that = ($T) object", modelClass, modelClass);
 
         builder.addStatement("final $1T builder = new $1T()", EqualsBuilder.class);
         properties.forEach(property -> {
