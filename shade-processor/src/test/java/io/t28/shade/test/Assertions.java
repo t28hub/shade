@@ -21,11 +21,18 @@ import com.google.testing.compile.CompilationAssert;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import io.t28.shade.processor.metadata.ConverterClassMetadata;
+
 public class Assertions extends org.assertj.core.api.Assertions {
     private Assertions() {}
 
     @Nonnull
     public static CompilationAssert assertThat(@Nullable Compilation actual) {
         return new CompilationAssert(actual);
+    }
+
+    @Nonnull
+    public static ConverterClassMetadataAssert assertThat(@Nullable ConverterClassMetadata actual) {
+        return new ConverterClassMetadataAssert(actual);
     }
 }
