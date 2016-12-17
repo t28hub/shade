@@ -113,20 +113,13 @@ public class EntityClassFactory extends TypeFactory {
     @Nonnull
     @Override
     protected List<MethodSpec> getMethods() {
-        final ImmutableList.Builder<MethodSpec> builder = ImmutableList.builder();
-        builder.add(buildConstructorSpec());
-
-        if (!preference.hasEqualsMethod()) {
-            builder.add(buildEqualsMethodSpec());
-        }
-
-        if (!preference.hasHashCodeMethod()) {
-            builder.add(buildHashCodeMethodSpec());
-        }
-
-        builder.add(buildToStringMethodSpec());
-        builder.addAll(buildGetMethodSpecs());
-        return builder.build();
+        return ImmutableList.<MethodSpec>builder()
+                .add(buildConstructorSpec())
+                .add(buildEqualsMethodSpec())
+                .add(buildHashCodeMethodSpec())
+                .add(buildToStringMethodSpec())
+                .addAll(buildGetMethodSpecs())
+                .build();
     }
 
     private MethodSpec buildConstructorSpec() {
