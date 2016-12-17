@@ -15,6 +15,7 @@
  */
 package io.t28.shade.processor.util;
 
+import android.annotation.SuppressLint;
 import android.support.annotation.NonNull;
 
 import com.squareup.javapoet.ClassName;
@@ -30,6 +31,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+@SuppressLint("NewApi")
 public enum SupportedType {
     BOOLEAN(TypeName.BOOLEAN) {
         private static final boolean DEFAULT = false;
