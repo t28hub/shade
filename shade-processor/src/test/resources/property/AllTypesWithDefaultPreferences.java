@@ -3,11 +3,12 @@ package io.t28.shade.test;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableSet;
 import io.t28.shade.annotation.Property;
+import io.t28.shade.internal.EqualsBuilder;
+import io.t28.shade.internal.HashCodeBuilder;
+import io.t28.shade.internal.ToStringBuilder;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 @SuppressWarnings("all")
@@ -102,7 +103,7 @@ public class AllTypesWithDefaultPreferences {
             this.value3 = value3;
             this.value4 = value4;
             this.value5 = value5;
-            this.value6 = ImmutableSet.copyOf(value6);
+            this.value6 = new HashSet<>(value6);
         }
 
         @Override
@@ -114,30 +115,39 @@ public class AllTypesWithDefaultPreferences {
                 return false;
             }
             final AllTypesWithDefault that = (AllTypesWithDefault) object;
-            return value1 == that.value1() &&
-                    value2 == that.value2() &&
-                    value3 == that.value3() &&
-                    value4 == that.value4() &&
-                    Objects.equal(value5, that.value5()) &&
-                    Objects.equal(value6, that.value6());
+            final EqualsBuilder builder = new EqualsBuilder();
+            builder.append(value1, that.value1());
+            builder.append(value2, that.value2());
+            builder.append(value3, that.value3());
+            builder.append(value4, that.value4());
+            builder.append(value5, that.value5());
+            builder.append(value6, that.value6());
+            return builder.build();
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(value1, value2, value3, value4, value5, value6);
+            final HashCodeBuilder builder = new HashCodeBuilder();
+            builder.append(value1);
+            builder.append(value2);
+            builder.append(value3);
+            builder.append(value4);
+            builder.append(value5);
+            builder.append(value6);
+            return builder.build();
         }
 
         @NonNull
         @Override
         public String toString() {
-            return MoreObjects.toStringHelper("AllTypesWithDefault")
-                    .add("value1", value1)
-                    .add("value2", value2)
-                    .add("value3", value3)
-                    .add("value4", value4)
-                    .add("value5", value5)
-                    .add("value6", value6)
-                    .toString();
+            final ToStringBuilder builder = new ToStringBuilder(this);
+            builder.append("value1", value1);
+            builder.append("value2", value2);
+            builder.append("value3", value3);
+            builder.append("value4", value4);
+            builder.append("value5", value5);
+            builder.append("value6", value6);
+            return builder.toString();
         }
 
         @Override
@@ -191,7 +201,7 @@ public class AllTypesWithDefaultPreferences {
                 defValue = "default"
         )
         public Set<String> value6() {
-            return ImmutableSet.copyOf(value6);
+            return new HashSet<>(value6);
         }
     }
 

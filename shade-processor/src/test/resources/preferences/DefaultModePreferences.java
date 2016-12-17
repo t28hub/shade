@@ -3,9 +3,10 @@ package io.t28.shade.test;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 import io.t28.shade.annotation.Property;
+import io.t28.shade.internal.EqualsBuilder;
+import io.t28.shade.internal.HashCodeBuilder;
+import io.t28.shade.internal.ToStringBuilder;
 
 @SuppressWarnings("all")
 public class DefaultModePreferences {
@@ -54,20 +55,24 @@ public class DefaultModePreferences {
                 return false;
             }
             final DefaultMode that = (DefaultMode) object;
-            return value1 == that.value1();
+            final EqualsBuilder builder = new EqualsBuilder();
+            builder.append(value1, that.value1());
+            return builder.build();
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(value1);
+            final HashCodeBuilder builder = new HashCodeBuilder();
+            builder.append(value1);
+            return builder.build();
         }
 
         @NonNull
         @Override
         public String toString() {
-            return MoreObjects.toStringHelper("DefaultMode")
-                    .add("value1", value1)
-                    .toString();
+            final ToStringBuilder builder = new ToStringBuilder(this);
+            builder.append("value1", value1);
+            return builder.toString();
         }
 
         @Override

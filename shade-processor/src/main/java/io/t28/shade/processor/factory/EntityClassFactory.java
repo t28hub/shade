@@ -19,8 +19,6 @@ import android.annotation.SuppressLint;
 import android.support.annotation.NonNull;
 
 import com.google.common.base.CaseFormat;
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -39,11 +37,13 @@ import javax.inject.Named;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.type.TypeMirror;
 
+import io.t28.shade.internal.EqualsBuilder;
+import io.t28.shade.internal.HashCodeBuilder;
+import io.t28.shade.internal.ToStringBuilder;
 import io.t28.shade.processor.metadata.PreferenceClassMetadata;
 import io.t28.shade.processor.metadata.PropertyMethodMetadata;
 import io.t28.shade.processor.util.CodeBlocks;
 
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
 @SuppressLint("NewApi")
@@ -166,14 +166,12 @@ public class EntityClassFactory extends TypeFactory {
                 .addModifiers(Modifier.PUBLIC)
                 .returns(String.class);
 
-        final CodeBlock.Builder statementBuilder = CodeBlock.builder();
-        statementBuilder.add("return $T.toStringHelper($S)\n", MoreObjects.class, entityClass.simpleName());
-        preference.getPropertyMethods().forEach(property -> {
+        builder.addStatement("final $1T builder = new $1T(this)", ToStringBuilder.class);
+        properties.forEach(property -> {
             final String fieldName = property.getSimpleNameWithoutPrefix(CaseFormat.LOWER_CAMEL);
-            statementBuilder.add(".add($S, $L)\n", fieldName, fieldName);
+            builder.addStatement("builder.append($1S, $1L)", fieldName);
         });
-        statementBuilder.add(".toString()");
-        builder.addStatement("$L", statementBuilder.build());
+        builder.addStatement("return builder.toString()");
         return builder.build();
     }
 
@@ -194,22 +192,13 @@ public class EntityClassFactory extends TypeFactory {
 
         builder.addStatement("final $T that = ($T) object", entityClass, entityClass);
 
-        final CodeBlock.Builder statementBuilder = CodeBlock.builder();
+        builder.addStatement("final $1T builder = new $1T()", EqualsBuilder.class);
         properties.forEach(property -> {
             final String fieldName = property.getSimpleNameWithoutPrefix(CaseFormat.LOWER_CAMEL);
             final String methodName = property.getSimpleName();
-            final TypeName valueType = property.getReturnTypeName();
-            if (valueType.isPrimitive()) {
-                statementBuilder.add("$L == that.$L()", fieldName, methodName);
-            } else {
-                statementBuilder.add("$T.equal($L, that.$L())", Objects.class, fieldName, methodName);
-            }
-
-            if (properties.size() - 1 != properties.indexOf(property)) {
-                statementBuilder.add(" &&\n");
-            }
+            builder.addStatement("builder.append($L, that.$L())", fieldName, methodName);
         });
-        builder.addStatement("return $L", statementBuilder.build());
+        builder.addStatement("return builder.build()");
         return builder.build();
     }
 
@@ -219,10 +208,12 @@ public class EntityClassFactory extends TypeFactory {
                 .addModifiers(Modifier.PUBLIC)
                 .returns(int.class);
 
-        final String arguments = properties.stream()
-                .map(property -> property.getSimpleNameWithoutPrefix(CaseFormat.LOWER_CAMEL))
-                .collect(joining(", "));
-        builder.addStatement("return $T.hashCode($L)", Objects.class, arguments);
+        builder.addStatement("final $1T builder = new $1T()", HashCodeBuilder.class);
+        properties.forEach(property -> {
+            final String fieldName = property.getSimpleNameWithoutPrefix(CaseFormat.LOWER_CAMEL);
+            builder.addStatement("builder.append($L)", fieldName);
+        });
+        builder.addStatement("return builder.build()");
         return builder.build();
     }
 

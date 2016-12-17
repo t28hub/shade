@@ -16,12 +16,12 @@
 package io.t28.shade.processor.util;
 
 import com.google.auto.common.MoreTypes;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.squareup.javapoet.CodeBlock;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,15 +42,15 @@ public class CodeBlocks {
         }
 
         if (MoreTypes.isTypeOf(List.class, type)) {
-            return CodeBlock.of("$T.copyOf($N)", ImmutableList.class, variable);
+            return CodeBlock.of("new $T<>($N)", ArrayList.class, variable);
         }
 
         if (MoreTypes.isTypeOf(Set.class, type)) {
-            return CodeBlock.of("$T.copyOf($N)", ImmutableSet.class, variable);
+            return CodeBlock.of("new $T<>($N)", HashSet.class, variable);
         }
 
         if (MoreTypes.isTypeOf(Map.class, type)) {
-            return CodeBlock.of("$T.copyOf($N)", ImmutableMap.class, variable);
+            return CodeBlock.of("new $T<>($N)", HashMap.class, variable);
         }
         return CodeBlock.of("$N", variable);
     }

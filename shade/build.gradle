@@ -28,8 +28,6 @@ android {
 dependencies {
     compile dependency.supportAnnotations
 
-    compile dependency.guava
-
     testCompile dependency.junit
     testCompile dependency.robolectric
     testCompile dependency.assertjCore1
