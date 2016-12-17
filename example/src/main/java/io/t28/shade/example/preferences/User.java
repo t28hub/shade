@@ -40,11 +40,11 @@ public abstract class User {
     @Property(key = "user_type", converter = UserTypeConverter.class)
     public abstract Type type();
 
-    @Property(key = "user_created", converter = DateConverter.class)
-    public abstract Date created();
+    @Property(key = "user_updated", converter = DateConverter.class)
+    public abstract Date updated();
 
-    @Property(key = "is_private", defValue = "false")
-    public abstract boolean isPrivateUser();
+    @Property(key = "is_locked", defValue = "false")
+    public abstract boolean isLocked();
 
     public enum Type {
         ADMIN,

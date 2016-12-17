@@ -17,6 +17,7 @@ package io.t28.shade.example.preferences.converter;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 
 import io.t28.shade.converter.Converter;
 import io.t28.shade.example.preferences.User;
@@ -25,7 +26,7 @@ public class UserTypeConverter implements Converter<User.Type, String> {
     @NonNull
     @Override
     public User.Type toConverted(@Nullable String name) {
-        if (name == null) {
+        if (TextUtils.isEmpty(name)) {
             return User.Type.GUEST;
         }
         return User.Type.valueOf(name);

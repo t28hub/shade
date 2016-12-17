@@ -27,6 +27,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    dataBinding {
+        enabled = true
+    }
 }
 
 dependencies {
@@ -37,6 +41,7 @@ dependencies {
     // Support libraries
     compile dependency.appcompat
     compile dependency.supportAnnotations
+    compile dependency.recyclerView
 
     testCompile dependency.junit
 }

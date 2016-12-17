@@ -1,3 +1,9 @@
 <resources>
-    <string name="app_name">ShadeExample</string>
+    <string name="app_name">Shade</string>
+    <string name="item_user_id">ID</string>
+    <string name="item_user_name">Name</string>
+    <string name="item_user_type">Type</string>
+    <string name="item_user_tags">Tags</string>
+    <string name="item_user_locked">Locked</string>
+    <string name="item_user_updated">Updated</string>
 </resources>
