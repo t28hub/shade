@@ -41,3 +41,9 @@ deployment:
     branch: master
     commands:
       - ./gradlew assembleRelease
+  release:
+    tag: /^v[0-9]+\.[0-9]+\.[0-9].*$/
+    commands:
+      - ./gradlew assembleRelease
+      - ./gradlew :shade:generatePomFileForReleasePublication :shade:bintrayUpload -PbintrayUser=${BINTRAY_USER} -PbintrayKey=${BINTRAY_KEY} -PdryRun=false
+      - ./gradlew :shade-processor:generatePomFileForMavenPublication :shade-processor:bintrayUpload -PbintrayUser=${BINTRAY_USER} -PbintrayKey=${BINTRAY_KEY} -PdryRun=false
