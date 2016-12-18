@@ -20,7 +20,7 @@ task clean(type: Delete) {
 
 ext {
     def majorVersion = 0
-    def minorVersion = 1
+    def minorVersion = 9
     def patchVersion = 0
     versionCode = majorVersion * 10000 + minorVersion * 100 + patchVersion
     versionName = "${majorVersion}.${minorVersion}.${patchVersion}"
