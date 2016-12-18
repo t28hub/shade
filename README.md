@@ -40,11 +40,17 @@ public abstract class User {
 ```
 Shade will generate a `UserPreferences` and you can use it such as below.
 ```java
+// Instantiate UserPreferences
 final UserPreferences preferences = User.getPreferences(context);
-final User user = preferences.get();
-final String name = preferences.getName();
-final int age = preferences.getAge();
 
+// Get preference values as a model
+final User user = preferences.get(); // User{name=guest,age=18}
+
+// Get a specific preference value
+final String name = preferences.getName();  // guest
+final int age = preferences.getAge();       // 18
+
+// Edit preference values
 preferences.edit()
         .putName("t28")
         .removeAge()
@@ -55,8 +61,8 @@ preferences.edit()
 ## Installation
 ```
 dependencies {
-    compile 'io.t28:shade:0.1.0'
-    annotationProcessor 'io.t28:shade-processor:0.1.0'
+    compile 'io.t28:shade:0.9.0'
+    annotationProcessor 'io.t28:shade-processor:0.9.0'
 }
 ```
 
