@@ -15,36 +15,68 @@
  */
 package io.t28.shade.example;
 
+import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
+import android.support.v7.widget.LinearLayoutManager;
+import android.text.TextUtils;
 
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import io.t28.shade.example.databinding.ActivityMainBinding;
+import io.t28.shade.example.model.Setting;
 import io.t28.shade.example.preferences.User;
 import io.t28.shade.example.preferences.UserPreferences;
+import io.t28.shade.example.widget.SettingAdapter;
 
 public class MainActivity extends AppCompatActivity {
-    private static final String TAG = MainActivity.class.getSimpleName();
-
+    private SettingAdapter adapter;
+    private ActivityMainBinding binding;
     private UserPreferences preferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
+        adapter = new SettingAdapter();
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+        binding.mainActivity.setLayoutManager(new LinearLayoutManager(this));
+        binding.mainActivity.setAdapter(adapter);
         preferences = User.getPreferences(this);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        final User oldUser = preferences.get();
-        Log.d(TAG, oldUser.toString());
+        final Set<String> tags = new HashSet<>();
+        tags.add("Java");
+        tags.add("Android");
         preferences.edit()
-                .putName("new name")
+                .putId(1024)
+                .putName("t28")
                 .putType(User.Type.ADMIN)
+                .putTags(tags)
+                .putLocked(true)
+                .putUpdated(new Date())
                 .apply();
-        final User newUser = preferences.get();
-        Log.d(TAG, newUser.toString());
+        final User user = preferences.get();
+        final List<Setting> settings = Arrays.asList(
+                new Setting(R.string.item_user_id, String.valueOf(user.id())),
+                new Setting(R.string.item_user_name, user.name()),
+                new Setting(R.string.item_user_type, user.type().name()),
+                new Setting(R.string.item_user_tags, TextUtils.join(", ", user.tags())),
+                new Setting(R.string.item_user_locked, String.valueOf(user.isLocked())),
+                new Setting(R.string.item_user_updated, user.updated().toString())
+        );
+        adapter.setSettings(settings);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        binding.unbind();
     }
 }
