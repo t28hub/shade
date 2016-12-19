@@ -2,8 +2,8 @@
 [![CircleCI](https://circleci.com/gh/t28hub/shade/tree/master.svg?style=shield&circle-token=25f82fe2b019fde78e4cd770177fe7108d8fe53e)](https://circleci.com/gh/t28hub/shade/tree/master)
 [![Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/t28hub/shade/blob/feature-updating-readme/LICENSE)
 [![Download](https://api.bintray.com/packages/t28/maven/shade/images/download.svg)](https://bintray.com/t28/maven/shade/_latestVersion)
-[![Codacy Grade](https://api.codacy.com/project/badge/Grade/b4aad6ede42c43678389cb7a915dd1a7)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=t28hub/shade&amp;utm_campaign=Badge_Grade)
-[![Codacy Coverage](https://api.codacy.com/project/badge/Coverage/b4aad6ede42c43678389cb7a915dd1a7)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=t28hub/shade&amp;utm_campaign=Badge_Coverage)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/3c7ef2214080460cbc33390143422e5d)](https://www.codacy.com/app/t28/shade?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=t28hub/shade&amp;utm_campaign=badger)
+[![Codacy Coverage](https://api.codacy.com/project/badge/Coverage/3c7ef2214080460cbc33390143422e5d)](https://www.codacy.com/app/t28/shade?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=t28hub/shade&amp;utm_campaign=badger)
 
 ![Shade](logo.png)  
 Shade is a library makes SharedPreferences operation easy.
