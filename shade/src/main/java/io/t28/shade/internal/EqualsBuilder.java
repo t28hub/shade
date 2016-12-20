@@ -77,7 +77,15 @@ public class EqualsBuilder {
 
     @NonNull
     public EqualsBuilder append(@Nullable Object value1, @Nullable Object value2) {
-        isEquals &= (value1 == value2) || (value1 != null && value1.equals(value2));
+        if (value1 == null) {
+            if (value2 == null) {
+                isEquals &= true;
+            } else {
+                isEquals &= false;
+            }
+            return this;
+        }
+        isEquals &= value1.equals(value2);
         return this;
     }
 
