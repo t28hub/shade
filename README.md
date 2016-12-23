@@ -90,6 +90,7 @@ public interface class User {
 }
 ```
 Shade generates 3 classes.
+
 1. `UserPreferences`
 1. `UserPreferences.Editor`
 1. `UserPreferences.UserImpl`
@@ -194,8 +195,20 @@ public abstract class Example {
 }
 ```
 
+The following default values are used if `defValue` is not specified.
+
+|Type | Default value |
+|:---|:---|
+| `boolean` | `false` |
+| `float` | `0.0f` |
+| `int` | `0` |
+| `long` | `0L` |
+| `String` | `""` |
+| `Set<String>` | `Collections.emptySet()` |
+
 ## Converter
 `SharedPreferences` allows to store only 6 types as below.
+
 1. `boolean`
 1. `float`
 1. `int`
@@ -204,43 +217,44 @@ public abstract class Example {
 1. `Set<String>`
 
 `Converter` allows you to store unsupported types to `SharedPreferences`.
-You need to implement a converter which converts `java.util.Date` to `java.lang.Long`, if you would like to use `java.util.Date`.
+You need to implement a converter which converts `java.lang.Double` to `java.lang.Long`, if you would like to use `java.lang.Double`.
 Here is an example implementation.
 ```java
-public class DateConverter implements Converter<Date, Long> {
-    private static final long DEFAULT_TIMESTAMP = 0;
+public class DoubleConverter implements Converter<Double, Long> {
+    private static final double DEFAULT_VALUE = 0.0d;
 
     @NonNull
     @Override
-    public Date toConverted(@Nullable Long supported) {
+    public Double toConverted(@Nullable Long supported) {
         if (supported == null) {
-            return new Date();
+            return DEFAULT_VALUE;
         }
-        return new Date(supported);
+        return Double.longBitsToDouble(supported);
     }
 
     @NonNull
     @Override
-    public Long toSupported(@Nullable Date converted) {
+    public Long toSupported(@Nullable Double converted) {
         if (converted == null) {
-            return DEFAULT_TIMESTAMP;
+            return Double.doubleToLongBits(DEFAULT_VALUE);
         }
-        return converted.getTime();
+        return Double.doubleToLongBits(converted);
     }
 }
 ```
+Converter class should provide a default constructor.  
 `toConverted` should convert supported value to converted value and `toSupported` should convert converted value to supported value.
-You need to specify the `DateConverter` to the `@Property` such as below.
+You need to specify the `DoubleConverter` to the `@Property` such as below.
 ```java
 @Preferences
 public abstract class Example {
-    @Property(key = "updated", converter = DateConverter.class)
+    @Property(key = "updated", converter = DoubleConverter.class)
     public abstract Date updated();
 }
 ```
 
 ## Troubleshooting
-Feel free to ask me if there is any question.
+Feel free to ask me if there is any troubles.
 
 ## License
 ```
