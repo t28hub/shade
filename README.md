@@ -12,51 +12,127 @@ Shade is a library makes SharedPreferences operation easy.
 - [Background](#background)
 - [Example](#example)
 - [Installation](#installation)
+- [Annotations](#annotations)
+- [Converter](#converter)
+- [Troubleshooting](#troubleshooting)
 - [License](#license)
 
 ## Background
-There might be a lot of boilerplate code for SharedPreferences operation in your android application.  
-Generally speaking, the code needs to be tested and reviewed if it is written manually.  
-However, the code does not need to be tested and reviewed if it is generated automatically.  
-Shade generates a lot of boilerplate code for SharedPreferences operation automatically using annotation processing and not reflection.  
-Therefore it has potential to make your android application development safe and efficient.  
+There might be a lot of boilerplate codes related to SharedPreferences operation in your Android application such as below.
+Writing boilerplate codes is boring stuff and a waste of time.
+In addition, it is necessary to review and test the bored codes.
+Shade can solve the problem.
+Shade generates codes related to `SharedPreferences` operation automatically once you only defines an interface or an abstract class.
+Generated codes run safe and fast because Shade does not use the Reflection.
 
 ## Example
-If you want to store user name and age to a SharedPreferences named `io.t28.shade.example`, you only need to define a following class.
+As you can see below, shade reduces a lot of boilerplate codes.
+In this example, user name and user age are stored into the `SharedPreferences`.
+
+### Before
+Here is an example implementation before using Shade.
 ```java
-@Preferences(name = "io.t28.shade.example")
-public abstract class User {
-    @Property(name = "user_name", defValue = "guest")
-    String name();
+public class UserUtils {
+    private static final String PREF_NAME = "io.t28.example.user";
+    private static final String PREF_USER_NAME = "user_name";
+    private static final String PREF_USER_NAME = "user_age";
+    private static final String DEFAULT_USER_NAME = "guest";
+    private static final int DEFAULT_USER_AGE = 20;
 
-    @Property(name = "user_age", defValue = "18")
-    int age();
+    public static boolean hasName(Context context) {
+        return getSharedPreferences(context).contains(PREF_USER_NAME);
+    }
 
-    @NonNull
-    public static UserPreferences getPreferences(@NonNull Context context) {
-        return new UserPreferences(context);
+    public static String getName(Context context) {
+        return getSharedPreferences(context).getString(PREF_USER_NAME, DEFAULT_USER_NAME);
+    }
+
+    public static void putName(Context context, String value) {
+       getSharedPreferences(context).edit().putString(PREF_USER_NAME, value).apply();
+    }
+
+    public static void removeName(Context context) {
+        return getSharedPreferences(context).edit().remove(USER_NAME).apply();
+    }
+
+    public static boolean hasAge(Context context) {
+        return getSharedPreferences(context).contains(PREF_USER_AGE);
+    }
+
+    public static int getAge(Context context) {
+        return getSharedPreferences(context).getInt(PREF_USER_AGE, DEFAULT_USER_AGE);
+    }
+
+    public static void putAge(Context context, int value) {
+        return getSharedPreferences(context).edit().putInt(PREF_USER_AGE, value).apply();
+    }
+
+    public static void removeAge(Context context) {
+        return getSharedPreferences(context).edit().remove(PREF_USER_AGE).apply();
+    }
+
+    public static SharedPreferences getSharedPreferences(Context context) {
+        return context.getSharedPreferences(PREF_NAME, Cotnext.MODE_PRIVATE);
     }
 }
 ```
-Shade will generate a `UserPreferences` and you can use it such as below.
+
+### After
+Here is an example implementation after using Shade.
 ```java
-// Instantiate UserPreferences
-final UserPreferences preferences = User.getPreferences(context);
+@Preferences("io.t28.example.user")
+public interface class User {
+    @Property(key = "user_name", defValue = "guest")
+    String name();
 
-// Get preference values as a model
-final User user = preferences.get(); // User{name=guest,age=18}
+    @Property(key = "user_age", defValue = "20")
+    int age();
+}
+```
+Shade generates 3 classes.
+1. `UserPreferences`
+1. `UserPreferences.Editor`
+1. `UserPreferences.UserImpl`
 
-// Get a specific preference value
-final String name = preferences.getName();  // guest
-final int age = preferences.getAge();       // 18
+You can use the generated classes as below.
+```java
+// Instantiate the UserPreferences
+UserPreferences preferences = new UserPreferences(context);
 
-// Edit preference values
+// Get preferences as a model
+User user = preference.get(); // UserImpl{name=guest, age=20}
+
+// Check whether a specific preference is contained
+preferences.containsName(); // false
+preferences.containsAge();  // false
+
+// Get a specific preference
+String name = preferences.getName(); // guest
+int age = preferences.getAge(); // 20
+
+// Put a specific preference
 preferences.edit()
-        .putName("t28")
+        .putName("My name")
+        .putAge(30)
+        .apply();
+
+// Put a model
+User newUser = new UserPreferences.UserImpl("My name", 30);
+preferences.edit()
+        .put(newUser)
+        .apply();
+
+// Remove a specific preference
+preferences.edit()
+        .removeName()
         .removeAge()
         .apply();
-```
 
+// Clear all preferences
+preferences.edit()
+        .clear()
+        .apply();
+```
 
 ## Installation
 ```
@@ -65,6 +141,106 @@ dependencies {
     annotationProcessor 'io.t28:shade-processor:0.9.0'
 }
 ```
+
+## Annotations
+Shade provides only 2 annotations. One is `@Preferences` and the other is `@Property`.
+
+### `@Preferences`
+`@Preferences` can be used to declare `SharedPreferences` model, and it can be annotated for an abstract class or an interface.
+
+| Parameter | Type | Default Value | Description |
+|:---|:---|:---|:---|:---|
+| value | `String` | `""` | Alias for name which allows to ignore `name=` part |
+| name | `String` | `""` | The name of SharedPreferences |
+| mode | `int` | `Context.MODE_PRIVATE` | The operating mode of SharedPreferences |
+
+* Generated preference class uses the default SharedPreferences if you do not specify `value` and `name`.
+* A value specified with `value` is used by generated preference class if both `value` and `name` is specified.
+* Although you can specify the following values as a mode, Android official document suggest to use `Context.MODE_PRIVATE` if there is no any special reasons.
+ * [Context.MODE_PRIVATE](https://developer.android.com/reference/android/content/Context.html#MODE_PRIVATE)
+ * [Context.MODE_WORLD_READABLE](https://developer.android.com/reference/android/content/Context.html#MODE_WORLD_READABLE)
+ * [Context.MODE_WORLD_WRITEABLE](https://developer.android.com/reference/android/content/Context.html#MODE_WORLD_WRITEABLE)
+ * [Context.MODE_MULTI_PROCESS](https://developer.android.com/reference/android/content/Context.html#MODE_MULTI_PROCESS)
+
+Here is the example which uses `io.t28.shade.example` as a name and `Context.MODE_PRIVATE` as a mode.
+```java
+@Preferences(name = "io.t28.shade.example", mode = Context.MODE_PRIVATE)
+public abstract class Example {
+}
+```
+
+### `@Property`
+`@Property` can be used to declare `SharedPreferences` key, and it can be annotated for an abstract method.
+
+| Parameter | Type | Default Value | Description |
+|:---|:---|:---|:---|:---|
+| value | `String` | `""` | Alias for name which allows to ignore `key=` part |
+| key | `String` | `""` | The key of the preference value |
+| defValue | `String` | `""` | The default value for the key |
+| converter | `Class<? extends Converter>` | `Converter.class` | The converter that converts any value to supported value |
+
+* Either `value` or `key` must be specified.
+* `defValue` will be parsed as a type of return type.
+* For example, `defValue` will be parsed as `boolean` if a method annotated with `@Property` returns boolean value.
+* Converter is useful for you if you need to store unsupported type to the `SharedPreferences`.
+* The details of the Converter is mentioned in the below section.
+
+Here is the example which used `count` as a key and `1` as a default value.
+```java
+@Preferences
+public abstract class Example {
+    @Property(key = "count", defValue = "1")
+    public abstract int count();
+}
+```
+
+## Converter
+`SharedPreferences` allows to store only 6 types as below.
+1. `boolean`
+1. `float`
+1. `int`
+1. `long`
+1. `String`
+1. `Set<String>`
+
+`Converter` allows you to store unsupported types to `SharedPreferences`.
+You need to implement a converter which converts `java.util.Date` to `java.lang.Long`, if you would like to use `java.util.Date`.
+Here is an example implementation.
+```java
+public class DateConverter implements Converter<Date, Long> {
+    private static final long DEFAULT_TIMESTAMP = 0;
+
+    @NonNull
+    @Override
+    public Date toConverted(@Nullable Long supported) {
+        if (supported == null) {
+            return new Date();
+        }
+        return new Date(supported);
+    }
+
+    @NonNull
+    @Override
+    public Long toSupported(@Nullable Date converted) {
+        if (converted == null) {
+            return DEFAULT_TIMESTAMP;
+        }
+        return converted.getTime();
+    }
+}
+```
+`toConverted` should convert supported value to converted value and `toSupported` should convert converted value to supported value.
+You need to specify the `DateConverter` to the `@Property` such as below.
+```java
+@Preferences
+public abstract class Example {
+    @Property(key = "updated", converter = DateConverter.class)
+    public abstract Date updated();
+}
+```
+
+## Troubleshooting
+Feel free to ask me if there is any question.
 
 ## License
 ```
