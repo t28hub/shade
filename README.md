@@ -1,4 +1,6 @@
 # Shade
+
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/3c7ef2214080460cbc33390143422e5d)](https://www.codacy.com/app/t28/shade?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=t28hub/shade&amp;utm_campaign=badger)
 [![CircleCI](https://circleci.com/gh/t28hub/shade/tree/master.svg?style=shield&circle-token=25f82fe2b019fde78e4cd770177fe7108d8fe53e)](https://circleci.com/gh/t28hub/shade/tree/master)
 [![Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/t28hub/shade/blob/feature-updating-readme/LICENSE)
 [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-Shade-green.svg?style=true)](https://android-arsenal.com/details/1/4958)
